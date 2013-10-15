@@ -20,7 +20,7 @@ runner = factory.createRunner(args.tool)
 
 runner.handleInput(args.args)
 
-runner.run()
+runner.execute()
 
 #runner.writeOutput()
 

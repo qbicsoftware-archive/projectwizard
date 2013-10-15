@@ -1,19 +1,22 @@
 import workflow_config
 
-import os
+import os, subprocess
 
 
 class WorkflowRunnerFactory:
 	factories ={}
 	def addFactory(self,id, runnerFactory):
 		WorkflowRunnerFactory.factories[id] = runnerFactory
-	addFactor = staticmethod(addFactory)
+		addFactor = staticmethod(addFactory)
 	#A template method:
 	def createRunner(idList):
 		id =''
-		for i in idList:
-			id += i
-			id += ' '
+		if(isinstance(idList,str)):
+		id = idList
+		else:
+			for i in idList:
+				id += i
+				id += ' '
 		id = id.strip()
 		#iif not WorkflowRunnerFactory.factories.has_key(id):
 		#	WorkflowRunnerFactory.factories[id] = \
@@ -24,6 +27,7 @@ class WorkflowRunnerFactory:
 	def addAllAvailableFactories():
 		WorkflowRunnerFactory().addFactory('bwa aln', BwaAln.Factory('bwa aln'))
 		WorkflowRunnerFactory().addFactory('bwa sampe', BwaSampe.Factory('bwa sampe'))
+		WorkflowRunnerFactory().addFactory('sam-to-bam',SamToBamConverter.Factory('sam-to-bam'))
 	addAllAvailableFactories = staticmethod(addAllAvailableFactories)	
 	
 
@@ -37,6 +41,8 @@ class Runner(object):
 		self.hasReferenceGenome = False
 		self.program = program
 		self.tool = tool
+		self.outputFileParameter = '-o'
+		self.inputFileParameter = '-i'
 	def inputFile(self):
 		try:
 			print 'Reading input files'
@@ -83,22 +89,26 @@ class Runner(object):
 			self.outputFileName = workflow_config.result_folder + output_file_name
 		else:
 			self.outputFileName = workflow_config.result_folder + '/' + output_file_name
-			
-	def run(self):
-		commands = []
-		commands.append(self.program)
-		commands.append(' ')
-		commands.append(self.parameters)
-		commands.append(self.additionalParameters)
-		commands.extend(self.input)
-		commands.append(' -f ')
-		commands.append(self.outputFileName)
-		print "commands ***************************************"
-		print commands
-		cmd_line = ' '.join(commands)
-		print "command line \n"
-		print(cmd_line)
-		exit_code = os.system(cmd_line)
+	def buildCommand(self):
+		return "%s %s %s %s %s %s" % (self.program, self.parameters, self.additionalParameters,self.input, self.outputFileParameters, self.outputFileName)			
+	def execute(self):
+		cmd_line = buildCommand()
+		print cmd_line
+		exit_code = subprocess.call(cmd_line)
+		#commands = []
+		#commands.append(self.program)
+		#commands.append(' ')
+		#commands.append(self.parameters)
+		#commands.append(self.additionalParameters)
+		#commands.extend(self.input)
+		#commands.append(' ' + self.outputFileParameter + ' ')
+		#commands.append(self.outputFileName)
+		#print "commands ***************************************"
+		#print commands
+		#cmd_line = ' '.join(commands)
+		#print "command line \n"
+		#print(cmd_line)
+		#exit_code = os.system(cmd_line)
 		if exit_code != 0:
 			sys.stderr.write(" exited with status "+ str(exit_code) +"\n")
 		else:
@@ -115,7 +125,7 @@ class BwaAln(Runner):
 	def __init__(self,program,tool):
 		Runner.__init__(self,program,tool)
 		self.hasReferenceGenome = True
-		
+		self.outputFileParameter = '-f'
 
 	def createOutputFileName(self):
 		print "inside createOutputFileName"
@@ -131,6 +141,7 @@ class BwaSampe(Runner):
 	def __init__(self,program,tool):
 		Runner.__init__(self,program,tool)
 		self.hasReferenceGenome = True
+		self.outputFileParameter = '-f'
 	
 	def createOutputFileName(self):
 		if(self.input):
@@ -144,9 +155,13 @@ class BwaSampe(Runner):
 class SamToBamConverter(Runner):
 	def __init__(self,program,tool):
 		Runner.__init__(self,program,tool)
+		
+	def createOutputFileName():
+		
+	class Factory(IFactory):
+		def create(self): return SamToBamConverter(self.program, self.tool)	
+
 
 class DSS_Client(Runner):
 	def __init__(self,program,tool):
 		Runner.__init__(self,program,tool)
-	run(self):
-		
