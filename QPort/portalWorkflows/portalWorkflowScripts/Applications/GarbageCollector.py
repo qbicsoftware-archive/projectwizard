@@ -6,35 +6,35 @@ saveCmd = 'mv '
 deleteCmd = 'rm -rf '
 prefix = 'QBIC.-'
 dropbox = os.environ["DROPBOX"]
+resultsFolder = 'results/'
 if len(sys.argv) != 2 :
-	sys.stderr.write("usage: ./GarbageCollector.py <input file> \n\n")
+	sys.stderr.write("usage: ./GarbageCollector.py <input file> \n Warning: Do not use this script in a root directory!\n\n")
 	sys.exit(1)
 
+#It is assumed, that the file comes directly from the initiator node
+path =''
+try:
+	print 'Reading input files'
+	with open(sys.argv[1], 'r') as f:
+	 	path = f.readline()
+except IOError as e:
+	sys.stderr.write('No input file found\n')
 
-for line in open(sys.argv[1], "r"):
-	print(line)
-	cmd = ''.join((deleteCmd,line)) #cmdLine + splittedLine
-	print cmd
-	exit_code = os.system(cmd)
-	if exit_code != 0:
-		sys.stderr.write(cmd + " exited with status: " + str(exit_code) + "\n")
-	else:
-		print "Clean up successful"
+if (not os.path.exists(path)):
+	sys.stderr.write('working temp director %s does not exist' % (path))
+	sys.exit(-1)
 
-for line in open(sys.argv[2], 'r'):
-	print(line)
-	line_strip = line.strip()
-	cmd = ''.join((saveCmd,line_strip))
-	path, file = os.path.split(line_strip)
-	fileName = ''.join((dropbox,'/',prefix,file))
+#write result to dropbox
+resultsFolder = "%s/%s"% (path,resultsFolder)  
+
+for f in os.listdir(resultsFolder):
 	try:
-		shutil.copyfile(line_strip,fileName)
-	raise IOError as e:
+		destination = '%s/%s' % (dropbox,f)
+		source = '%s/%s' % (resultsFolder,f)
+		if(os.path.isdir(source)):
+			shutil.copytree(source,destination)
+		else:
+			shutil.copyfile(source,destination)
+	except IOError as e:
 		print "something is definitely going wrong"
-	#cmd = ''.join((cmd,' ',fileName))
-	print cmd
-	exit_code = os.system(cmd)
-	if exit_code != 0:
-		sys.stderr.write(cmd + " exited with status: " + str(exit_code) + "\n")
-	else:
-		print "successfully transfered to dropbox" 
+shutil.rmtree(path)
