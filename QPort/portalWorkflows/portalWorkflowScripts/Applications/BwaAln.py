@@ -13,6 +13,6 @@ class BwaAln(Bwa):
 		if(len(self.input) != 0):
 			path,file_name = os.path.split(self.input[0])
 			output_file_name = file_name.rstrip() +".sai"
-			self.createOutputFilePath(output_file_name)
+			self.createOutputFilePath(path,output_file_name)
 	class Factory(IFactory):
 		def create(self): return BwaAln(self.program,self.tool)

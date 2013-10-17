@@ -10,3 +10,4 @@ class IWrapper(object):
 	def writeOutputInformation(self): pass
 	def writeGarbageInformation(self): pass
 	def setLogger(self, logger): pass 
+	def saveResults(self,results): pass

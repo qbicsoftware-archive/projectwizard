@@ -12,7 +12,7 @@ class OMSSAAdapter(Bwa):
 		if(len(self.input) != 0):
 			path,file_name = os.path.split(self.input)
 			output_file_name = file_name.rstrip() +".idXML"
-			self.createOutputFilePath(output_file_name)
+			self.createOutputFilePath(path,output_file_name)
 	def setInput(self):
 		try:
 			print 'Reading input files'

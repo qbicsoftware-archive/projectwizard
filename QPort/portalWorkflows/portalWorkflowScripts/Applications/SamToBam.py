@@ -14,7 +14,7 @@ class SamToBam(Bwa):
 		if(len(self.input) != 0):
 			path,file_name = os.path.split(self.input)
 			output_file_name = file_name.rstrip() + ".sorted"
-			self.createOutputFilePath(output_file_name)
+			self.createOutputFilePath(path,output_file_name)
 	def setInput(self):
 		try:
 			print 'Reading input files'

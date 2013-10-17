@@ -10,7 +10,9 @@ class BamIndexer(Bwa):
 		print "inside createOutputFileName"
 		print self.input
 		if(len(self.input) != 0):
-			self.outputFileName = self.input.rstrip() + ".bai"
+			path,file_name = os.path.split(self.input)
+			file_name = file_name.rstrip() + '.bai'
+			self.outputFileName = self.createOutputFilePath(path,file_name)
 	def setInput(self):
 		try:
 			print 'Reading input files'

@@ -4,6 +4,7 @@ from Applications.BwaAln   import BwaAln
 from Applications.BwaSampe import BwaSampe
 from Applications.SamToBam import SamToBam
 from Applications.BamIndexer import BamIndexer
+from Applications.SamtoolsMappingStatistics import SamtoolsMappingStatistics
 class ApplicationFactory:
 	factories ={}
 	def addFactory(id, runnerFactory):
@@ -30,4 +31,5 @@ class ApplicationFactory:
 		ApplicationFactory().addFactory('bwa sampe', BwaSampe.Factory('bwa sampe'))
 		ApplicationFactory().addFactory('sam-to-bam',SamToBam.Factory('sam-to-bam'))
 		ApplicationFactory().addFactory('samtools index', BamIndexer.Factory('samtools index'))
+		ApplicationFactory().addFactory('mapping statistics', SamtoolsMappingStatistics.Factory('mapping statistics'))
 	addAllAvailableFactories = staticmethod(addAllAvailableFactories)	

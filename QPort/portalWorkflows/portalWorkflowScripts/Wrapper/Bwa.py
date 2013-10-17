@@ -12,6 +12,7 @@ class Bwa(IWrapper):
 		self.tool = tool
 		self.outputFileParameter = '-o'
 		self.inputFileParameter = ''
+		self.resultFolder = ''
 	def setInput(self):
 		try:
 			print 'Reading input files'
@@ -52,12 +53,12 @@ class Bwa(IWrapper):
 		self.setParameters()
 		self.createOutputFileName()
 		
-	def createOutputFilePath(self,output_file_name):
+	def createOutputFilePath(self,path, output_file_name):
 		print "inside createOutputFilePath"
-		if(workflow_config.result_folder.endswith('/')):
-			self.outputFileName = workflow_config.result_folder + output_file_name
+		if(path.endswith('/')):
+			self.outputFileName = path + self.resultFolder +  output_file_name
 		else:
-			self.outputFileName = workflow_config.result_folder + '/' + output_file_name
+			self.outputFileName = path + '/' + self.resultFolder +  output_file_name
 	def buildCommand(self):
 		tmp = "%s %s %s %s %s %s %s" % (self.program, self.parameters, self.additionalParameters,self.inputFileParameter,' '.join(self.input), self.outputFileParameter, self.outputFileName)			
 		return shlex.split(tmp)
@@ -89,3 +90,6 @@ class Bwa(IWrapper):
 					output.write(''.join([self.outputFileName,'\n']))
 		except IOError as e:
 			print 'Unable to write output information'
+	def saveResults(self, saveresult):
+		if(saveresult):
+			self.resultFolder = 'results/'
