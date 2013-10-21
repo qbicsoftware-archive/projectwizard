@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import sys
 #sys.path.append('/home/guseuser/workflows/portalWorkflows/portalWorkflowScripts/Applications/')
 #sys.path.append('/home/guseuser/workflows/portalWorkflows/portalWorkflowScripts/Factory/')

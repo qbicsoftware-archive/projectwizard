@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import sys, os
 from Utils.workflow_config import workflow_config
 OUTPUT = workflow_config.workflow_output
