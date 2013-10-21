@@ -1,15 +1,4 @@
-#class Initiator:
-#	def __init__(self, program, tool):
-#		self.program = program
-#		self.tool = tool	
-#	
-#	def handleInput(args):
-#		
-#	
-#	def execute(self):
-#		
 #!/usr/bin/env python
-
 
 import sys, os
 tmpFolder = os.environ["TMP"] 
