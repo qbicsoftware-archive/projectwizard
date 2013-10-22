@@ -13,6 +13,7 @@ class Bwa(IWrapper):
 		self.outputFileParameter = '-o'
 		self.inputFileParameter = ''
 		self.resultFolder = ''
+		self.workingDirectory = workflow_config.tmp_folder
 	def setInput(self):
 		try:
 			print 'Reading input files'
@@ -34,12 +35,14 @@ class Bwa(IWrapper):
 				splittedLine = line.split('=');
 				print "We are in parameterFile"
 				print splittedLine
-				print self.hasReferenceGenome
-				print splittedLine[0] == workflow_config.ref_genome
-				print (self.hasReferenceGenome and splittedLine[0] == workflow_config.ref_genome)
+				#print self.hasReferenceGenome
+				#print splittedLine[0] == workflow_config.ref_genome
+				#print (self.hasReferenceGenome and splittedLine[0] == workflow_config.ref_genome)
 				if(splittedLine[0] == self.tool or (self.hasReferenceGenome and splittedLine[0] == workflow_config.ref_genome)):
 					self.parameters += splittedLine[1].rstrip()
 					self.parameters += ' '
+				if(splittedLine[0] == workflow_config.working_directory):
+					self.working_directory = splittedLine[1].rstrip()
 		except IOError as e:
 			sys.stderr.write('Parameter List not found\n')
 	def createOutputFileName(self): pass
@@ -55,10 +58,10 @@ class Bwa(IWrapper):
 		
 	def createOutputFilePath(self,path, output_file_name):
 		print "inside createOutputFilePath"
-		if(path.endswith('/')):
-			self.outputFileName = path + self.resultFolder +  output_file_name
+		if(self.workingDirectory.endswith('/')):
+			self.outputFileName = self.workingDirectory + self.resultFolder +  output_file_name
 		else:
-			self.outputFileName = path + '/' + self.resultFolder +  output_file_name
+			self.outputFileName = self.workingDirectory + '/' + self.resultFolder +  output_file_name
 	def buildCommand(self):
 		tmp = "%s %s %s %s %s %s %s" % (self.program, self.parameters, self.additionalParameters,self.inputFileParameter,' '.join(self.input), self.outputFileParameter, self.outputFileName)			
 		return shlex.split(tmp)

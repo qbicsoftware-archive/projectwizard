@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys, os
+from Utils.workflow_config import workflow_config
 tmpFolder = os.environ["TMP"] 
 OUTPUT =  'PORT1'
 
@@ -35,5 +36,7 @@ except OSError as e:
 try:
 	with open(OUTPUT, 'w') as output:
 			output.write(working_directory)
+	with open(sys.argv[1],'a') as parameters:
+		parameters.write("%s = %s" %(workflow_config.working_directory, working_directory))
 except IOError as e:
 	print 'Unable to save working directory path'
