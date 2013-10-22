@@ -20,6 +20,7 @@ factory.addAllAvailableFactories()
 
 runner = factory.createRunner(args.tool)
 
+print args.result
 runner.saveResults(args.result)
 runner.handleInput(args.args)
 

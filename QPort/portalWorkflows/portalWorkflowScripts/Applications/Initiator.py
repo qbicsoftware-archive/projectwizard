@@ -2,7 +2,7 @@
 
 import sys, os
 tmpFolder = os.environ["TMP"] 
-OUTPUT = 'working_directory.input' 
+OUTPUT =  'PORT1'
 
 if len(sys.argv) < 2:
 	sys.stderr.write("usage: ./Initiator.py <input file> \n\n")
