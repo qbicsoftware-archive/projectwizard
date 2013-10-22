@@ -8,7 +8,7 @@ class BamIndexer(Bwa):
 		
 	def createOutputFileName(self):
 		print "inside createOutputFileName"
-		print self.input
+		print 'path from input file is %s' % self.input
 		if(len(self.input) != 0):
 			path,file_name = os.path.split(self.input)
 			file_name = file_name.rstrip() + '.bai'

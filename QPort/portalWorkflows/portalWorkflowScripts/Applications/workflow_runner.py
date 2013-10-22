@@ -8,8 +8,8 @@ parser = argparse.ArgumentParser(description='Process something.')
 parser.add_argument('--program', dest='tool',nargs='*',
 		default='dummy',
 		help='defines the program that will be run.')
-parser.add_argument('--version', action='version', version='%(prog)s 0.1a')
-parser.add_argument('--result', action='store_false',help='if set, output files will be saved in the database')
+parser.add_argument('--version', action='version', version='%(prog)s 0.2a')
+parser.add_argument('--result', action='store_true',help='if set, output files will be saved in the database')
 parser.add_argument('--args', nargs=argparse.REMAINDER, dest='args',default='',
 		help='additional arguments')#all remainder arguments
 #parser.add_argument(--verbose,
@@ -20,7 +20,6 @@ factory.addAllAvailableFactories()
 
 runner = factory.createRunner(args.tool)
 
-print args.result
 runner.saveResults(args.result)
 runner.handleInput(args.args)
 

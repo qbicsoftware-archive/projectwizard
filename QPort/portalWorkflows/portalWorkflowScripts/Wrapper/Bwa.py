@@ -13,7 +13,7 @@ class Bwa(IWrapper):
 		self.outputFileParameter = '-o'
 		self.inputFileParameter = ''
 		self.resultFolder = ''
-		self.workingDirectory = workflow_config.tmp_folder
+		self.working_directory = workflow_config.tmp_folder
 	def setInput(self):
 		try:
 			print 'Reading input files'
@@ -58,10 +58,10 @@ class Bwa(IWrapper):
 		
 	def createOutputFilePath(self,path, output_file_name):
 		print "inside createOutputFilePath"
-		if(self.workingDirectory.endswith('/')):
-			self.outputFileName = self.workingDirectory + self.resultFolder +  output_file_name
+		if(self.working_directory.endswith('/')):
+			self.outputFileName = self.working_directory + self.resultFolder +  output_file_name
 		else:
-			self.outputFileName = self.workingDirectory + '/' + self.resultFolder +  output_file_name
+			self.outputFileName = self.working_directory + '/' + self.resultFolder +  output_file_name
 	def buildCommand(self):
 		tmp = "%s %s %s %s %s %s %s" % (self.program, self.parameters, self.additionalParameters,self.inputFileParameter,' '.join(self.input), self.outputFileParameter, self.outputFileName)			
 		return shlex.split(tmp)
