@@ -62,6 +62,7 @@ class Bwa(IWrapper):
 			self.outputFileName = self.working_directory + self.resultFolder +  output_file_name
 		else:
 			self.outputFileName = self.working_directory + '/' + self.resultFolder +  output_file_name
+		return self.outputFileName
 	def buildCommand(self):
 		tmp = "%s %s %s %s %s %s %s" % (self.program, self.parameters, self.additionalParameters,self.inputFileParameter,' '.join(self.input), self.outputFileParameter, self.outputFileName)			
 		return shlex.split(tmp)

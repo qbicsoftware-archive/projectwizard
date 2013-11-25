@@ -22,7 +22,7 @@ class BamIndexer(Bwa):
 			sys.stderr.write('No input file found\n')
 		return self.input
 	def buildCommand(self):
-		tmp = "%s %s %s" % (self.program,self.input, self.outputFileName)	
+		tmp = "%s %s.bam %s" % (self.program,self.input.rstrip(), self.outputFileName)	
 		return shlex.split(tmp)
 	class Factory(IFactory):
 		def create(self): return BamIndexer(self.program,self.tool)

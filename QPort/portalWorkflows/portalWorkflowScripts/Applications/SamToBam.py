@@ -13,7 +13,7 @@ class SamToBam(Bwa):
 		print self.input
 		if(len(self.input) != 0):
 			path,file_name = os.path.split(self.input)
-			output_file_name = file_name.rstrip() + ".sorted"
+			output_file_name = file_name.rstrip() + "_sorted"
 			self.createOutputFilePath(path,output_file_name)
 	def setInput(self):
 		try:
@@ -27,7 +27,7 @@ class SamToBam(Bwa):
 
 	def buildCommand(self):
 		print self.outputFileName 
-		tmp1 = "samtools view %s %s %s" % ( self.parameters, self.additionalParameters,self.input)			
+		tmp1 = "samtools view %s %s %s" % ( self.parameters, self.additionalParameters,self.input.rstrip())			
 		tmp2 = "samtools sort - %s" % (self.outputFileName)
 		return [shlex.split(tmp1),shlex.split(tmp2)]
 	def execute(self):

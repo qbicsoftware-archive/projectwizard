@@ -35,12 +35,15 @@ for line in open(sys.argv[1], "r"):
 			if(len(splitsplit) > 1 and "delete_this_tag" not in splitsplit[1]): 
 				parameter = ''.join((' -',splitsplit[1]))
 			option = splittedLine[1].strip()
-			option_env = os.environ.get(option)
-			if(not option_env):
-				parameter = ''.join((parameter, ' ', option))
-			else:
-				parameter = ''.join((parameter, ' ', option_env))
-			dic[splitsplit[0]] += parameter
+			if(option == 'True'):
+				dic[splitsplit[0]] += parameter
+			elif(option != 'False'):
+				option_env = os.environ.get(option)
+				if(not option_env):
+					parameter = ''.join((parameter, ' ', option))
+				else:
+					parameter = ''.join((parameter, ' ', option_env))
+				dic[splitsplit[0]] += parameter
 
 try:
 	with open(OUTPUT, 'w') as output:
