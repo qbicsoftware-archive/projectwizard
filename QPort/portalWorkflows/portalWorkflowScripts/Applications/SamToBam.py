@@ -35,6 +35,16 @@ class SamToBam(Bwa):
 		print cmd_line
 		p1 = subprocess.Popen(cmd_line[0], stdout=subprocess.PIPE)
 		p2 = subprocess.Popen(cmd_line[1], stdin=p1.stdout)#,stdout=subprocess.PIPE)
+		p2.wait()
+		if(p1.returncode != 0):
+			sys.exit(p1.returncode)
+		if(p2.returncode != 0):
+			sys.exit(p2.returncode)
+		#check if file exists
+		if(os.path.exists(outputFileName + ".bam" )):
+			print("output file written")
+		else:
+			print("ERROR: output file NOT written")
 		#p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits.
 		#print p2.communicate() 
 				
