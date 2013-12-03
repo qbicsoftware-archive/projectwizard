@@ -11,3 +11,4 @@ class IWrapper(object):
 	def writeGarbageInformation(self): pass
 	def setLogger(self, logger): pass 
 	def saveResults(self,results): pass
+	def validateOutput(): pass

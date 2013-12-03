@@ -27,4 +27,6 @@ runner.execute()
 
 runner.writeOutputInformation()
 
+return(runner.validateOutput())
+
 

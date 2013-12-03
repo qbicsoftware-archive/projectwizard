@@ -32,7 +32,7 @@ class Bwa(IWrapper):
 	def setParameters(self):
 		try:
 			for line in open(workflow_config.parameter_file,'r'):
-				splittedLine = line.split('=');
+				splittedLine = line.split('=')
 				print "We are in parameterFile"
 				print splittedLine
 				#print self.hasReferenceGenome
@@ -87,13 +87,32 @@ class Bwa(IWrapper):
 		if exit_code != 0:
 			sys.stderr.write(" exited with status "+ str(exit_code) +"\n")
 		else:
-			print "seems to be a success!"
+			print "command executed"
 	def writeOutputInformation(self):
 		try:	
 			with open(workflow_config.workflow_output,'w') as output:
-					output.write(''.join([self.outputFileName,'\n']))
+				output.write(''.join([self.outputFileName,'\n']))
 		except IOError as e:
 			print 'Unable to write output information'
+	
+	def validateOutput(self):
+		try:
+    			if os.stat(filename).st_size > 0:
+       				print "result file exists"
+				try:
+					for line in open(workflow_config.workflow_output,'r'):
+						print "Written %s into %s/%s." %(line, os.path.dirname(os.path.abspath(__file__)),workflow_config.workflow_output)
+				except IOError as e:
+					print 'output file %s for output port not found' % workflow_config.workflow_output
+					return 255
+    			else:
+       				print "empty result file"
+				return 244
+		except OSError:
+    			print "No result file"
+			return 255 
+		return 0
+		
 	def saveResults(self, saveresult):
 		if(saveresult):
 			self.resultFolder = 'results/'
