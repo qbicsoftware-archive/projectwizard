@@ -27,6 +27,6 @@ runner.execute()
 
 runner.writeOutputInformation()
 
-return(runner.validateOutput())
+sys.exit(runner.validateOutput())
 
 

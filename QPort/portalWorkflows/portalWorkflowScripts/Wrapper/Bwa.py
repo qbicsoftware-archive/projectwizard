@@ -1,4 +1,4 @@
-import sys, subprocess,shlex
+import sys, os, subprocess,shlex
 from IWrapper import IWrapper
 from Utils.workflow_config import workflow_config
 class Bwa(IWrapper):
@@ -97,7 +97,7 @@ class Bwa(IWrapper):
 	
 	def validateOutput(self):
 		try:
-    			if os.stat(filename).st_size > 0:
+    			if os.stat(self.outputFileName).st_size > 0:
        				print "result file exists"
 				try:
 					for line in open(workflow_config.workflow_output,'r'):
