@@ -101,7 +101,7 @@ class Bwa(IWrapper):
        				print "result file exists"
 				try:
 					for line in open(workflow_config.workflow_output,'r'):
-						print "Written %s into %s/%s." %(line, os.path.dirname(os.path.abspath(__file__)),workflow_config.workflow_output)
+						print "Written %s into %s/%s." %(line, os.getcwd(),workflow_config.workflow_output)
 				except IOError as e:
 					print 'output file %s for output port not found' % workflow_config.workflow_output
 					return 255
