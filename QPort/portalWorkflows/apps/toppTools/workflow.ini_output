@@ -1,0 +1,5 @@
+EXECUTABLE = IDPosteriorErrorProbability
+LOG_LEVEL = DEBUG
+in = /home/wojnar/QBiC/Software/OpenMS/OpenMS-Devel/source/TEST/TOPP/IDPosteriorErrorProbability_Mascot_input2.idXML
+LOG_STORAGE = memory
+out = test.idXML

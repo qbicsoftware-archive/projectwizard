@@ -1,0 +1,11 @@
+FILE = /home/wojnar/QBiC/workflows/WorkflowsBasedOnAppli2ake/test/tmp/1401131833/1/ToppBase_IDPosteriorErrorProbability/velos005615.mzML.XTandemAdapter.idXML.IDPosteriorErrorProbability.idXML
+COMMENT = boolean parameter
+EXECUTABLE = IDPosteriorErrorProbability
+LOG_LEVEL = DEBUG
+PARAMETERS = parameter.ini
+WORKFLOW = labelfreeQuantQT_1389634429765
+LOG_STORAGE = memory
+SUBJOBLIST = FILE__1__3,
+BASEDIR = /home/wojnar/QBiC/workflows/WorkflowsBasedOnAppli2ake/test/tmp
+JOB_IDX = 1401131833
+WORKDIR = /home/wojnar/QBiC/workflows/WorkflowsBasedOnAppli2ake/test/tmp/1401131833/1/ToppBase_IDPosteriorErrorProbability/
