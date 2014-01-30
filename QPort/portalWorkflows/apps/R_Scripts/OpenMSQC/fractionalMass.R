@@ -3,13 +3,12 @@ options(digits=10)
 
 csvin<-commandArgs(TRUE)[1]
 out<-commandArgs(TRUE)[2]
+theo_mass <-commandArgs(TRUE)[3]
 #post<-commandArgs(TRUE)[2]
-
-
 
 R <- read.delim(csvin, header = TRUE);
 png(out,width=480, height=320, pointsize=12, bg="#FFFFFF", res=NA);
-theoretical_masses_var<-"file:/home/wojnar/QBiC/workflows/WorkflowsBasedOnAppli2ake/apps/R_Scripts/theoretical_masses.txt"
+theoretical_masses_var<-paste("file",theo_mass,sep=":")
 theoretical_masses_file<-gsub("file:","", theoretical_masses_var)
 b<-read.delim(theoretical_masses_file)
 a<-R
