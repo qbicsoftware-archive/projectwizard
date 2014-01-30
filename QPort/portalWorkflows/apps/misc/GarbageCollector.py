@@ -9,10 +9,11 @@ import shutil
 
 #Writes result file to the DROPBOX. Deletes Keys.BASEDIR directory and its content
 class GarbageCollector(BasicApp):
-        args = [Argument('RESULT_PARAMETER', help='defines which parameter holds the path to the result file.', default='FILE')]
+        args = [Argument('RESULT_PARAMETER', help='defines which parameter holds the path to the result file.', default='FILE'),
+                Argument('DROPBOX', help='environmental variable name alias to dropbox folder. e.g. in your .bashrc somthing like DROPBOX=/share/result-drpobox', default='DROPBOX')]
 
         def _setup_info(self):
-            self.dropboxVariable = "DROPBOX"
+            self.dropboxVariable = self.info["DROPBOX"]
             self.dropbox = os.environ[self.dropboxVariable]
             super(GarbageCollector, self)._setup_info()
 

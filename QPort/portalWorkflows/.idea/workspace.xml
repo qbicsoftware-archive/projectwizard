@@ -2,11 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" readonly="true" id="22707874-0073-451b-af10-eb19329b2fcc" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/apps/version.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/apps/Runner.py" afterPath="$PROJECT_DIR$/apps/Runner.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/apps/misc/GarbageCollector.py" afterPath="$PROJECT_DIR$/apps/misc/GarbageCollector.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/apps/__init__.py" afterPath="$PROJECT_DIR$/apps/__init__.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/ruffus/OpenMSQC/simpleQC.py" afterPath="$PROJECT_DIR$/test/ruffus/OpenMSQC/simpleQC.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/ruffus/OpenMSQC/guse_param_test/parameter.ini" afterPath="$PROJECT_DIR$/test/ruffus/OpenMSQC/guse_param_test/parameter.ini" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="WorkflowsBasedOnAppli2ake.iws" />
@@ -30,31 +28,12 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="DSSClient.py" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/apps/misc/DSSClient.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="0" column="0" selection-start="0" selection-end="21" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="738">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="TestSubmissionDetails.py" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/apps/misc/TestSubmissionDetails.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="8" column="0" selection-start="104" selection-end="104" vertical-scroll-proportion="0.0" vertical-offset="144" max-vertical-offset="252">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="Runner.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/apps/Runner.py">
           <provider selected="true" editor-type-id="text-editor">
             <state line="5" column="36" selection-start="108" selection-end="108" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="774">
               <folding>
                 <element signature="e#45#60#0" expanded="true" />
-                <marker date="1391087953938" expanded="true" signature="150:326" placeholder="..." />
               </folding>
             </state>
           </provider>
@@ -78,48 +57,64 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="ApplicationFactory.py" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/portalWorkflowScripts/Factory/ApplicationFactory.py">
+      <file leaf-file-name="__init__.py" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/apps/__init__.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="9" column="38" selection-start="435" selection-end="435" vertical-scroll-proportion="0.0" vertical-offset="162" max-vertical-offset="738">
+            <state line="1" column="0" selection-start="31" selection-end="31" vertical-scroll-proportion="0.01986755" vertical-offset="0" max-vertical-offset="906">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="simpleQC.py" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test/ruffus/OpenMSQC/simpleQC.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="87" column="0" selection-start="2922" selection-end="3058" vertical-scroll-proportion="-15.148149" vertical-offset="941" max-vertical-offset="10962">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
       <file leaf-file-name="__init__.py" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/apps/__init__.py">
+        <entry file="file://$PROJECT_DIR$/__init__.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="7" column="30" selection-start="307" selection-end="307" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="234">
-              <folding>
-                <element signature="e#0#39#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="ToppBase.py" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/apps/toppTools/ToppBase.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="22" column="29" selection-start="971" selection-end="971" vertical-scroll-proportion="0.0" vertical-offset="948" max-vertical-offset="1854">
+            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="108">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="simpleQC.py" pinned="false" current="true" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/test/ruffus/OpenMSQC/simpleQC.py">
+      <file leaf-file-name="input.ini" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test/ruffus/OpenMSQC/guse_param_test/input.ini">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="592" column="205" selection-start="21728" selection-end="21912" vertical-scroll-proportion="0.7713626" vertical-offset="9772" max-vertical-offset="10962">
+            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="162">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="MassAcc.R" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/apps/R_Scripts/OpenMSQC/MassAcc.R">
+      <file leaf-file-name="parameter.ini" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test/ruffus/OpenMSQC/guse_param_test/parameter.ini">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="24" column="0" selection-start="886" selection-end="886" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="540">
+            <state line="52" column="29" selection-start="1386" selection-end="1386" vertical-scroll-proportion="0.0" vertical-offset="552" max-vertical-offset="1458">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="R_Script.py" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/apps/R_Scripts/R_Script.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="8" column="14" selection-start="190" selection-end="198" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1782">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="GarbageCollector.py" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/apps/misc/GarbageCollector.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="15" column="55" selection-start="713" selection-end="713" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="882">
               <folding />
             </state>
           </provider>
@@ -135,8 +130,6 @@
   <component name="IdeDocumentHistory">
     <option name="changedFiles">
       <list>
-        <option value="$PROJECT_DIR$/apps/misc/Collate.py" />
-        <option value="$PROJECT_DIR$/../../Software/applicake-read-only/branches/appli2ake/applicake/apputils/dirs.py" />
         <option value="$PROJECT_DIR$/apps/R_Scripts/IDRatio.R" />
         <option value="$PROJECT_DIR$/apps/R_Scripts/MassError.R" />
         <option value="$PROJECT_DIR$/apps/R_Scripts/TIC.R" />
@@ -149,8 +142,10 @@
         <option value="$PROJECT_DIR$/apps/R_Scripts/OpenMSQC/MassAcc.R" />
         <option value="$PROJECT_DIR$/test/ruffus/OpenMSQC/simpleQC.py" />
         <option value="$PROJECT_DIR$/apps/version.py" />
-        <option value="$PROJECT_DIR$/apps/__init__.py" />
         <option value="$PROJECT_DIR$/apps/Runner.py" />
+        <option value="$PROJECT_DIR$/test/ruffus/OpenMSQC/guse_param_test/parameter.ini" />
+        <option value="$PROJECT_DIR$/apps/misc/GarbageCollector.py" />
+        <option value="$PROJECT_DIR$/apps/__init__.py" />
       </list>
     </option>
   </component>
@@ -477,7 +472,11 @@
       <created>1391077780104</created>
       <updated>1391077780104</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Runner updated.&#10;Simple OpenMS qc a bit less complex.">
+      <created>1391093641104</created>
+      <updated>1391093641104</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -513,7 +512,8 @@
       <TodoPanelSettings />
     </option>
     <MESSAGE value="OpenMS quality control workflow with fractional mass, id ratio, mass accuracy, mass error and tic.&#10;Runner class which can execute all other classes. They have to be imported in apps/__init__.py" />
-    <option name="LAST_COMMIT_MESSAGE" value="OpenMS quality control workflow with fractional mass, id ratio, mass accuracy, mass error and tic.&#10;Runner class which can execute all other classes. They have to be imported in apps/__init__.py" />
+    <MESSAGE value="Runner updated.&#10;Simple OpenMS qc a bit less complex." />
+    <option name="LAST_COMMIT_MESSAGE" value="Runner updated.&#10;Simple OpenMS qc a bit less complex." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -527,42 +527,6 @@
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/apps/R_Scripts/OpenMSQC/TIC.R">
-      <provider editor-type-id="com.intellij.persistence.database.editor.CsvTableFileEditorProvider">
-        <state />
-      </provider>
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="11" column="30" selection-start="260" selection-end="260" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="612">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/lib/python2.7/os.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="13410" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/apps/R_Scripts/R_Script.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="71" column="93" selection-start="3283" selection-end="3283" vertical-scroll-proportion="0.0" vertical-offset="876" max-vertical-offset="1782">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="906">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/portalWorkflowScripts/Applications/workflow_runner.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="15" column="26" selection-start="307" selection-end="877" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="684">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/portalWorkflowScripts/Applications/BwaAln.py">
       <provider selected="true" editor-type-id="text-editor">
         <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="906" />
@@ -617,12 +581,45 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/apps/__init__.py">
+    <entry file="file://$PROJECT_DIR$/test/ruffus/OpenMSQC/guse_param_test/input.ini">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="7" column="30" selection-start="307" selection-end="307" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="234">
-          <folding>
-            <element signature="e#0#39#0" expanded="true" />
-          </folding>
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="906">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/ruffus/OpenMSQC/simpleQC.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="87" column="0" selection-start="2922" selection-end="3058" vertical-scroll-proportion="-15.148149" vertical-offset="941" max-vertical-offset="10962">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/ruffus/OpenMSQC/guse_param_test/parameter.ini">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="52" column="29" selection-start="1386" selection-end="1386" vertical-scroll-proportion="0.0" vertical-offset="552" max-vertical-offset="1458">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/apps/misc/GarbageCollector.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="15" column="55" selection-start="713" selection-end="713" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="882">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/apps/R_Scripts/R_Script.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="8" column="14" selection-start="190" selection-end="198" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1782">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="906">
+          <folding />
         </state>
       </provider>
     </entry>
@@ -631,14 +628,13 @@
         <state line="5" column="36" selection-start="108" selection-end="108" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="774">
           <folding>
             <element signature="e#45#60#0" expanded="true" />
-            <marker date="1391087953938" expanded="true" signature="150:326" placeholder="..." />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/ruffus/OpenMSQC/simpleQC.py">
+    <entry file="file://$PROJECT_DIR$/apps/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="592" column="205" selection-start="21728" selection-end="21912" vertical-scroll-proportion="0.7713626" vertical-offset="9772" max-vertical-offset="10962">
+        <state line="1" column="0" selection-start="31" selection-end="31" vertical-scroll-proportion="0.01986755" vertical-offset="0" max-vertical-offset="906">
           <folding />
         </state>
       </provider>
