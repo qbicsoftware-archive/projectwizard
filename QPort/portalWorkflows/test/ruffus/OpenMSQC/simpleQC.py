@@ -87,7 +87,7 @@ fractionalMass.out_delete_this_tag = png
 
 IDRatio.out_delete_this_tag = png
 
-ProduceQCFigures_acc.out_delete_this_tag = png
+MassAcc.out_delete_this_tag = png
 
 MassError.out_delete_this_tag = png
 
@@ -356,8 +356,18 @@ def QCEmbedderFM():
         output_file.append(o)
 
 @follows(QCEmbedderFM)
-def QCExtractorIDR1():
+def deleteQCEmbedderFM_Plot():
     input_files = glob.glob('qcemFM.ini_*')
+    output_file = []
+    for f in input_files:
+        o = 'qcemFM_plot_deleted.ini_' + f[-1]
+        sys.argv = ['--RENAME', 'QCEmbedder.plot QCEmFM.plot', '--INPUT', f, '--OUTPUT', o]
+        RenameKeyInIniFile.run()
+        output_file.append(o)
+
+@follows(deleteQCEmbedderFM_Plot)
+def QCExtractorIDR1():
+    input_files = glob.glob('qcemFM_plot_deleted.ini_*')
     output_file = []
     for f in input_files:
         o = 'qcexIDR1.ini_' + f[-1]
@@ -365,9 +375,9 @@ def QCExtractorIDR1():
         ToppBase.run()
         output_file.append(o)
 
-@follows(QCEmbedderFM)
+@follows(deleteQCEmbedderFM_Plot)
 def QCExtractorIDR2():
-    input_files = glob.glob('qcemFM.ini_*')
+    input_files = glob.glob('qcemFM_plot_deleted.ini_*')
     output_file = []
     for f in input_files:
         o = 'qcexIDR2.ini_' + f[-1]
@@ -375,11 +385,13 @@ def QCExtractorIDR2():
         ToppBase.run()
         output_file.append(o)
 
+
 @follows(QCExtractorIDR1)
 @follows(QCExtractorIDR2)
 def mergeQCExtractorIDR():
     sys.argv = ['--MERGE', 'qcexIDR', '--SPLIT', 'mergeqcexIDR.ini']
     Merge.run()
+
 
 @follows(mergeQCExtractorIDR)
 def IDRatio():
@@ -393,19 +405,8 @@ def IDRatio():
 
 
 @follows(IDRatio)
-def deletefractionalMassQCEmbedder_Plot():
-    input_files = glob.glob('idratio.ini_*')
-    output_file = []
-    for f in input_files:
-        o = 'idratio_qcp_delete.ini_' + f[-1]
-        sys.argv = ['--RENAME', 'QCEmbedder.plot QCEmfracMass.plot', '--INPUT', f, '--OUTPUT', o]
-        RenameKeyInIniFile.run()
-        output_file.append(o)
-
-
-@follows(deletefractionalMassQCEmbedder_Plot)
 def renameidRatio():
-    input_files = glob.glob('idratio_qcp_delete.ini_*')
+    input_files = glob.glob('idratio.ini_*')
     output_file = []
     for f in input_files:
         o = 'idratio_renamed.ini_' + f[-1]
@@ -413,22 +414,11 @@ def renameidRatio():
         RenameKeyInIniFile.run()
         output_file.append(o)
 
-@follows(QCEmbedderFM)
-def deletefractionalMassQCEmbedder_Plot2():
-    input_files = glob.glob('qcemFM.ini_*')
-    output_file = []
-    for f in input_files:
-        o = 'qcemFM_deleted.ini_' + f[-1]
-        sys.argv = ['--RENAME', 'QCEmbedder.plot QCEmfracMass.plot', '--INPUT', f, '--OUTPUT', o]
-        RenameKeyInIniFile.run()
-        output_file.append(o)
-
-@follows(deletefractionalMassQCEmbedder_Plot2)
+@follows(deleteQCEmbedderFM_Plot)
 @follows(renameidRatio)
 def mergeRenamedIdRatioWithQCEmbedderFM():
-    sys.argv = ['--MERGE', 'idratio_renamed qcemFM_deleted', '--SPLIT', 'merged_IDRATIO_QCEMFM.ini']
+    sys.argv = ['--MERGE', 'idratio_renamed qcemFM_plot_deleted', '--SPLIT', 'merged_IDRATIO_QCEMFM.ini']
     Merge.run()
-
 
 
 @follows(mergeRenamedIdRatioWithQCEmbedderFM)
@@ -441,39 +431,8 @@ def QCEmbedderIDRatio():
         ToppBase.run()
         output_file.append(o)
 
-@follows(QCExtractorIDR2)
-def R_MassAcc1():
-    input_files = glob.glob('qcexIDR2.ini_*')
-    output_file = []
-    for f in input_files:
-        o = 'RmassAcc1.ini_' + f[-1]
-        sys.argv = ['--OUTPUT', o, '--INPUT', f, "--EXECUTABLE", "/home/wojnar/QBiC/workflows/WorkflowRepository/apps/R_Scripts/OpenMSQC/MassAcc.R", '--WORKDIR', '--INPUT_OUTPUT_RELATIONSHIP', 'merge']
-        R_Script.run()
-        output_file.append(o)
-
-@follows(R_MassAcc1)
-def deleteMassAccQCEmbedder_Plot():
-    input_files = glob.glob('RmassAcc1.ini_*')
-    output_file = []
-    for f in input_files:
-        o = 'RmassAcc_qcp_deleted.ini_' + f[-1]
-        sys.argv = ['--RENAME', 'QCEmbedder.plot QCEmMassAcc.plot', '--INPUT', f, '--OUTPUT', o]
-        RenameKeyInIniFile.run()
-        output_file.append(o)
-
-
-@follows(deleteMassAccQCEmbedder_Plot)
-def renameMassAcc():
-    input_files = glob.glob('RmassAcc_qcp_deleted.ini_*')
-    output_file = []
-    for f in input_files:
-        o = 'RmassAcc_renamed.ini_' + f[-1]
-        sys.argv = ['--RENAME', 'FILE QCEmbedder.plot', '--INPUT', f, '--OUTPUT', o]
-        RenameKeyInIniFile.run()
-        output_file.append(o)
-
 @follows(QCEmbedderIDRatio)
-def deleteMassAccQCEmbedder_Plot2():
+def deleteQCEmbedderIDRatio_Plot():
     input_files = glob.glob('qcemIDR.ini_*')
     output_file = []
     for f in input_files:
@@ -482,16 +441,39 @@ def deleteMassAccQCEmbedder_Plot2():
         RenameKeyInIniFile.run()
         output_file.append(o)
 
+@follows(QCExtractorIDR2)
+def R_MassAcc():
+    input_files = glob.glob('qcexIDR2.ini_*')
+    output_file = []
+    for f in input_files:
+        o = 'RmassAcc.ini_' + f[-1]
+        sys.argv = ['--OUTPUT', o, '--INPUT', f, "--EXECUTABLE", "/home/wojnar/QBiC/workflows/WorkflowRepository/apps/R_Scripts/OpenMSQC/MassAcc.R", '--WORKDIR', '--INPUT_OUTPUT_RELATIONSHIP', 'merge']
+        R_Script.run()
+        output_file.append(o)
 
-@follows(deleteMassAccQCEmbedder_Plot2)
+
+@follows(R_MassAcc)
+def renameMassAcc():
+    input_files = glob.glob('RmassAcc.ini_*')
+    output_file = []
+    for f in input_files:
+        o = 'RmassAcc_renamed.ini_' + f[-1]
+        sys.argv = ['--RENAME', 'FILE QCEmbedder.plot', '--INPUT', f, '--OUTPUT', o]
+        RenameKeyInIniFile.run()
+        output_file.append(o)
+
+
+
+
+@follows(deleteQCEmbedderIDRatio_Plot)
 @follows(renameMassAcc)
-def mergeRenamedIdRatioWithQCEmbedderIDR():
+def mergeRenamedMassAccWithQCEmbedderIDR():
     sys.argv = ['--MERGE', 'RmassAcc_renamed qcemIDR_deleted', '--SPLIT', 'merged_RmassAcc_QCEMIDR.ini']
     Merge.run()
 
 
-@follows(mergeRenamedIdRatioWithQCEmbedderIDR)
-def QCEmbedderMassAcc1():
+@follows(mergeRenamedMassAccWithQCEmbedderIDR)
+def QCEmbedderMassAcc():
     input_files = glob.glob('merged_RmassAcc_QCEMIDR.ini_*')
     output_file = []
     for f in input_files:
@@ -511,20 +493,10 @@ def R_MassError():
         output_file.append(o)
 
 
+
 @follows(R_MassError)
-def deleteMassErrorQCEmbedder_Plot():
-    input_files = glob.glob('RmassError.ini_*')
-    output_file = []
-    for f in input_files:
-        o = 'RmassError_qcp_deleted.ini_' + f[-1]
-        sys.argv = ['--RENAME', 'QCEmbedder.plot QCEmMassError.plot', '--INPUT', f, '--OUTPUT', o]
-        RenameKeyInIniFile.run()
-        output_file.append(o)
-
-
-@follows(deleteMassErrorQCEmbedder_Plot)
 def renameMassAError():
-    input_files = glob.glob('RmassError_qcp_deleted.ini_*')
+    input_files = glob.glob('RmassError.ini_*')
     output_file = []
     for f in input_files:
         o = 'RmassError_renamed.ini_' + f[-1]
@@ -532,8 +504,8 @@ def renameMassAError():
         RenameKeyInIniFile.run()
         output_file.append(o)
 
-@follows(QCEmbedderMassAcc1)
-def deleteMassErrorQCEmbedder_Plot2():
+@follows(QCEmbedderMassAcc)
+def deleteQCEmbedderMassAcc_Plot():
     input_files = glob.glob('qcemMassAcc1.ini_*')
     output_file = []
     for f in input_files:
@@ -542,7 +514,7 @@ def deleteMassErrorQCEmbedder_Plot2():
         RenameKeyInIniFile.run()
         output_file.append(o)
 
-@follows(deleteMassErrorQCEmbedder_Plot2)
+@follows(deleteQCEmbedderMassAcc_Plot)
 @follows(renameMassAError)
 def mergeRenamedMassErrorWithQCEmbedderMassAcc():
     sys.argv = ['--MERGE', 'RmassError_renamed qcemMassAcc1_deleted', '--SPLIT', 'merged_RmassError_QCEMMA.ini']
@@ -635,12 +607,9 @@ def QCShrinker():
         output_file.append(o)
 
 
-
-
-
 def GarbageCollector():
     raise NotImplementedError
 
 #pipeline_printout(sys.stdout, [IDMerger])
 #pipeline_run([QCShrinker], multiprocess=multiprocessing.cpu_count())
-pipeline_printout_graph ('flowchart.svg','svg',[QCShrinker],no_key_legend = False)
+pipeline_printout_graph('flowchart.svg', 'svg', [QCShrinker], no_key_legend=False)
