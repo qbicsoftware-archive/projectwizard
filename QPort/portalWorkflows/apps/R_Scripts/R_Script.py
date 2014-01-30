@@ -69,7 +69,7 @@ class R_Script(BasicApp):
             out_files = ''
             for f in self.info['FILE']:
                 in_files += ' ' + f
-                out_file = self.info[Keys.WORKDIR] + os.path.basename(f) + '.' + name + '.' + self.info[name+'.out_delete_this_tag']
+                out_file = self.info[Keys.WORKDIR] + os.path.splitext(os.path.basename(f))[0] + '.' + self.info[name+'.out_delete_this_tag']
                 out_files += ' ' + out_file
                 out_files.append(out_file)
             parameters += ' ' + in_files
@@ -80,14 +80,14 @@ class R_Script(BasicApp):
             in_files = ''
             for f in self.info['FILE']:
                 in_files += ' ' + f
-            out_file = self.info[Keys.WORKDIR] + os.path.basename(self.info['FILE'][0]) + '.' + name + '.' + self.info[name+'.out_delete_this_tag']
+            out_file = self.info[Keys.WORKDIR] + os.path.splitext(os.path.basename(self.info['FILE'][0]))[0] + '.' + self.info[name+'.out_delete_this_tag']
             parameters += ' ' + in_files
             self.info['FILE'] = out_file
             parameters += ' ' + out_file
 
         elif not isinstance(self.info['FILE'], list): # same for transform and merge
             parameters += ' ' + self.info['FILE']
-            self.info['FILE'] = self.info[Keys.WORKDIR] + os.path.basename(self.info['FILE']) + '.' + name + '.' + self.info[name+'.out_delete_this_tag']
+            self.info['FILE'] = self.info[Keys.WORKDIR] + os.path.splitext(os.path.basename(self.info['FILE']))[0] + '.' + self.info[name+'.out_delete_this_tag']
             parameters += ' ' + self.info['FILE']
 
         return parameters

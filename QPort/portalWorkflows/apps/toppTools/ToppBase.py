@@ -32,9 +32,11 @@ class ToppBase(BasicApp):
         #if self.info['out'] and not os.stat(self.info['out']).st_size > 0:
         #    raise RuntimeError("result file not found or empty")
     #TODO change delete into ignore
-    #Assumes that parameters have the following format: self.info[NAME].someParameter = someValue
-    #changes self.info['FILE'] to new result file
     def parse_parameters(self):
+        """
+        Assumes that parameters have the following format: self.info[NAME].someParameter = someValue
+        changes self.info['FILE'] to new result file
+        """
         parameters = ''
         name = self.info['EXECUTABLE']
         self.info['outputParameter'] = '-out'
@@ -65,14 +67,13 @@ class ToppBase(BasicApp):
 
     def _parse_input_output(self, parameters, name):
         out = ' ' + self.info['outputParameter'] + ' '
-
         if isinstance(self.info['FILE'], list) and self.info['INPUT_OUTPUT_RELATIONSHIP'] == 'transform':
             in_files = ''
             out_files_lis = []
             out_files = ''
             for f in self.info['FILE']:
                 in_files += ' ' + f
-                out_file = self.info[Keys.WORKDIR] + os.path.basename(f) + '.' + self.info['EXECUTABLE'] + '.' + self.info[name+'.out_delete_this_tag']
+                out_file = self.info[Keys.WORKDIR] + os.path.splitext(os.path.basename(f))[0] + '.' + self.info[name+'.out_delete_this_tag']
                 out_files += ' ' + out_file
                 out_files_lis.append(out_file)
             parameters += ' -in ' + in_files
@@ -83,14 +84,14 @@ class ToppBase(BasicApp):
             in_files = ''
             for f in self.info['FILE']:
                 in_files += ' ' + f
-            out_file = self.info[Keys.WORKDIR] + os.path.basename(self.info['FILE'][0]) + '.' + self.info['EXECUTABLE'] + '.' + self.info[name+'.out_delete_this_tag']
+            out_file = self.info[Keys.WORKDIR] + os.path.splitext(os.path.basename(self.info['FILE'][0]))[0] + '.' + self.info[name+'.out_delete_this_tag']
             parameters += ' -in ' + in_files
             self.info['FILE'] = out_file
             parameters += out + out_file
 
         elif not isinstance(self.info['FILE'], list): # same for transform and merge
             parameters += ' -in ' + self.info['FILE']
-            self.info['FILE'] = self.info[Keys.WORKDIR] + os.path.basename(self.info['FILE']) + '.' +self.info['EXECUTABLE'] + '.' + self.info[name+'.out_delete_this_tag']
+            self.info['FILE'] = self.info[Keys.WORKDIR] + os.path.splitext(os.path.basename(self.info['FILE']))[0] + '.' + self.info[name+'.out_delete_this_tag']
             parameters += out + self.info['FILE']
 
         return parameters

@@ -3,7 +3,6 @@ __author__ = 'wojnar'
 from applicake.app import BasicApp
 from applicake.coreutils.arguments import Argument
 from applicake.coreutils.keys import Keys
-from applicake.coreutils.info import IniInfoHandler
 import os
 
 
@@ -14,7 +13,7 @@ class DSSClient(BasicApp):
 
     def prepare_run(self):
         self.log.debug("Preparing")
-        executable = self.info['EXECUTABLE']
+        #executable = self.info['EXECUTABLE']
         if self.info.get('FILE'):
             self.command = 'cp ' + self.info['FILE'] + ' ' + self.info[Keys.WORKDIR]
         else:
@@ -27,10 +26,10 @@ class DSSClient(BasicApp):
         else:
             try:
                 for line in open('getdataset.out', 'r'):
-                    splittedLine = line.split('\t')
-                    self.info['FILE'] = splittedLine[1].rstrip()
+                    splitted_line = line.split('\t')
+                    self.info['FILE'] = splitted_line[1].rstrip()
             except IOError as e:
-                self.log.error('Downloaded file lost\n')
+                self.log.error('Downloaded file lost: ' + e.message)
         super(DSSClient, self).validate_run()
 #use this class as executable
 if __name__ == "__main__":
