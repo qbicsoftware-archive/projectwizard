@@ -2,8 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" readonly="true" id="22707874-0073-451b-af10-eb19329b2fcc" name="Default" comment="">
-      <change type="MOVED" beforePath="$PROJECT_DIR$/apps/R_Scripts/theoretical_masses.txt" afterPath="$PROJECT_DIR$/apps/R_Scripts/OpenMSQC/theoretical_masses.txt" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/apps/R_Scripts/OpenMSQC/fractionalMass.R" afterPath="$PROJECT_DIR$/apps/R_Scripts/OpenMSQC/fractionalMass.R" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/apps/misc/GarbageCollector.py" afterPath="$PROJECT_DIR$/apps/misc/GarbageCollector.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="WorkflowsBasedOnAppli2ake.iws" />
@@ -30,10 +29,8 @@
       <file leaf-file-name="Runner.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/apps/Runner.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="5" column="36" selection-start="108" selection-end="108" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="774">
-              <folding>
-                <element signature="e#45#60#0" expanded="true" />
-              </folding>
+            <state line="5" column="36" selection-start="108" selection-end="108" vertical-scroll-proportion="0.0" vertical-offset="90" max-vertical-offset="774">
+              <folding />
             </state>
           </provider>
         </entry>
@@ -50,7 +47,7 @@
       <file leaf-file-name="__init__.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/apps/__init__.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="1" column="0" selection-start="31" selection-end="31" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="234">
+            <state line="1" column="0" selection-start="31" selection-end="31" vertical-scroll-proportion="0.0" vertical-offset="18" max-vertical-offset="234">
               <folding />
             </state>
           </provider>
@@ -59,7 +56,7 @@
       <file leaf-file-name="simpleQC.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/test/ruffus/OpenMSQC/simpleQC.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="322" column="35" selection-start="11866" selection-end="11872" vertical-scroll-proportion="-43.962963" vertical-offset="4393" max-vertical-offset="10962">
+            <state line="525" column="53" selection-start="19344" selection-end="19368" vertical-scroll-proportion="0.0" vertical-offset="8986" max-vertical-offset="10962">
               <folding />
             </state>
           </provider>
@@ -92,10 +89,10 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="R_Script.py" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="R_Script.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/apps/R_Scripts/R_Script.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="13" column="43" selection-start="554" selection-end="575" vertical-scroll-proportion="0.30050084" vertical-offset="0" max-vertical-offset="1782">
+            <state line="28" column="0" selection-start="1358" selection-end="1358" vertical-scroll-proportion="0.0" vertical-offset="504" max-vertical-offset="1836">
               <folding />
             </state>
           </provider>
@@ -107,16 +104,16 @@
             <state />
           </provider>
           <provider selected="true" editor-type-id="text-editor">
-            <state line="7" column="0" selection-start="144" selection-end="144" vertical-scroll-proportion="-4.5" vertical-offset="0" max-vertical-offset="504">
+            <state line="7" column="0" selection-start="144" selection-end="144" vertical-scroll-proportion="0.0" vertical-offset="126" max-vertical-offset="504">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="GarbageCollector.py" pinned="false" current="false" current-in-tab="false">
+      <file leaf-file-name="GarbageCollector.py" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/apps/misc/GarbageCollector.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="15" column="55" selection-start="713" selection-end="713" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="882">
+            <state line="15" column="55" selection-start="713" selection-end="713" vertical-scroll-proportion="0.33110368" vertical-offset="0" max-vertical-offset="900">
               <folding />
             </state>
           </provider>
@@ -141,19 +138,19 @@
         <option value="$PROJECT_DIR$/apps/misc/TestSubmissionDetails.py" />
         <option value="$PROJECT_DIR$/apps/toppTools/ToppBase.py" />
         <option value="$PROJECT_DIR$/apps/R_Scripts/OpenMSQC/MassAcc.R" />
-        <option value="$PROJECT_DIR$/test/ruffus/OpenMSQC/simpleQC.py" />
         <option value="$PROJECT_DIR$/apps/version.py" />
         <option value="$PROJECT_DIR$/apps/Runner.py" />
         <option value="$PROJECT_DIR$/test/ruffus/OpenMSQC/guse_param_test/parameter.ini" />
-        <option value="$PROJECT_DIR$/apps/misc/GarbageCollector.py" />
         <option value="$PROJECT_DIR$/apps/__init__.py" />
         <option value="$PROJECT_DIR$/apps/R_Scripts/OpenMSQC/fractionalMass.R" />
+        <option value="$PROJECT_DIR$/test/ruffus/OpenMSQC/simpleQC.py" />
+        <option value="$PROJECT_DIR$/apps/misc/GarbageCollector.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
     <option name="width" value="1920" />
-    <option name="height" value="1056" />
+    <option name="height" value="1059" />
   </component>
   <component name="ProjectInspectionProfilesVisibleTreeState">
     <entry key="Project Default">
@@ -200,6 +197,7 @@
       <sortByType />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -282,7 +280,6 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -291,8 +288,8 @@
     <property name="options.lastSelected" value="Errors" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/../portalWorkflowScripts/Applications/ParameterHandler.py" />
     <property name="FullScreen" value="false" />
-    <property name="options.searchVisible" value="true" />
     <property name="options.splitter.details.proportions" value="0.2" />
+    <property name="options.searchVisible" value="true" />
   </component>
   <component name="PyConsoleOptionsProvider">
     <option name="myPythonConsoleState">
@@ -394,6 +391,9 @@
       <option name="PARAMETERS" value="" />
       <method />
     </configuration>
+    <configuration default="true" type="JavascriptDebugType" factoryName="JavaScript Debug" singleton="true">
+      <method />
+    </configuration>
     <configuration default="true" type="tests" factoryName="Unittests">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -415,9 +415,6 @@
       <option name="PUREUNITTEST" value="true" />
       <option name="PARAMS" value="" />
       <option name="USE_PARAM" value="false" />
-      <method />
-    </configuration>
-    <configuration default="true" type="JavascriptDebugType" factoryName="JavaScript Debug" singleton="true">
       <method />
     </configuration>
     <configuration default="true" type="tests" factoryName="Doctests">
@@ -522,29 +519,33 @@
       <created>1391095865104</created>
       <updated>1391095865104</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="theo_masses moved to R_Scripts/OpenMSQC.&#10;fractionalMass.R has to get a third parameter for theo_masses">
+      <created>1391101769102</created>
+      <updated>1391101769102</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="0" width="1920" height="1056" extended-state="6" />
-    <editor active="false" />
+    <frame x="0" y="0" width="1920" height="1059" extended-state="6" />
+    <editor active="true" />
     <layout>
+      <window_info id="Messages" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32941177" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32834226" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32834226" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32941177" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.13697916" sideWeight="0.67165774" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.13697916" sideWeight="0.67058825" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32941177" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32834226" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
@@ -560,7 +561,9 @@
     <MESSAGE value="OpenMS quality control workflow with fractional mass, id ratio, mass accuracy, mass error and tic.&#10;Runner class which can execute all other classes. They have to be imported in apps/__init__.py" />
     <MESSAGE value="Runner updated.&#10;Simple OpenMS qc a bit less complex." />
     <MESSAGE value="__init__ imports now modules rather than classes for Runner.py" />
-    <option name="LAST_COMMIT_MESSAGE" value="__init__ imports now modules rather than classes for Runner.py" />
+    <MESSAGE value="theo_masses moved to R_Scripts/OpenMSQC.&#10;fractionalMass.R has to get a third parameter for theo_masses" />
+    <MESSAGE value="self.info was not defined in GarbageCollector" />
+    <option name="LAST_COMMIT_MESSAGE" value="self.info was not defined in GarbageCollector" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -576,44 +579,32 @@
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/portalWorkflowScripts/Factory/ApplicationFactory.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="9" column="38" selection-start="435" selection-end="435" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="738">
-          <folding />
-        </state>
+        <state line="9" column="38" selection-start="435" selection-end="435" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="738" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/apps/misc/TestSubmissionDetails.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="8" column="0" selection-start="104" selection-end="104" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="252">
-          <folding />
-        </state>
+        <state line="8" column="0" selection-start="104" selection-end="104" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="252" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/apps/misc/DSSClient.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="21" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="738">
-          <folding />
-        </state>
+        <state line="0" column="0" selection-start="0" selection-end="21" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="738" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/apps/toppTools/ToppBase.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="22" column="29" selection-start="971" selection-end="971" vertical-scroll-proportion="0.0" vertical-offset="948" max-vertical-offset="1854">
-          <folding />
-        </state>
+        <state line="22" column="29" selection-start="971" selection-end="971" vertical-scroll-proportion="0.0" vertical-offset="948" max-vertical-offset="1854" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/apps/R_Scripts/OpenMSQC/MassAcc.R">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="24" column="0" selection-start="886" selection-end="886" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="540">
-          <folding />
-        </state>
+        <state line="24" column="0" selection-start="886" selection-end="886" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="540" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/apps/R_Scripts/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="906">
-          <folding />
-        </state>
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="906" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/apps/version.py">
@@ -637,19 +628,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/apps/misc/GarbageCollector.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="15" column="55" selection-start="713" selection-end="713" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="882">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/apps/Runner.py">
       <provider selected="true" editor-type-id="text-editor">
         <state line="5" column="36" selection-start="108" selection-end="108" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="774">
-          <folding>
-            <element signature="e#45#60#0" expanded="true" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -672,21 +654,28 @@
         <state />
       </provider>
       <provider selected="true" editor-type-id="text-editor">
-        <state line="7" column="0" selection-start="144" selection-end="144" vertical-scroll-proportion="-4.5" vertical-offset="0" max-vertical-offset="504">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/test/ruffus/OpenMSQC/simpleQC.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="322" column="35" selection-start="11866" selection-end="11872" vertical-scroll-proportion="-43.962963" vertical-offset="4393" max-vertical-offset="10962">
+        <state line="7" column="0" selection-start="144" selection-end="144" vertical-scroll-proportion="0.0" vertical-offset="126" max-vertical-offset="504">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/apps/R_Scripts/R_Script.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="13" column="43" selection-start="554" selection-end="575" vertical-scroll-proportion="0.30050084" vertical-offset="0" max-vertical-offset="1782">
+        <state line="28" column="0" selection-start="1358" selection-end="1358" vertical-scroll-proportion="0.0" vertical-offset="859" max-vertical-offset="1782">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/ruffus/OpenMSQC/simpleQC.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="525" column="53" selection-start="19344" selection-end="19368" vertical-scroll-proportion="0.0" vertical-offset="8986" max-vertical-offset="10962">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/apps/misc/GarbageCollector.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="15" column="55" selection-start="713" selection-end="713" vertical-scroll-proportion="0.33110368" vertical-offset="0" max-vertical-offset="900">
           <folding />
         </state>
       </provider>

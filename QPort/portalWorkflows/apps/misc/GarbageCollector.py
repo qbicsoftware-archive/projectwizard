@@ -13,9 +13,10 @@ class GarbageCollector(BasicApp):
                 Argument('DROPBOX', help='environmental variable name alias to dropbox folder. e.g. in your .bashrc somthing like DROPBOX=/share/result-drpobox', default='DROPBOX')]
 
         def _setup_info(self):
+            super(GarbageCollector, self)._setup_info()
             self.dropboxVariable = self.info["DROPBOX"]
             self.dropbox = os.environ[self.dropboxVariable]
-            super(GarbageCollector, self)._setup_info()
+
 
         def execute_run(self):
             resultParameter = self.info['RESULT_PARAMETER']
