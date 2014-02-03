@@ -2,8 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" readonly="true" id="22707874-0073-451b-af10-eb19329b2fcc" name="Default" comment="">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/ruffus/SimpleMapIDsWithFeature" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/ruffus/SimpleMapIDsWithFeature/parameter.ini" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/apps/toppTools/ToppBase.py" afterPath="$PROJECT_DIR$/apps/toppTools/ToppBase.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/ToppBaseTest.py" afterPath="$PROJECT_DIR$/test/ToppBaseTest.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="WorkflowsBasedOnAppli2ake.iws" />
@@ -36,33 +37,22 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="test_workflow.py" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../../Software/applicake-read-only/branches/appli2ake/tests/test_workflow.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="936">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="test_BasicApp.py" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../../Software/applicake-read-only/branches/appli2ake/tests/test_BasicApp.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="4" column="22" selection-start="96" selection-end="96" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="360">
-              <folding>
-                <element signature="e#23#38#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="ToppBase.py" pinned="false" current="false" current-in-tab="false">
+      <file leaf-file-name="ToppBase.py" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/apps/toppTools/ToppBase.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="91" column="49" selection-start="4493" selection-end="4493" vertical-scroll-proportion="0.0" vertical-offset="1148" max-vertical-offset="2664">
+            <state line="42" column="50" selection-start="2125" selection-end="2125" vertical-scroll-proportion="0.6585366" vertical-offset="378" max-vertical-offset="2700">
               <folding>
                 <element signature="e#44#78#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="test_workflow.py" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../../Software/applicake-read-only/branches/appli2ake/tests/test_workflow.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="30" column="8" selection-start="809" selection-end="871" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="774">
+              <folding />
             </state>
           </provider>
         </entry>
@@ -79,7 +69,7 @@
       <file leaf-file-name="ToppBaseTest.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/test/ToppBaseTest.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="63" column="145" selection-start="4020" selection-end="4020" vertical-scroll-proportion="-10.0" vertical-offset="864" max-vertical-offset="2340">
+            <state line="1" column="0" selection-start="22" selection-end="66" vertical-scroll-proportion="-0.6666667" vertical-offset="0" max-vertical-offset="2340">
               <folding>
                 <element signature="e#22#66#0" expanded="true" />
               </folding>
@@ -87,10 +77,19 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="RenameKeyInIniFileTest.py" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="RenameKeyInIniFileTest.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/test/RenameKeyInIniFileTest.py">
           <provider selected="true" editor-type-id="text-editor">
             <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1458">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="parameter.ini" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test/ruffus/SimpleMapIDsWithFeature/parameter.ini">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="8" column="0" selection-start="238" selection-end="238" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1476">
               <folding />
             </state>
           </provider>
@@ -114,11 +113,13 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="test_core.py" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../../Software/applicake-read-only/branches/appli2ake/tests/test_core.py">
+      <file leaf-file-name="dirs.py" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../../Software/applicake-read-only/branches/appli2ake/applicake/apputils/dirs.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1026">
-              <folding />
+            <state line="65" column="29" selection-start="2045" selection-end="2045" vertical-scroll-proportion="0.0" vertical-offset="740" max-vertical-offset="1314">
+              <folding>
+                <element signature="e#0#12#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -133,7 +134,6 @@
   <component name="IdeDocumentHistory">
     <option name="changedFiles">
       <list>
-        <option value="$PROJECT_DIR$/__init__.py" />
         <option value="$PROJECT_DIR$/apps/misc/DSSClient.py" />
         <option value="$PROJECT_DIR$/apps/misc/TestSubmissionDetails.py" />
         <option value="$PROJECT_DIR$/apps/R_Scripts/OpenMSQC/MassAcc.R" />
@@ -147,8 +147,9 @@
         <option value="$PROJECT_DIR$/../../Software/applicake-read-only/branches/appli2ake/tests/test_BasicApp.py" />
         <option value="$PROJECT_DIR$/test/ruffus/OpenMSQC/guse_param_test/parameter.ini" />
         <option value="$PROJECT_DIR$/test/ToppBaseTest.py" />
-        <option value="$PROJECT_DIR$/apps/toppTools/ToppBase.py" />
         <option value="$PROJECT_DIR$/test/RenameKeyInIniFileTest.py" />
+        <option value="$PROJECT_DIR$/test/ruffus/SimpleMapIDsWithFeature/parameter.ini" />
+        <option value="$PROJECT_DIR$/apps/toppTools/ToppBase.py" />
       </list>
     </option>
   </component>
@@ -256,6 +257,54 @@
               <option name="myItemId" value="appli2ake" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="applicake" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="WorkflowsBasedOnAppli2ake" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="External Libraries" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="&lt; Python 2.7.5+ (/usr/bin/python2.7) &gt;" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="appli2ake" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="applicake" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="apputils" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="WorkflowsBasedOnAppli2ake" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="External Libraries" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="&lt; Python 2.7.5+ (/usr/bin/python2.7) &gt;" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="appli2ake" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
           </PATH>
           <PATH>
             <PATH_ELEMENT>
@@ -278,6 +327,94 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="test" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="WorkflowsBasedOnAppli2ake" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="WorkflowRepository" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="test" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="ruffus" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="WorkflowsBasedOnAppli2ake" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="WorkflowRepository" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="test" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="ruffus" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimpleMapIDsWithFeature" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="WorkflowsBasedOnAppli2ake" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="WorkflowRepository" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="test" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="ruffus" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="OpenMSQC" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="WorkflowsBasedOnAppli2ake" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="WorkflowRepository" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="test" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="ruffus" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="OpenMSQC" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="guse_param_test" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -316,6 +453,7 @@
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/test/ruffus/SimpleMapIDsWithFeature" />
       <recent name="$PROJECT_DIR$/test/ruffus/labelfree/guse_param_test" />
       <recent name="$PROJECT_DIR$/apps/misc" />
     </key>
@@ -545,14 +683,18 @@
       <created>1391173501105</created>
       <updated>1391173501105</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Added use_key_as key to ToppBase. Now other keys can be used as aliases.">
+      <created>1391444348105</created>
+      <updated>1391444348105</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1920" height="1056" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Messages" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32941177" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32941177" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -600,13 +742,6 @@
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/apps/R_Scripts/R_Script.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="28" column="0" selection-start="1358" selection-end="1358" vertical-scroll-proportion="0.0" vertical-offset="859" max-vertical-offset="1782">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/test/ruffus/OpenMSQC/simpleQC.py">
       <provider selected="true" editor-type-id="text-editor">
         <state line="525" column="53" selection-start="19344" selection-end="19368" vertical-scroll-proportion="0.0" vertical-offset="8986" max-vertical-offset="10962">
@@ -621,23 +756,9 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../Software/applicake-read-only/branches/appli2ake/applicake/apputils/dirs.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="38" column="30" selection-start="1108" selection-end="1108" vertical-scroll-proportion="0.0" vertical-offset="408" max-vertical-offset="1314">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/../../Software/applicake-read-only/branches/appli2ake/appliapps/examples/template.py">
       <provider selected="true" editor-type-id="text-editor">
         <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="906" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../../Software/applicake-read-only/branches/appli2ake/tests/test_workflow.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="936">
-          <folding />
-        </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/../../Software/applicake-read-only/branches/appli2ake/tests/test_core.py">
@@ -651,7 +772,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state line="4" column="22" selection-start="96" selection-end="96" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="360">
           <folding>
-            <element signature="e#23#38#0" expanded="true" />
+            <element signature="e#23#38#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -691,28 +812,51 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/test/RenameKeyInIniFileTest.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1458">
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/test/ToppBaseTest.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="63" column="145" selection-start="4020" selection-end="4020" vertical-scroll-proportion="-10.0" vertical-offset="864" max-vertical-offset="2340">
+        <state line="1" column="0" selection-start="22" selection-end="66" vertical-scroll-proportion="-0.6666667" vertical-offset="0" max-vertical-offset="2340">
           <folding>
             <element signature="e#22#66#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/apps/toppTools/ToppBase.py">
+    <entry file="file://$PROJECT_DIR$/../../Software/applicake-read-only/branches/appli2ake/tests/test_workflow.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="91" column="49" selection-start="4493" selection-end="4493" vertical-scroll-proportion="0.0" vertical-offset="1148" max-vertical-offset="2664">
+        <state line="30" column="8" selection-start="809" selection-end="871" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="774">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../Software/applicake-read-only/branches/appli2ake/applicake/apputils/dirs.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="65" column="29" selection-start="2045" selection-end="2045" vertical-scroll-proportion="0.0" vertical-offset="740" max-vertical-offset="1314">
           <folding>
-            <element signature="e#44#78#0" expanded="true" />
+            <element signature="e#0#12#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/RenameKeyInIniFileTest.py">
+    <entry file="file://$PROJECT_DIR$/test/ruffus/SimpleMapIDsWithFeature/parameter.ini">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1458">
+        <state line="8" column="0" selection-start="238" selection-end="238" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1476">
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/apps/toppTools/ToppBase.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="42" column="50" selection-start="2125" selection-end="2125" vertical-scroll-proportion="0.6585366" vertical-offset="378" max-vertical-offset="2700">
+          <folding>
+            <element signature="e#44#78#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
