@@ -40,7 +40,7 @@ class ToppBase(BasicApp):
         self.info[self.keys.ADDITIONAL_PARAMETERS] = ''
         del self.info[self.keys.OUTPUTPARAMETER]
         if self.info.get(self.keys.use_as_key):
-            del self.info.get[self.keys.use_as_key]
+            del self.info[self.keys.use_as_key]
         #if(self.info.get(Keys.WORKDIR)):
         #    del self.info[Keys.WORKDIR]
         #if self.info['out'] and not os.stat(self.info['out']).st_size > 0:

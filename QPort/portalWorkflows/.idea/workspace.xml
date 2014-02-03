@@ -2,8 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" readonly="true" id="22707874-0073-451b-af10-eb19329b2fcc" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/ruffus/SimpleMapIDsWithFeature" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/ruffus/SimpleMapIDsWithFeature/parameter.ini" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/apps/toppTools/ToppBase.py" afterPath="$PROJECT_DIR$/apps/toppTools/ToppBase.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
@@ -40,7 +38,7 @@
       <file leaf-file-name="ToppBase.py" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/apps/toppTools/ToppBase.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="42" column="50" selection-start="2125" selection-end="2125" vertical-scroll-proportion="0.6585366" vertical-offset="378" max-vertical-offset="2700">
+            <state line="42" column="46" selection-start="2121" selection-end="2121" vertical-scroll-proportion="0.6585366" vertical-offset="378" max-vertical-offset="2700">
               <folding>
                 <element signature="e#44#78#0" expanded="true" />
               </folding>
@@ -687,7 +685,11 @@
       <created>1391444348105</created>
       <updated>1391444348105</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="use_as_key has to be deleted at the end.">
+      <created>1391446688105</created>
+      <updated>1391446688105</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -728,7 +730,8 @@
     <MESSAGE value="theo_masses moved to R_Scripts/OpenMSQC.&#10;fractionalMass.R has to get a third parameter for theo_masses" />
     <MESSAGE value="self.info was not defined in GarbageCollector" />
     <MESSAGE value="Added use_key_as key to ToppBase. Now other keys can be used as aliases." />
-    <option name="LAST_COMMIT_MESSAGE" value="Added use_key_as key to ToppBase. Now other keys can be used as aliases." />
+    <MESSAGE value="use_as_key has to be deleted at the end." />
+    <option name="LAST_COMMIT_MESSAGE" value="use_as_key has to be deleted at the end." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -853,7 +856,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/apps/toppTools/ToppBase.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="42" column="50" selection-start="2125" selection-end="2125" vertical-scroll-proportion="0.6585366" vertical-offset="378" max-vertical-offset="2700">
+        <state line="42" column="46" selection-start="2121" selection-end="2121" vertical-scroll-proportion="0.6585366" vertical-offset="378" max-vertical-offset="2700">
           <folding>
             <element signature="e#44#78#0" expanded="true" />
           </folding>
