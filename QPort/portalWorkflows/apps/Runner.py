@@ -15,24 +15,29 @@ def get_class(kls):
         m = getattr(m, comp)
     return getattr(m, parts[1])
 
-parser = argparse.ArgumentParser(description='Executes one of the wished wrappers, e.g. ToppBase which by default executes OpenMSInfo.')
-parser.add_argument('--wrapper', dest='tool', nargs='*',
-                    default='ToppBase',
-                    help='defines the program that will be run.')
-parser.add_argument('--version', action='version', version=__version__)
-parser.add_argument('--args', nargs=argparse.REMAINDER, dest='args', default='',
-                    help='additional arguments')  # all remainder arguments
-#parser.add_argument(--verbose,
-args = parser.parse_args()
 
-######
-#apps is the current main folder of the workflow package
-#####
-apps = "apps."
-if isinstance(args.tool, list):
-    apps += args.tool[0]
-else:
-    apps += args.tool
-sys.argv = args.args
-tool = get_class(apps)
-tool.run()
+def main():
+    parser = argparse.ArgumentParser(description='Executes one of the wished wrappers, e.g. ToppBase which by default executes OpenMSInfo.')
+    parser.add_argument('--wrapper', dest='tool', nargs='*',
+                        default='ToppBase',
+                        help='defines the program that will be run.')
+    parser.add_argument('--version', action='version', version=__version__)
+    parser.add_argument('--args', nargs=argparse.REMAINDER, dest='args', default='',
+                        help='additional arguments')  # all remainder arguments
+    #parser.add_argument(--verbose,
+    args = parser.parse_args()
+
+    ######
+    #apps is the current main folder of the workflow package
+    #####
+    apps = "apps."
+    if isinstance(args.tool, list):
+        apps += args.tool[0]
+    else:
+        apps += args.tool
+    sys.argv = args.args
+    tool = get_class(apps)
+    tool.run()
+
+if __name__ == '__main__':
+    main()

@@ -6,7 +6,7 @@ from applicake.coreutils.keys import Keys
 import os
 
 
-class ToppBase(BasicApp):
+class OptitypeExecution(BasicApp):
 
     class keys:
         EXECUTABLE = "EXECUTABLE"
@@ -16,18 +16,18 @@ class ToppBase(BasicApp):
         use_as_key = "use_as_key"
         INPUT_OUTPUT_RELATIONSHIP = "INPUT_OUTPUT_RELATIONSHIP"
 
-    args = [Argument(keys.EXECUTABLE, default='OpenMSInfo'),
+    args = [Argument(keys.EXECUTABLE, default='optitype'),
             #Argument("in", help='input file for executable', default=''),
             #Argument("out", help='input file for executable', default=''),
             Argument(keys.ADDITIONAL_PARAMETERS, help='additional parameter for the executable are forwarded here, e.g. -threads 4', default=''),
-            Argument(keys.INPUT_OUTPUT_RELATIONSHIP, help='inputs and output can have many_to_one(merge) or one_to_one(transform, includes lists) relationships', default='transform'),
+            Argument(keys.INPUT_OUTPUT_RELATIONSHIP, help='inputs and output can have many_to_one(merge) or one_to_one(transform, includes lists) relationships', default='merge'),
             Argument(keys.use_as_key, help="""use_as_key key1 key2. For parameter handling and value of key2
                                             will be used as it would be the value of key1. Be aware that FILE someKey
                                             means. That the value of someKey will be used as the value of FILE. Also,
                                             the output value will be written to FILE.""", default='')]
 
     def _setup_info(self):
-        super(ToppBase, self)._setup_info()
+        super(OptitypeExecution, self)._setup_info()
         self.info[Keys.NAME] += '_' + self.info[self.keys.EXECUTABLE]
 
     def prepare_run(self):
@@ -37,7 +37,7 @@ class ToppBase(BasicApp):
 
 
     def validate_run(self):
-        super(ToppBase, self).validate_run()
+        super(OptitypeExecution, self).validate_run()
         self.info[self.keys.ADDITIONAL_PARAMETERS] = ''
         del self.info[self.keys.OUTPUTPARAMETER]
         if self.info.get(self.keys.use_as_key):
@@ -54,7 +54,7 @@ class ToppBase(BasicApp):
         """
         parameters = ''
         executable_name = self.info[self.keys.EXECUTABLE]
-        self.info[self.keys.OUTPUTPARAMETER] = '-out'
+        self.info[self.keys.OUTPUTPARAMETER] = '-od'
         use_as_key_dic = {}
         info_backup = {}
         if self.info.get(self.keys.use_as_key):
@@ -118,10 +118,10 @@ class ToppBase(BasicApp):
             out_files = ''
             for f in self.info[self.keys.FILE]:
                 in_files += ' ' + f
-                out_file = self.info[Keys.WORKDIR] + os.path.splitext(os.path.basename(f))[0] + outputExtension
+                out_file = self.info[Keys.WORKDIR] + +"/" + os.path.splitext(os.path.basename(f))[0].split("_")[0]+".csv" #os.path.splitext(os.path.basename(f))[0] + outputExtension
                 out_files += ' ' + out_file
                 out_files_lis.append(out_file)
-            parameters += ' -in ' + in_files
+            parameters += ' -i ' + in_files
             self.info[self.keys.FILE] = out_files_lis
             parameters += out + out_files
 
@@ -129,18 +129,18 @@ class ToppBase(BasicApp):
             in_files = ''
             for f in self.info[self.keys.FILE]:
                 in_files += ' ' + f
-            out_file = self.info[Keys.WORKDIR] + os.path.splitext(os.path.basename(self.info[self.keys.FILE][0]))[0] + outputExtension
-            parameters += ' -in ' + in_files
+            out_file = self.info[Keys.WORKDIR] + os.path.splitext(os.path.basename(self.info[self.keys.FILE][0]))[0].split("_")[0]+".csv"#os.path.splitext(os.path.basename(self.info[self.keys.FILE][0]))[0] + outputExtension
+            parameters += ' -i ' + in_files
             self.info[self.keys.FILE] = out_file
             parameters += out + out_file
 
         elif not isinstance(self.info[self.keys.FILE], list):  # same for transform and merge
-            parameters += ' -in ' + self.info[self.keys.FILE]
-            self.info[self.keys.FILE] = self.info[Keys.WORKDIR] + os.path.splitext(os.path.basename(self.info[self.keys.FILE]))[0] + outputExtension
+            parameters += ' -i ' + self.info[self.keys.FILE]
+            self.info[self.keys.FILE] = self.info[Keys.WORKDIR] + os.path.splitext(os.path.basename(self.info[self.keys.FILE]))[0].split("_")[0]+".csv"#os.path.splitext(os.path.basename(self.info[self.keys.FILE]))[0] + outputExtension
             parameters += out + self.info[self.keys.FILE]
 
         return parameters
 
 #use this class as executable
 if __name__ == "__main__":
-    ToppBase.run()
+    OptitypeExecution.run()

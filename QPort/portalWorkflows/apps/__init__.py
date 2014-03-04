@@ -6,3 +6,4 @@ from misc import init
 from misc import Merge
 from misc import RenameKeyInIniFile
 from toppTools import ToppBase
+from HLATyping import OptitypeExecution

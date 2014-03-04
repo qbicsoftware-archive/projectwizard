@@ -8,7 +8,7 @@ import os
 
 class R_Script(BasicApp):
     args = [Argument("EXECUTABLE", help='script that should be executed', default='--version'),
-            Argument("Rscript", help='Rscript command',default='Rscript'),
+            Argument("Rscript", help='Rscript command', default='Rscript'),
             #Argument("in", help='input file for executable', default=''),
             #Argument("out", help='input file for executable', default=''),
             Argument('ADDITIONAL_PARAMETERS', help='additional parameter are forwarded to the executable, e.g. -threads 4', default=''),
