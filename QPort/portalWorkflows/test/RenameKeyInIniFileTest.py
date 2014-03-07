@@ -53,17 +53,17 @@ class MyTestCase(unittest.TestCase):
         for key in golden_dic:
             if(not featureFinder_ini_0.get(key) or featureFinder_ini_0[key] != golden_dic[key]):
                 golden_and_merge_are_equal = False
-                print key
-                print featureFinder_ini_0.get(key)
-                print golden_dic[key]
+                #print key
+                #print featureFinder_ini_0.get(key)
+                #print golden_dic[key]
                 break
 
         for key in featureFinder_ini_0:
             if(not golden_dic.get(key) or golden_dic[key] != featureFinder_ini_0[key]):
                 golden_and_merge_are_equal = False
-                print key
-                print featureFinder_ini_0[key]
-                print golden_dic.get(key)
+                #print key
+                #print featureFinder_ini_0[key]
+                #print golden_dic.get(key)
                 break
 
 

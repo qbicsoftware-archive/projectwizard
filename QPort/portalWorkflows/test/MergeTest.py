@@ -53,17 +53,17 @@ WORKDIR = None
         for key in golden_dic:
             if(not merge_ini_0.get(key) or merge_ini_0[key] != golden_dic[key]):
                 golden_and_merge_are_equal = False
-                print key
-                print merge_ini_0.get(key)
-                print golden_dic[key]
+                #print key
+                #print merge_ini_0.get(key)
+                #print golden_dic[key]
                 break
 
         for key in merge_ini_0:
             if(not golden_dic.get(key) or golden_dic[key] != merge_ini_0[key]):
                 golden_and_merge_are_equal = False
-                print key
-                print merge_ini_0[key]
-                print golden_dic.get(key)
+                #print key
+                #print merge_ini_0[key]
+                #print golden_dic.get(key)
                 break
 
 

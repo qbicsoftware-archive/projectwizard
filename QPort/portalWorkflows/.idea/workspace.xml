@@ -2,20 +2,14 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" readonly="true" id="22707874-0073-451b-af10-eb19329b2fcc" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/apps/HLATyping" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/ruffus/HLATyping_optitype" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/apps/HLATyping/OptitypeExecution.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/apps/HLATyping/__init__.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/ruffus/HLATyping_optitype/input.ini" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/ruffus/SimpleMapIDsWithFeature/input.ini" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/ruffus/HLATyping_optitype/parameter.ini" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/apps/R_Scripts/R_Script.py" afterPath="$PROJECT_DIR$/apps/R_Scripts/R_Script.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/apps/Runner.py" afterPath="$PROJECT_DIR$/apps/Runner.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/apps/toppTools/ToppBase.py" afterPath="$PROJECT_DIR$/apps/toppTools/ToppBase.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/InitiatorTest.py" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/apps/misc/init.py" afterPath="$PROJECT_DIR$/apps/misc/Initiator.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/MergeTest.py" afterPath="$PROJECT_DIR$/test/MergeTest.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/RenameKeyInIniFileTest.py" afterPath="$PROJECT_DIR$/test/RenameKeyInIniFileTest.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/apps/__init__.py" afterPath="$PROJECT_DIR$/apps/__init__.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/apps/R_Scripts/OpenMSQC/fractionalMass.R" afterPath="$PROJECT_DIR$/apps/R_Scripts/OpenMSQC/fractionalMass.R" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/ruffus/SimpleMapIDsWithFeature/parameter.ini" afterPath="$PROJECT_DIR$/test/ruffus/SimpleMapIDsWithFeature/parameter.ini" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/apps/version.py" afterPath="$PROJECT_DIR$/apps/version.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/ruffus/labelfree/labelfreeQT.py" afterPath="$PROJECT_DIR$/test/ruffus/labelfree/labelfreeQT.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/ruffus/HLATyping_optitype/parameter.ini" afterPath="$PROJECT_DIR$/test/ruffus/HLATyping_optitype/parameter.ini" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/ruffus/OpenMSQC/simpleQC.py" afterPath="$PROJECT_DIR$/test/ruffus/OpenMSQC/simpleQC.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="WorkflowsBasedOnAppli2ake.iws" />
@@ -39,91 +33,91 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="OptitypeExecution.py" pinned="false" current="true" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/apps/HLATyping/OptitypeExecution.py">
+      <file leaf-file-name="Initiator.py" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/apps/misc/Initiator.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="48" column="5" selection-start="2375" selection-end="2375" vertical-scroll-proportion="0.33333334" vertical-offset="616" max-vertical-offset="2682">
+            <state line="25" column="29" selection-start="1023" selection-end="1023" vertical-scroll-proportion="0.77319586" vertical-offset="0" max-vertical-offset="1422">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="parameter.ini" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/test/ruffus/HLATyping_optitype/parameter.ini">
+      <file leaf-file-name="info.py" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../../Software/applicake-read-only/branches/appli2ake/applicake/coreutils/info.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="3" column="19" selection-start="71" selection-end="71" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="162">
+            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1134">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Runner.py" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/apps/Runner.py">
+      <file leaf-file-name="keys.py" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../../Software/applicake-read-only/branches/appli2ake/applicake/coreutils/keys.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="42" column="10" selection-start="1273" selection-end="1273" vertical-scroll-proportion="0.0" vertical-offset="71" max-vertical-offset="828">
+            <state line="15" column="18" selection-start="296" selection-end="301" vertical-scroll-proportion="0.0" vertical-offset="270" max-vertical-offset="486">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="ToppBase.py" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/apps/toppTools/ToppBase.py">
+      <file leaf-file-name="InitiatorTest.py" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test/InitiatorTest.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="145" column="18" selection-start="7038" selection-end="7038" vertical-scroll-proportion="0.0" vertical-offset="1529" max-vertical-offset="2664">
+            <state line="72" column="65" selection-start="2765" selection-end="2765" vertical-scroll-proportion="0.0" vertical-offset="993" max-vertical-offset="1818">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="version.py" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/apps/version.py">
+      <file leaf-file-name="__init__.py" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/apps/__init__.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="108">
+            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="252">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Merge.py" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/apps/misc/Merge.py">
+      <file leaf-file-name="MergeTest.py" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test/MergeTest.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="13" column="32" selection-start="373" selection-end="373" vertical-scroll-proportion="0.0" vertical-offset="234" max-vertical-offset="1530">
+            <state line="65" column="17" selection-start="3114" selection-end="3114" vertical-scroll-proportion="0.0" vertical-offset="1170" max-vertical-offset="1656">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="split.ini_0" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../../Software/applicake-read-only/branches/appli2ake/tests/tmp6geSM4/split.ini_0">
+      <file leaf-file-name="RenameKeyInIniFile.py" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/apps/misc/RenameKeyInIniFile.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="198">
+            <state line="0" column="16" selection-start="15" selection-end="16" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="720">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="split.ini_1" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../../Software/applicake-read-only/branches/appli2ake/tests/tmp6geSM4/split.ini_1">
+      <file leaf-file-name="RenameKeyInIniFileTest.py" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test/RenameKeyInIniFileTest.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="198">
+            <state line="65" column="17" selection-start="2991" selection-end="2991" vertical-scroll-proportion="0.0" vertical-offset="1170" max-vertical-offset="1530">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="test_flow.py" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../../Software/applicake-read-only/branches/appli2ake/tests/test_flow.py">
+      <file leaf-file-name="ToppBaseTest.py" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test/ToppBaseTest.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="341" max-vertical-offset="1044">
+            <state line="74" column="22" selection-start="4687" selection-end="4692" vertical-scroll-proportion="0.0" vertical-offset="1332" max-vertical-offset="2340">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="GarbageCollector.py" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/apps/misc/GarbageCollector.py">
+      <file leaf-file-name="input.ini" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/apps/misc/input.ini">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="12" column="33" selection-start="470" selection-end="477" vertical-scroll-proportion="0.0" vertical-offset="216" max-vertical-offset="972">
+            <state line="1" column="28" selection-start="37" selection-end="58" vertical-scroll-proportion="0.0" vertical-offset="18" max-vertical-offset="144">
               <folding />
             </state>
           </provider>
@@ -139,11 +133,6 @@
   <component name="IdeDocumentHistory">
     <option name="changedFiles">
       <list>
-        <option value="$PROJECT_DIR$/test/ruffus/OpenMSQC/guse_param_test/parameter.ini" />
-        <option value="$PROJECT_DIR$/test/ToppBaseTest.py" />
-        <option value="$PROJECT_DIR$/test/RenameKeyInIniFileTest.py" />
-        <option value="$PROJECT_DIR$/test/ruffus/SimpleMapIDsWithFeature/parameter.ini" />
-        <option value="$PROJECT_DIR$/test/ruffus/SimpleMapIDsWithFeature/input.ini" />
         <option value="$PROJECT_DIR$/apps/toppTools/ToppBase.py" />
         <option value="$PROJECT_DIR$/../../Software/applicake-read-only/branches/appli2ake/applicake/app.py" />
         <option value="$PROJECT_DIR$/apps/R_Scripts/R_Script.py" />
@@ -153,8 +142,13 @@
         <option value="$PROJECT_DIR$/apps/__init__.py" />
         <option value="$PROJECT_DIR$/test/ruffus/HLATyping_optitype/input.ini" />
         <option value="$PROJECT_DIR$/apps/HLATyping/OptitypeExecution.py" />
-        <option value="$PROJECT_DIR$/test/ruffus/HLATyping_optitype/parameter.ini" />
         <option value="$PROJECT_DIR$/apps/Runner.py" />
+        <option value="$PROJECT_DIR$/test/ruffus/HLATyping_optitype/parameter.ini" />
+        <option value="$PROJECT_DIR$/apps/misc/init.py" />
+        <option value="$PROJECT_DIR$/test/MergeTest.py" />
+        <option value="$PROJECT_DIR$/test/RenameKeyInIniFileTest.py" />
+        <option value="$PROJECT_DIR$/apps/misc/Initiator.py" />
+        <option value="$PROJECT_DIR$/test/InitiatorTest.py" />
       </list>
     </option>
   </component>
@@ -207,7 +201,6 @@
       <sortByType />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -230,6 +223,146 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
+              <option name="myItemId" value="External Libraries" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="&lt; Python 2.7.5+ (/usr/bin/python2.7) &gt;" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="appli2ake" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="tests" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="WorkflowsBasedOnAppli2ake" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="External Libraries" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="&lt; Python 2.7.5+ (/usr/bin/python2.7) &gt;" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="appli2ake" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="tests" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="tmp6geSM4" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="WorkflowsBasedOnAppli2ake" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="External Libraries" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="&lt; Python 2.7.5+ (/usr/bin/python2.7) &gt;" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="appli2ake" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="applicake" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="WorkflowsBasedOnAppli2ake" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="External Libraries" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="&lt; Python 2.7.5+ (/usr/bin/python2.7) &gt;" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="appli2ake" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="applicake" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="coreutils" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="WorkflowsBasedOnAppli2ake" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="External Libraries" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="&lt; Python 2.7.5+ (/usr/bin/python2.7) &gt;" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="appli2ake" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="applicake" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="apputils" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="WorkflowsBasedOnAppli2ake" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="External Libraries" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="&lt; Python 2.7.5+ (/usr/bin/python2.7) &gt;" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="appli2ake" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="WorkflowsBasedOnAppli2ake" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
               <option name="myItemId" value="WorkflowRepository" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
@@ -245,46 +378,6 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="test" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="WorkflowsBasedOnAppli2ake" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="WorkflowRepository" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="test" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ruffus" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="WorkflowsBasedOnAppli2ake" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="WorkflowRepository" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="test" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ruffus" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="HLATyping_optitype" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -316,12 +409,13 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="toppTools" />
+              <option name="myItemId" value="misc" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -583,7 +677,11 @@
       <created>1391446817104</created>
       <updated>1391446817104</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="HLATyping wrapper added; application versioning prototype added">
+      <created>1393951040104</created>
+      <updated>1393951040104</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TodoView" selected-index="4">
@@ -616,7 +714,7 @@
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32903227" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.18717414" sideWeight="0.67096776" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.119395204" sideWeight="0.67096776" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32903227" sideWeight="0.5" order="8" side_tool="true" content_ui="tabs" />
@@ -646,7 +744,8 @@
     <MESSAGE value="Added use_key_as key to ToppBase. Now other keys can be used as aliases." />
     <MESSAGE value="use_as_key has to be deleted at the end." />
     <MESSAGE value="HLATyping wrapper added; application versioning prototype added" />
-    <option name="LAST_COMMIT_MESSAGE" value="HLATyping wrapper added; application versioning prototype added" />
+    <MESSAGE value="Renamed init.py to Initiator.py; Inittiator can deal with environmental variables as BASEDIR parameter; deleted some print statements; added tests for some Initiator methods" />
+    <option name="LAST_COMMIT_MESSAGE" value="Renamed init.py to Initiator.py; Inittiator can deal with environmental variables as BASEDIR parameter; deleted some print statements; added tests for some Initiator methods" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -660,106 +759,104 @@
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/apps/misc/DSSClient.py">
+    <entry file="file://$PROJECT_DIR$/../../Software/applicake-read-only/branches/appli2ake/applicake/app.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="684" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/apps/misc/init.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="16" column="32" selection-start="425" selection-end="435" vertical-scroll-proportion="0.0" vertical-offset="329" max-vertical-offset="1386" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../../Software/applicake-read-only/branches/appli2ake/appliapps/flow/merge.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="35" column="109" selection-start="1263" selection-end="1263" vertical-scroll-proportion="0.0" vertical-offset="270" max-vertical-offset="1278" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../../Software/applicake-read-only/branches/appli2ake/tests/tmp6geSM4/collate.ini">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="571" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/apps/misc/Collate.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="756">
+        <state line="13" column="20" selection-start="362" selection-end="366" vertical-scroll-proportion="0.0" vertical-offset="1350" max-vertical-offset="2124">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../Software/applicake-read-only/branches/appli2ake/tests/tmp6geSM4/merge.ini_0">
+    <entry file="file://$PROJECT_DIR$/../../Software/applicake-read-only/branches/appli2ake/applicake/coreutils/arguments.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="571">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="233" max-vertical-offset="828" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/apps/misc/init.ini">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="595" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../Software/applicake-read-only/branches/appli2ake/tests/tmp6geSM4/input.ini">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="76" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="162" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../Software/applicake-read-only/branches/appli2ake/tests/test_core.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1026" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/apps/misc/input.ini">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="1" column="28" selection-start="37" selection-end="58" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="144">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../Software/applicake-read-only/branches/appli2ake/applicake/coreutils/info.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1134">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../Software/applicake-read-only/branches/appli2ake/applicake/coreutils/keys.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="15" column="18" selection-start="296" selection-end="301" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="486">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/ToppBaseTest.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="74" column="22" selection-start="4687" selection-end="4692" vertical-scroll-proportion="0.0" vertical-offset="1332" max-vertical-offset="2340">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/MergeTest.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="65" column="17" selection-start="3114" selection-end="3114" vertical-scroll-proportion="0.0" vertical-offset="1170" max-vertical-offset="1656">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/apps/misc/Merge.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="13" column="32" selection-start="373" selection-end="373" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1422">
+        <state line="47" column="92" selection-start="1665" selection-end="1668" vertical-scroll-proportion="0.33333334" vertical-offset="478" max-vertical-offset="1422" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/apps/misc/RenameKeyInIniFile.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="16" selection-start="15" selection-end="16" vertical-scroll-proportion="-0.0" vertical-offset="0" max-vertical-offset="612">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../Software/applicake-read-only/branches/appli2ake/tests/tmp6geSM4/split.ini_0">
+    <entry file="file://$PROJECT_DIR$/test/RenameKeyInIniFileTest.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="595">
+        <state line="65" column="17" selection-start="2991" selection-end="2991" vertical-scroll-proportion="0.0" vertical-offset="1170" max-vertical-offset="1530">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../Software/applicake-read-only/branches/appli2ake/tests/tmp6geSM4/split.ini_1">
+    <entry file="file://$PROJECT_DIR$/test/InitiatorTest.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="595">
+        <state line="72" column="65" selection-start="2765" selection-end="2765" vertical-scroll-proportion="0.0" vertical-offset="993" max-vertical-offset="1818">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../Software/applicake-read-only/branches/appli2ake/tests/test_flow.py">
+    <entry file="file://$PROJECT_DIR$/apps/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="341" max-vertical-offset="1044">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="807">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/apps/misc/GarbageCollector.py">
+    <entry file="file://$PROJECT_DIR$/apps/misc/Initiator.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="12" column="33" selection-start="470" selection-end="477" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="900">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/test/ruffus/HLATyping_optitype/parameter.ini">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="3" column="19" selection-start="71" selection-end="71" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="162">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/apps/version.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="595">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/apps/Runner.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="42" column="10" selection-start="1273" selection-end="1273" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="828">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/apps/toppTools/ToppBase.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="145" column="18" selection-start="7038" selection-end="7038" vertical-scroll-proportion="0.0" vertical-offset="1529" max-vertical-offset="2664">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/apps/HLATyping/OptitypeExecution.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="48" column="5" selection-start="2375" selection-end="2375" vertical-scroll-proportion="0.33333334" vertical-offset="616" max-vertical-offset="2682">
+        <state line="25" column="29" selection-start="1023" selection-end="1023" vertical-scroll-proportion="0.77319586" vertical-offset="0" max-vertical-offset="1422">
           <folding />
         </state>
       </provider>

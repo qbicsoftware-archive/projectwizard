@@ -24,7 +24,7 @@ class Initiator(Split):
                       Argument("NAME", help="Name of node", default=self.__class__.__name__),
                       Argument('LOG_STORAGE', help="Storage type for out/err/log", default="memory"),
                       Argument('LOG_LEVEL', help="Logging level", default="DEBUG"),
-                      Argument('BASEDIR', help="Base directory used to store files produced by the application"),
+                      Argument('BASEDIR', help="Base directory used to store files produced by the application. IMPORTANT: it is first checked whether it is an environ variable. if not it is assumed to be a path."),
                       Argument('MODULE', help="Module to load")] #requires installation of http://modules.sf.net
         appargs = self.args
         defaults, cliargs = parse_arglist(runnerargs + appargs)
@@ -50,13 +50,15 @@ class Initiator(Split):
         ifileinfo[Keys.SPLIT] = ''
         ihP = get_handler(cliargs.get("PARAMETERS", None))
         parameterinfo = ihP.read(cliargs.get("PARAMETERS", None))
-        print(ifileinfo)
         self.info = dicts.merge(parameterinfo, ifileinfo)
         self.info = dicts.merge(cliargs, dicts.merge(self.info, defaults))
         #self.info[Keys.BASEDIR] += os.path.sep + self.info["WORKFLOW"]
         if not self.info[Keys.SPLIT]:
             self.info[Keys.SPLIT] = self.info[Keys.OUTPUT]
-        print(self.info)
+        basedir = os.environ.get(self.info[Keys.BASEDIR])
+        if basedir:
+            self.info[Keys.BASEDIR] = basedir
+
 
     def _create_wdir(self):
         #if not os.path.exists(self.info[Keys.BASEDIR]):
@@ -65,8 +67,8 @@ class Initiator(Split):
 
 #use this class as executable
 if __name__ == "__main__":
-    tmpFolder = os.environ['TMP']#["GUSE_TMP"]
+    #tmpFolder = os.environ['TMP']#["GUSE_TMP"]
 
-    additional = ["--WORKDIR",  "--BASEDIR", tmpFolder]
-    sys.argv.extend(additional)
+    #additional = ["--WORKDIR",  "--BASEDIR", tmpFolder]
+    #sys.argv.extend(additional)
     Initiator.run()

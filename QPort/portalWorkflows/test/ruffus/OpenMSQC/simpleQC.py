@@ -4,7 +4,7 @@ import sys
 import os
 from cStringIO import StringIO
 import multiprocessing
-from apps.misc.init import Initiator
+from apps.misc.Initiator import Initiator
 from apps.misc.DSSClient import DSSClient
 from apps.toppTools.ToppBase import ToppBase
 from apps.misc.Merge import Merge  # from appliapps.flow.merge import Merge
