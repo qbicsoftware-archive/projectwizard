@@ -2,28 +2,26 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" readonly="true" id="22707874-0073-451b-af10-eb19329b2fcc" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/build_guse_app_scripts" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/build_guse_app_scripts/collect_python_libraries.sh" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/build_guse_app_scripts/executeScript.sh" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/build_guse_app_scripts/guse_wrapper_app.sh" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/build_guse_app_scripts/make_guse_app.sh" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/build_guse_app_scripts/make_python_standalone.sh" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/build_guse_app_scripts/make_standalone_guse_conform.sh" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/apps/R_Scripts/OpenMSQC/theoretical_masses.txt" afterPath="$PROJECT_DIR$/test/rawData/theoretical_masses.txt" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/apps/misc/init.ini" afterPath="$PROJECT_DIR$/test/rawData/init.ini" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/apps/misc/input.ini" afterPath="$PROJECT_DIR$/test/rawData/input.ini" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/apps/misc/output.init.ini" afterPath="$PROJECT_DIR$/test/rawData/output.init.ini" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/apps/misc/parameter.ini" afterPath="$PROJECT_DIR$/test/rawData/parameter.ini" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/apps/toppTools/delete_it.ini" afterPath="$PROJECT_DIR$/test/rawData/delete_it.ini" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/nonPythonScripts" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/apps/toppTools/.idea/encodings.xml" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/apps/toppTools/.idea/misc.xml" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/apps/toppTools/.idea/modules.xml" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/apps/toppTools/.idea/scopes/scope_settings.xml" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/apps/toppTools/.idea/vcs.xml" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/apps/toppTools/.idea/workspace.xml" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/nonPythonScripts/OpenMSQC/theoretical_masses.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/apps/toppTools/.idea" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/apps/toppTools/.idea/.name" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/apps/toppTools/.idea/scopes" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/apps/toppTools/.idea/toppTools.iml" afterPath="" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/apps/R_Scripts/OpenMSQC/IDRatio.R" afterPath="$PROJECT_DIR$/nonPythonScripts/OpenMSQC/IDRatio.R" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/apps/R_Scripts/OpenMSQC/MassAcc.R" afterPath="$PROJECT_DIR$/nonPythonScripts/OpenMSQC/MassAcc.R" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/apps/R_Scripts/OpenMSQC/MassError.R" afterPath="$PROJECT_DIR$/nonPythonScripts/OpenMSQC/MassError.R" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/apps/R_Scripts/OpenMSQC/TIC.R" afterPath="$PROJECT_DIR$/nonPythonScripts/OpenMSQC/TIC.R" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/apps/R_Scripts/OpenMSQC/fractionalMass.R" afterPath="$PROJECT_DIR$/nonPythonScripts/OpenMSQC/fractionalMass.R" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/apps/__init__.py" afterPath="$PROJECT_DIR$/apps/__init__.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/apps/toppTools/idXML" afterPath="$PROJECT_DIR$/test/rawData/idXML" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/apps/misc/init.ini_0" afterPath="$PROJECT_DIR$/test/rawData/init.ini_0" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/apps/misc/init.ini_1" afterPath="$PROJECT_DIR$/test/rawData/init.ini_1" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/apps/misc/output.init.ini_0" afterPath="$PROJECT_DIR$/test/rawData/output.init.ini_0" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/apps/misc/output.init.ini_1" afterPath="$PROJECT_DIR$/test/rawData/output.init.ini_1" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/apps/R_Scripts/test.csv" afterPath="$PROJECT_DIR$/test/rawData/test.csv" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/apps/toppTools/test.idXML" afterPath="$PROJECT_DIR$/test/rawData/test.idXML" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/apps/toppTools/workflow.ini_output" afterPath="$PROJECT_DIR$/test/rawData/workflow.ini_output" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/apps/R_Scripts/OpenMSQC" afterPath="$PROJECT_DIR$/nonPythonScripts/OpenMSQC" />
     </list>
     <ignored path="WorkflowsBasedOnAppli2ake.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -49,83 +47,73 @@
       <file leaf-file-name="Initiator.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/apps/misc/Initiator.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="25" column="29" selection-start="1023" selection-end="1023" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1422">
+            <state line="55" column="37" selection-start="2699" selection-end="2699" vertical-scroll-proportion="0.0" vertical-offset="516" max-vertical-offset="1422">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="TestSubmissionDetails.py" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/apps/misc/TestSubmissionDetails.py">
+      <file leaf-file-name="parameter.ini" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test/ruffus/OpenMSQC/guse_param_test/parameter.ini">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="234">
+            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="699" max-vertical-offset="1458">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="collect_python_libraries.sh" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/build_guse_app_scripts/collect_python_libraries.sh">
+      <file leaf-file-name="input.ini" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test/ruffus/OpenMSQC/guse_param_test/input.ini">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="15" column="2" selection-start="640" selection-end="640" vertical-scroll-proportion="-9.642858" vertical-offset="0" max-vertical-offset="378">
+            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="162">
               <folding />
             </state>
           </provider>
-          <provider editor-type-id="com.intellij.persistence.database.editor.CsvTableFileEditorProvider">
-            <state />
+        </entry>
+      </file>
+      <file leaf-file-name="ToppBase.py" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/apps/toppTools/ToppBase.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="2664">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="R_Script.py" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/apps/R_Scripts/R_Script.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="15" column="0" selection-start="851" selection-end="851" vertical-scroll-proportion="0.0" vertical-offset="270" max-vertical-offset="1836">
+              <folding />
+            </state>
           </provider>
         </entry>
       </file>
       <file leaf-file-name="executeScript.sh" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/build_guse_app_scripts/executeScript.sh">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="6" column="0" selection-start="141" selection-end="141" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="216">
+            <state line="6" column="0" selection-start="141" selection-end="141" vertical-scroll-proportion="0.0" vertical-offset="108" max-vertical-offset="216">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="make_guse_app.sh" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="make_guse_app.sh" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/build_guse_app_scripts/make_guse_app.sh">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="14" column="0" selection-start="296" selection-end="296" vertical-scroll-proportion="0.441331" vertical-offset="0" max-vertical-offset="571">
+            <state line="14" column="0" selection-start="296" selection-end="296" vertical-scroll-proportion="0.0" vertical-offset="252" max-vertical-offset="360">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="InitiatorTest.py" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/test/InitiatorTest.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="72" column="65" selection-start="2765" selection-end="2765" vertical-scroll-proportion="0.0" vertical-offset="993" max-vertical-offset="1818">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="__init__.py" pinned="false" current="false" current-in-tab="false">
+      <file leaf-file-name="__init__.py" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/apps/__init__.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="252">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="MergeTest.py" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/test/MergeTest.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="65" column="17" selection-start="3114" selection-end="3114" vertical-scroll-proportion="0.0" vertical-offset="1170" max-vertical-offset="1656">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="RenameKeyInIniFile.py" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/apps/misc/RenameKeyInIniFile.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="0" column="16" selection-start="15" selection-end="16" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="720">
-              <folding />
+            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="595">
+              <folding>
+                <element signature="e#0#30#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -415,53 +403,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="External Libraries" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="&lt; Python 2.7.5+ (/usr/bin/python2.7) &gt;" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="dist-packages" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="WorkflowsBasedOnAppli2ake" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
               <option name="myItemId" value="WorkflowRepository" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="WorkflowsBasedOnAppli2ake" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="WorkflowRepository" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="test" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="WorkflowsBasedOnAppli2ake" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="WorkflowRepository" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="build_guse_app_scripts" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -489,7 +431,7 @@
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="options.lastSelected" value="vcs.Subversion" />
     <property name="recentsLimit" value="5" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../portalWorkflowScripts/Applications/ParameterHandler.py" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="FullScreen" value="false" />
     <property name="options.splitter.details.proportions" value="0.2" />
     <property name="options.searchVisible" value="true" />
@@ -506,10 +448,123 @@
       <recent name="$PROJECT_DIR$/apps/misc" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/nonPythonScripts" />
       <recent name="$PROJECT_DIR$/test/rawData" />
       <recent name="$PROJECT_DIR$/apps/R_Scripts/OpenMSQC" />
       <recent name="$PROJECT_DIR$/test/ruffus/OpenMSQC" />
     </key>
+  </component>
+  <component name="RestoreUpdateTree">
+    <UpdateInfo date="Moments ago" ActionInfo="_Update">
+      <UpdatedFiles>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Updated from server" />
+          <option name="myStatusName" value="Changed on server" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="CHANGED_ON_SERVER" />
+          <FILE-GROUP>
+            <option name="myUpdateName" value="Updated" />
+            <option name="myStatusName" value="Changed" />
+            <option name="mySupportsDeletion" value="false" />
+            <option name="myCanBeAbsent" value="false" />
+            <option name="myId" value="UPDATED" />
+          </FILE-GROUP>
+          <FILE-GROUP>
+            <option name="myUpdateName" value="Created" />
+            <option name="myStatusName" value="Created" />
+            <option name="mySupportsDeletion" value="false" />
+            <option name="myCanBeAbsent" value="false" />
+            <option name="myId" value="CREATED" />
+          </FILE-GROUP>
+          <FILE-GROUP>
+            <option name="myUpdateName" value="Deleted" />
+            <option name="myStatusName" value="Deleted" />
+            <option name="mySupportsDeletion" value="false" />
+            <option name="myCanBeAbsent" value="true" />
+            <option name="myId" value="REMOVED_FROM_REPOSITORY" />
+          </FILE-GROUP>
+          <FILE-GROUP>
+            <option name="myUpdateName" value="Restored" />
+            <option name="myStatusName" value="Will be restored" />
+            <option name="mySupportsDeletion" value="false" />
+            <option name="myCanBeAbsent" value="false" />
+            <option name="myId" value="RESTORED" />
+            <PATH vcs="svn" revision="50">$PROJECT_DIR$/apps/misc/init.pyc</PATH>
+          </FILE-GROUP>
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Modified" />
+          <option name="myStatusName" value="Modified" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="MODIFIED" />
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Skipped" />
+          <option name="myStatusName" value="Skipped" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="SKIPPED" />
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Merged with conflicts" />
+          <option name="myStatusName" value="Will be merged with conflicts" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="MERGED_WITH_CONFLICTS" />
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Merged with tree conflicts" />
+          <option name="myStatusName" value="Merged with tree conflicts" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="MERGED_WITH_TREE_CONFLICT" />
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Merged with property conflicts" />
+          <option name="myStatusName" value="Will be merged with property conflicts" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="MERGED_WITH_PROPERTY_CONFLICT" />
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Merged" />
+          <option name="myStatusName" value="Will be merged" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="MERGED" />
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Not in repository" />
+          <option name="myStatusName" value="Not in repository" />
+          <option name="mySupportsDeletion" value="true" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="UNKNOWN" />
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Locally added" />
+          <option name="myStatusName" value="Locally added" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="LOCALLY_ADDED" />
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Locally removed" />
+          <option name="myStatusName" value="Locally removed" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="LOCALLY_REMOVED" />
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Switched" />
+          <option name="myStatusName" value="Switched" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="SWITCHED" />
+        </FILE-GROUP>
+      </UpdatedFiles>
+    </UpdateInfo>
   </component>
   <component name="RunManager">
     <configuration default="true" type="DjangoTestsConfigurationType" factoryName="Django tests">
@@ -752,7 +807,11 @@
       <created>1394189689106</created>
       <updated>1394189689106</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="add simple build tools in order to collect all necessary libraries into a folder. Secondly folder is zipped into a python executable and thirdly it is tar together with a shell script into a guse conform app.tgz executable. The script loads the python module if executed on the cluster.">
+      <created>1394210594104</created>
+      <updated>1394210594104</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="TodoView" selected-index="4">
@@ -777,7 +836,7 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1920" height="1056" extended-state="0" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32903227" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -785,12 +844,12 @@
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32903227" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.119395204" sideWeight="0.67096776" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.11105318" sideWeight="0.67096776" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32903227" sideWeight="0.5" order="8" side_tool="true" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32903227" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -816,7 +875,9 @@
     <MESSAGE value="use_as_key has to be deleted at the end." />
     <MESSAGE value="HLATyping wrapper added; application versioning prototype added" />
     <MESSAGE value="Renamed init.py to Initiator.py; Inittiator can deal with environmental variables as BASEDIR parameter; deleted some print statements; added tests for some Initiator methods" />
-    <option name="LAST_COMMIT_MESSAGE" value="Renamed init.py to Initiator.py; Inittiator can deal with environmental variables as BASEDIR parameter; deleted some print statements; added tests for some Initiator methods" />
+    <MESSAGE value="add simple build tools in order to collect all necessary libraries into a folder. Secondly folder is zipped into a python executable and thirdly it is tar together with a shell script into a guse conform app.tgz executable. The script loads the python module if executed on the cluster." />
+    <MESSAGE value="Non python scripts are now in an extra folder." />
+    <option name="LAST_COMMIT_MESSAGE" value="Non python scripts are now in an extra folder." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -830,44 +891,9 @@
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/../../Software/applicake-read-only/branches/appli2ake/tests/test_core.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1026" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/test/rawData/input.ini">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="1" column="28" selection-start="37" selection-end="58" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="144">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../../Software/applicake-read-only/branches/appli2ake/applicake/coreutils/info.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1134">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../../Software/applicake-read-only/branches/appli2ake/applicake/coreutils/keys.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="15" column="18" selection-start="296" selection-end="301" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="486">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/test/ToppBaseTest.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="74" column="22" selection-start="4687" selection-end="4692" vertical-scroll-proportion="0.0" vertical-offset="1332" max-vertical-offset="2340">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/test/MergeTest.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="65" column="17" selection-start="3114" selection-end="3114" vertical-scroll-proportion="0.0" vertical-offset="1170" max-vertical-offset="1656">
-          <folding />
-        </state>
+        <state line="65" column="17" selection-start="3114" selection-end="3114" vertical-scroll-proportion="0.0" vertical-offset="1170" max-vertical-offset="1656" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/apps/misc/Merge.py">
@@ -877,51 +903,22 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/apps/misc/RenameKeyInIniFile.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="16" selection-start="15" selection-end="16" vertical-scroll-proportion="-0.0" vertical-offset="0" max-vertical-offset="612">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/test/RenameKeyInIniFileTest.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="65" column="17" selection-start="2991" selection-end="2991" vertical-scroll-proportion="0.0" vertical-offset="1170" max-vertical-offset="1530">
-          <folding />
-        </state>
+        <state line="0" column="16" selection-start="15" selection-end="16" vertical-scroll-proportion="-0.0" vertical-offset="0" max-vertical-offset="612" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/test/InitiatorTest.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="72" column="65" selection-start="2765" selection-end="2765" vertical-scroll-proportion="0.0" vertical-offset="993" max-vertical-offset="1818">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/apps/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="807">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/apps/misc/Initiator.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="25" column="29" selection-start="1023" selection-end="1023" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1422">
-          <folding />
-        </state>
+        <state line="72" column="65" selection-start="2765" selection-end="2765" vertical-scroll-proportion="0.0" vertical-offset="993" max-vertical-offset="1818" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/apps/misc/TestSubmissionDetails.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="595">
-          <folding />
-        </state>
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="595" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/build_guse_app_scripts/collect_python_libraries.sh">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="15" column="2" selection-start="640" selection-end="640" vertical-scroll-proportion="-9.642858" vertical-offset="0" max-vertical-offset="378">
-          <folding />
-        </state>
+        <state line="15" column="2" selection-start="640" selection-end="640" vertical-scroll-proportion="0.0" vertical-offset="270" max-vertical-offset="378" />
       </provider>
       <provider editor-type-id="com.intellij.persistence.database.editor.CsvTableFileEditorProvider">
         <state />
@@ -934,10 +931,68 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/test/RenameKeyInIniFileTest.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="65" column="17" selection-start="2991" selection-end="2991" vertical-scroll-proportion="0.0" vertical-offset="1170" max-vertical-offset="1530">
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/build_guse_app_scripts/make_guse_app.sh">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="14" column="0" selection-start="296" selection-end="296" vertical-scroll-proportion="0.441331" vertical-offset="0" max-vertical-offset="571">
+        <state line="14" column="0" selection-start="296" selection-end="296" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="360">
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/apps/R_Scripts/R_Script.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="15" column="0" selection-start="851" selection-end="851" vertical-scroll-proportion="0.0" vertical-offset="270" max-vertical-offset="1782">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/apps/toppTools/ToppBase.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="2664">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/FeatureFinderCentroided/exec.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="759">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/apps/misc/Initiator.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="55" column="37" selection-start="2699" selection-end="2699" vertical-scroll-proportion="0.0" vertical-offset="516" max-vertical-offset="1422">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/ruffus/OpenMSQC/guse_param_test/input.ini">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="759">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/ruffus/OpenMSQC/guse_param_test/parameter.ini">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1458">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/apps/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="807">
+          <folding>
+            <element signature="e#0#30#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
