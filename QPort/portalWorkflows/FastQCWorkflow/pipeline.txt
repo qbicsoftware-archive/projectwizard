@@ -1,2 +1,0 @@
-python openbisDownloader.py input test; python FastQC_script.py work
-flow.input; python WorkflowReaper.py workflow.waste workflow.output

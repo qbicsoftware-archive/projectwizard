@@ -1,9 +1,0 @@
-FILE = /home/wojnar/QBiC/workflows/WorkflowsBasedOnAppli2ake/test/tmp/1401131833/2/ToppBase_IDPosteriorErrorProbability/velos005616.mzML.OMSSAAdapter.idXML.IDPosteriorErrorProbability.idXML
-COMMENT = boolean parameter
-EXECUTABLE = IDPosteriorErrorProbability
-LOG_LEVEL = DEBUG
-LOG_STORAGE = memory
-SUBJOBLIST = FILE__2__3,
-BASEDIR = /home/wojnar/QBiC/workflows/WorkflowsBasedOnAppli2ake/test/tmp
-JOB_IDX = 1401131833
-WORKDIR = /home/wojnar/QBiC/workflows/WorkflowsBasedOnAppli2ake/test/tmp/1401131833/2/ToppBase_IDPosteriorErrorProbability/

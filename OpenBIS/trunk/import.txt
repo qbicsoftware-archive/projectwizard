@@ -1,4 +1,0 @@
-The first commit worked.
-
-The first commit was directly from my share folder.
-The second commit is from my local windows laptop.

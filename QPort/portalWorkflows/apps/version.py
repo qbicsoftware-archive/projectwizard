@@ -1,1 +1,0 @@
-__version__ = filter(str.isdigit, "$Revision: 13 $")  #'0.2'
