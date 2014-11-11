@@ -165,11 +165,26 @@ public class ProjectContextStep implements WizardStep {
 
   @Override
   public boolean onAdvance() {
-    System.out.println(getSamples());
-    if (spaceReady() && projectReady())
-      return true;
+    if (spaceReady() && projectReady()) {
+      if(inherit())
+        if(sampleSelected())
+          return true;
+        else
+          return false;
+      else
+        return true;
+    }
     else
       return false;
+  }
+
+  private boolean sampleSelected() {
+    return (getSamples().size() > 0);
+  }
+
+  private boolean inherit() {
+    String context = (String) projectContext.getValue();
+    return (contextOptions.get(1).equals(context) || contextOptions.get(2).equals(context));
   }
 
   private boolean projectReady() {
