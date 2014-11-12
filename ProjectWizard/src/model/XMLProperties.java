@@ -26,7 +26,9 @@ public class XMLProperties {
 
   //TODO
   public String getXML() {
-    String res = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>   <qproperties>";
+    String res = "<?xml version=\"1.0\" encoding=\"UTF-8\"?> " +
+    		"<qproperties xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
+    		"xsi:noNamespaceSchemaLocation=\"sample_prop_schema.xsd\">";
     for (Property p : properties) {
       res +=
           "   <property label=\"" + p.getName() + "\" type=\"" + p.getType()

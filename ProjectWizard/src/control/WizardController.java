@@ -13,6 +13,7 @@ import main.OpenBisClient;
 import main.OpenbisCreationController;
 import main.SamplePreparator;
 import model.ExperimentBean;
+import model.ExperimentType;
 import model.ISampleBean;
 import model.NewSampleModelBean;
 import model.OpenbisExperiment;
@@ -169,18 +170,12 @@ public class WizardController {
           Page.getCurrent().open(resource, "Download", true);
         }
         if (src.equals("Register All")) {
-          for (OpenbisExperiment e : dataAggregator.getExperiments()) {
-            String space = s1.getSpaceCode();
-            String proj = s1.getProjectCode();
-            String type = e.getType().toString();
-            String code = e.getOpenbisName();
-            if (!openbis.expExists(space, proj, code))
-              openbisCreator.registerExperiment(space, proj, type, code);
-          }
+
           List<List<ISampleBean>> hierarchy = new ArrayList<List<ISampleBean>>();
           for (List<List<ISampleBean>> midList : s8.getSamples()) {
             List<ISampleBean> collect = new ArrayList<ISampleBean>();
             for (List<ISampleBean> inner : midList) {
+              createExperiment(inner.get(0));
               collect.addAll(inner);
             }
             hierarchy.add(collect);
@@ -440,5 +435,22 @@ public class WizardController {
       }
     };
     w.addListener(wl);
+  }
+
+  protected void createExperiment(ISampleBean s) {
+    String space = s.getSpace();
+    String proj = s.getProject();
+    String expCode = s.getExperiment();
+    String expType = "";
+    System.out.println(space + proj + expCode);
+    if (s.getType().equals("Q_BIOLOGICAL_ENTITY"))
+      expType = ExperimentType.Q_EXPERIMENTAL_DESIGN.toString();
+    else if (s.getType().equals("Q_BIOLOGICAL_SAMPLE"))
+      expType = ExperimentType.Q_SAMPLE_EXTRACTION.toString();
+    else if (s.getType().equals("Q_TEST_SAMPLE"))
+      expType = ExperimentType.Q_SAMPLE_PREPARATION.toString();
+    System.out.println(expType);
+    if (!openbis.expExists(space, proj, expCode))
+      openbisCreator.registerExperiment(space, proj, expType, expCode);
   }
 }

@@ -160,10 +160,6 @@ public class WizardDataAggregator {
     return projectCode + "E" + (firstFreeExperimentID - 1);
   }
 
-  public List<OpenbisExperiment> getExperiments() {
-    return experiments;
-  }
-
   // I want to thank my parents and Stack Overflow, but mostly Stack Overflow.
   private void generatePermutations(List<List<String>> lists, List<String> result, int depth,
       String current) {
@@ -231,6 +227,7 @@ public class WizardDataAggregator {
           }
         }
         String taxID = taxMap.get(species);
+//        "QUENTITY-"entityNum+"-"+projectCode
         entities.add(new OpenbisBiologicalEntity("QENTITY-" + entityNum, experiments.get(0).getOpenbisName(),
             secondaryNameEntity, "", new XMLProperties(), taxID));
       }
