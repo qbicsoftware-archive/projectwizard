@@ -11,6 +11,11 @@ import main.ProjectwizardUI;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.Upload;
 
+/**
+ * Class handling the TSV upload
+ * @author Andreas Friedrich
+ *
+ */
 @SuppressWarnings("serial")
 public class Uploader implements Upload.SucceededListener, Upload.FailedListener, Upload.Receiver {
 

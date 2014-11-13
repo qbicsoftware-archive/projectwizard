@@ -50,6 +50,11 @@ import ui.ProjectContextStep;
 import ui.TestStep;
 import ui.UploadRegisterStep;
 
+/**
+ * Controller for the Project Wizard Tab
+ * @author Andreas Friedrich
+ *
+ */
 public class WizardController {
 
   OpenBisClient openbis;

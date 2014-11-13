@@ -29,6 +29,11 @@ import com.vaadin.ui.Button.ClickEvent;
 
 import ui.BarcodeView;
 
+/**
+ * Controller class for the Barcode Creation Tab
+ * @author Andreas Friedrich
+ *
+ */
 public class BarcodeController {
 
   private BarcodeView view;

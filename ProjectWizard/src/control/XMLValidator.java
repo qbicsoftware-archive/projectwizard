@@ -11,6 +11,11 @@ import javax.xml.validation.*;
 
 import org.xml.sax.SAXException;
 
+/**
+ * Validates XML files against a schema
+ * @author Andreas Friedrich
+ *
+ */
 public class XMLValidator {
   
   File schemaFile;

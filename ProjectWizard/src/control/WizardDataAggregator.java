@@ -32,6 +32,11 @@ import ui.ExtractionStep;
 import ui.ProjectContextStep;
 import ui.TestStep;
 
+/**
+ * Aggregates the data from all wizard steps and integrates it to create TSVs and Experiment information
+ * @author Andreas Friedrich
+ *
+ */
 public class WizardDataAggregator {
 
   private ProjectContextStep s1;
