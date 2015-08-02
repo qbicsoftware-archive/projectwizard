@@ -1,17 +1,17 @@
 package control;
 
-import ui.UploadRegisterStep;
+import views.IRegistrationView;
 
 /**
- * Runnable that calls a method in the view after the background thread has finished registering samples
+ * Class implementing the Runnable interface so it can be run and trigger a response in the view after the sample creation thread finishes
  * @author Andreas Friedrich
  *
  */
 public class RegisteredSamplesReadyRunnable implements Runnable {
 
-  private UploadRegisterStep view;
+  private IRegistrationView view;
 
-  public RegisteredSamplesReadyRunnable(UploadRegisterStep view) {
+  public RegisteredSamplesReadyRunnable(IRegistrationView view) {
     this.view = view;
   }
 

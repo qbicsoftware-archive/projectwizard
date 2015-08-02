@@ -1,57 +1,72 @@
 package control;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.tools.ant.types.CommandlineJava.SysProperties;
-
+import logging.Log4j2Logger;
 import main.BarcodeCreator;
 import main.OpenBisClient;
 import model.ExperimentBarcodeSummaryBean;
-import model.ExperimentBean;
-import model.FileType;
 import model.IBarcodeBean;
 import model.NewModelBarcodeBean;
-import model.NewSampleModelBean;
 
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
+import ch.systemsx.cisd.openbis.plugin.query.shared.api.v1.dto.QueryTableModel;
 
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.server.Extension;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.ComboBox;
 
-import ui.BarcodeView;
+import views.WizardBarcodeView;
 
 /**
- * Controller class for the Barcode Creation Tab
+ * Controls preparation and creation of barcode files
+ * 
  * @author Andreas Friedrich
- *
+ * 
  */
+
 public class BarcodeController {
 
-  private BarcodeView view;
+  private WizardBarcodeView view;
   private OpenBisClient openbis;
   private BarcodeCreator creator;
 
-  ArrayList<IBarcodeBean> barcodeBeans;
+  List<IBarcodeBean> barcodeBeans;
+
+  logging.Logger logger = new Log4j2Logger(BarcodeController.class);
 
   private List<String> barcodeExperiments = new ArrayList<String>(Arrays.asList(
-      "Q_SAMPLE_EXTRACTION", "Q_SAMPLE_PREPARATION"));
+      "Q_SAMPLE_EXTRACTION", "Q_SAMPLE_PREPARATION", "Q_NGS_MEASUREMENT"));
 
-  public BarcodeController(BarcodeView bw, OpenBisClient openbis, String barcodeScripts,
+  /**
+   * @param bw WizardBarcodeView instance
+   * @param openbis OpenBisClient API
+   * @param barcodeScripts Path to different barcode creation scripts
+   * @param pathVar Path variable so python scripts can work when called from the JVM
+   */
+  public BarcodeController(WizardBarcodeView bw, OpenBisClient openbis, String barcodeScripts,
       String pathVar) {
     view = bw;
     this.openbis = openbis;
     creator = new BarcodeCreator(barcodeScripts, pathVar);
   }
 
+  /**
+   * Initializes all listeners
+   */
+  @SuppressWarnings("serial")
   public void init() {
     /**
      * Button listeners
@@ -60,21 +75,34 @@ public class BarcodeController {
       @Override
       public void buttonClick(ClickEvent event) {
         String src = event.getButton().getCaption();
-        if (src.equals("Download Sample Sheet")) {
-           creator.createAndDLSheet(barcodeBeans, view.getSorter());
-        }
-        if (src.equals("Download Tube Barcodes")) {
-          creator.zipAndDownloadBarcodes(barcodeBeans);
-        }
-        if (src.equals("Reset Selection")) {
-          barcodeBeans = null;
-          view.reset();
-        }
         if (src.equals("Prepare Barcodes")) {
           view.creationPressed();
+          Iterator<Extension> it = view.getButtonSheet().getExtensions().iterator();
+          if (it.hasNext())
+            view.getButtonSheet().removeExtension(it.next());
+          it = view.getButtonTube().getExtensions().iterator();
+          if (it.hasNext())
+            view.getButtonTube().removeExtension(it.next());
           barcodeBeans = getSamplesFromExperimentSummaries(view.getExperiments());
-          creator.findOrCreateBarcodesWithProgress(barcodeBeans, view.getProgressBar(),
-              view.getProgressInfo(), new BarcodesReadyRunnable(view));
+          Collection<String> options = (Collection<String>) view.getPrepOptionGroup().getValue();
+          boolean overwrite = view.getOverwrite();
+          String project = view.getProjectCode();
+          if (options.size() == 2) {
+            logger.info("Preparing barcodes (sheet and tubes) for project " + project);
+            creator.findOrCreateBarcodesWithProgress(barcodeBeans, view.getProgressBar(),
+                view.getProgressInfo(), new BarcodesReadyRunnable(view, creator, barcodeBeans),
+                overwrite);
+          } else if (options.contains("Sample Tube Barcodes")) {
+            logger.info("Preparing barcodes (tubes) for project " + project);
+            creator.findOrCreateTubeBarcodesWithProgress(barcodeBeans, view.getProgressBar(),
+                view.getProgressInfo(), new TubeBarcodesReadyRunnable(view, creator, barcodeBeans),
+                overwrite);
+          } else if (options.contains("Sample Sheet Barcodes")) {
+            logger.info("Preparing barcodes (sheet) for project " + project);
+            creator
+                .findOrCreateSheetBarcodesWithProgress(barcodeBeans, view.getProgressBar(), view
+                    .getProgressInfo(), new SheetBarcodesReadyRunnable(view, creator, barcodeBeans));
+          }
         }
       }
     };
@@ -100,7 +128,9 @@ public class BarcodeController {
       }
 
     };
-    view.getSpaceBox().addValueChangeListener(spaceSelectListener);
+    ComboBox space = view.getSpaceBox();
+    if (space != null)
+      space.addValueChangeListener(spaceSelectListener);
 
     /**
      * Project selection listener
@@ -113,34 +143,14 @@ public class BarcodeController {
         view.resetExperiments();
         String project = view.getProjectCode();
         if (project != null) {
-          List<ExperimentBarcodeSummaryBean> beans = new ArrayList<ExperimentBarcodeSummaryBean>();
-          for (Experiment e : openbis.getExperimentsOfProjectByCode(project)) {
-            String type = e.getExperimentTypeCode();
-            if (barcodeExperiments.contains(type)) {
-              String expCode = e.getCode();
-              List<Sample> samples = openbis.getSamplesofExperiment(e.getCode());
-              int numOfSamples = samples.size();
-              List<String> ids = new ArrayList<String>();
-              for (Sample s : samples) {
-                ids.add(s.getCode());
-              }
-              String bioType = "unknown";
-              if (type.equals(barcodeExperiments.get(0))) {
-                bioType = samples.get(0).getProperties().get("Q_PRIMARY_TISSUE");
-              }
-              if (type.equals(barcodeExperiments.get(1))) {
-                bioType = samples.get(0).getProperties().get("Q_SAMPLE_TYPE");
-              }
-              beans.add(new ExperimentBarcodeSummaryBean(Functions.getBarcodeRange(ids), bioType,
-                  Integer.toString(numOfSamples), expCode));
-            }
-          }
-          view.setExperiments(beans);
+          reactToProjectSelection(project);
         }
       }
 
     };
-    view.getProjectBox().addValueChangeListener(projectSelectListener);
+    ComboBox project = view.getProjectBox();
+    if (project != null)
+      project.addValueChangeListener(projectSelectListener);
 
     /**
      * Experiment selection listener
@@ -150,50 +160,151 @@ public class BarcodeController {
 
       @Override
       public void valueChange(ValueChangeEvent event) {
-        view.resetSamples();
-        Collection<ExperimentBarcodeSummaryBean> exps = view.getExperiments();
-        List<NewSampleModelBean> beans = new ArrayList<NewSampleModelBean>();
-        if (exps.size() > 0) {
-          view.enableCreation(true);
-        } else {
-          view.enableCreation(false);
-        }
+        barcodeBeans = null;
+        view.reset();
+        view.enablePrep(expSelected() && optionSelected());
+        if (expSelected() && tubesSelected())
+          view.enablePreview(getUsefulSampleFromExperiment());
       }
-
     };
     view.getExperimentTable().addValueChangeListener(expSelectListener);
 
+    ValueChangeListener optionListener = new ValueChangeListener() {
+      @Override
+      public void valueChange(ValueChangeEvent event) {
+        if (optionSelected()) {
+          view.enablePrep(expSelected());
+          if (tubesSelected() && expSelected())
+            view.enablePreview(getUsefulSampleFromExperiment());
+          else
+            view.disablePreview();
+        } else
+          view.disablePreview();
+
+
+      }
+    };
+    view.getPrepOptionGroup().addValueChangeListener(optionListener);
   }
 
-  protected ArrayList<IBarcodeBean> getSamplesFromExperimentSummaries(
-      Collection<ExperimentBarcodeSummaryBean> experiments) {
-    ArrayList<NewSampleModelBean> samples = new ArrayList<NewSampleModelBean>();
-    for (ExperimentBarcodeSummaryBean b : experiments) {
-      for (Sample s : openbis.getSamplesofExperiment(b.getExperiment())) {
-        String type = s.getSampleTypeCode();
-        String bioType = "unknown";
-        if (type.equals("Q_BIOLOGICAL_SAMPLE")) {
-          bioType = s.getProperties().get("Q_PRIMARY_TISSUE");
+  public void reactToProjectSelection(String project) {
+    List<ExperimentBarcodeSummaryBean> beans = new ArrayList<ExperimentBarcodeSummaryBean>();
+    for (Experiment e : openbis.getExperimentsOfProjectByCode(project)) {
+      String type = e.getExperimentTypeCode();
+      List<Sample> samples = openbis.getSamplesofExperiment(e.getIdentifier());
+      if (barcodeExperiments.contains(type) && samples.size() > 0) {
+        String expID = e.getIdentifier();
+        List<String> ids = new ArrayList<String>();
+        for (Sample s : samples) {
+          if (Functions.isQbicBarcode(s.getCode()))
+            ids.add(s.getCode());
         }
-        if (type.equals("Q_TEST_SAMPLE")) {
-          bioType = s.getProperties().get("Q_SAMPLE_TYPE");
+        int numOfSamples = ids.size();
+        String bioType = null;
+        int i = 0;
+        if (type.equals(barcodeExperiments.get(0))) {
+          while (bioType == null) {
+            bioType = samples.get(i).getProperties().get("Q_PRIMARY_TISSUE");
+            i++;
+          }
         }
-        samples.add(new NewSampleModelBean(s.getCode(), s.getProperties().get("Q_SECONDARY_NAME"),
-            bioType));
+        if (type.equals(barcodeExperiments.get(1))) {
+          while (bioType == null) {
+            bioType = samples.get(i).getProperties().get("Q_SAMPLE_TYPE");
+            i++;
+          }
+        }
+        if (type.equals(barcodeExperiments.get(2))) {
+          bioType = e.getProperties().get("Q_SEQUENCING_TYPE");
+        }
+        beans.add(new ExperimentBarcodeSummaryBean(bioType, Integer.toString(numOfSamples), expID));
       }
     }
-    return translateBeans(samples);
+    view.setExperiments(beans);
   }
 
-  protected ArrayList<IBarcodeBean> translateBeans(Collection<NewSampleModelBean> samples) {
-    List<Sample> samplePool = openbis.getSamplesOfProject(view.getProjectCode());
-    Map<String, ArrayList<String>> parentMap = openbis.getParentMap(samplePool);
-    ArrayList<IBarcodeBean> res = new ArrayList<IBarcodeBean>();
-    for (NewSampleModelBean s : samples) {
-      res.add(new NewModelBarcodeBean(s.getCode(), s.getSecondary_Name(), s.getType(), parentMap
-          .get(s.getCode())));
+  private Sample getUsefulSampleFromExperiment() {
+    List<Sample> samples =
+        openbis.getSamplesofExperiment(view.getExperiments().iterator().next().fetchExperimentID());
+    int i = 0;
+    String code = samples.get(i).getCode();
+    while (!Functions.isQbicBarcode(code)) {
+      code = samples.get(i).getCode();
+      i++;
+    }
+    return samples.get(i);
+  }
+
+  private boolean tubesSelected() {
+    return ((Collection<String>) view.getPrepOptionGroup().getValue())
+        .contains("Sample Tube Barcodes");
+  }
+
+  private boolean expSelected() {
+    return view.getExperiments().size() > 0;
+  }
+
+  private boolean optionSelected() {
+    return ((Collection<String>) view.getPrepOptionGroup().getValue()).size() > 0;
+  }
+
+  protected List<IBarcodeBean> getSamplesFromExperimentSummaries(
+      Collection<ExperimentBarcodeSummaryBean> experiments) {
+    List<IBarcodeBean> samples = new ArrayList<IBarcodeBean>();
+    List<String> types =
+        new ArrayList<String>(Arrays.asList("Q_BIOLOGICAL_SAMPLE", "Q_TEST_SAMPLE"));
+    List<Sample> openbisSamples = new ArrayList<Sample>();
+    for (ExperimentBarcodeSummaryBean b : experiments) {
+      openbisSamples.addAll(openbis.getSamplesofExperiment(b.fetchExperimentID()));
+    }
+    Map<Sample, List<String>> parentMap = getParentMap(openbisSamples);
+    for (Sample s : openbisSamples) {
+      String type = s.getSampleTypeCode();
+      String bioType = "unknown";
+      if (type.equals(types.get(0))) {
+        bioType = s.getProperties().get("Q_PRIMARY_TISSUE");
+      }
+      if (type.equals(types.get(1))) {
+        bioType = s.getProperties().get("Q_SAMPLE_TYPE");
+      }
+      if (types.contains(type))
+        samples
+            .add(new NewModelBarcodeBean(s.getCode(), view.getCodedString(s), view.getInfo1(s),
+                view.getInfo2(s), bioType, parentMap.get(s), s.getProperties().get(
+                    "Q_SECONDARY_NAME")));
+    }
+    return samples;
+  }
+
+  protected Map<Sample, List<String>> getParentMap(List<Sample> samples) {
+    List<String> codes = new ArrayList<String>();
+    for (Sample s : samples) {
+      codes.add(s.getCode());
+    }
+    Map<String, Object> params = new HashMap<String, Object>();
+    params.put("codes", codes);
+    QueryTableModel resTable = openbis.getAggregationService("get-parentmap", params);
+    Map<String, List<String>> parentMap = new HashMap<String, List<String>>();
+    String curCode = (String) resTable.getRows().get(0)[0];
+    List<String> parents = new ArrayList<String>();
+    for (Serializable[] ss : resTable.getRows()) {
+      String code = (String) ss[0];
+      String parent = (String) ss[1];
+      if (code.equals(curCode))
+        parents.add(parent);
+      else {
+        parentMap.put(curCode, parents);
+        parents = new ArrayList<String>();
+        curCode = code;
+      }
+    }
+    Map<Sample, List<String>> res = new HashMap<Sample, List<String>>();
+    for (Sample s : samples) {
+      List<String> prnts = parentMap.get(s.getCode());
+      if (prnts == null)
+        prnts = new ArrayList<String>();
+      res.put(s, prnts);
     }
     return res;
   }
-
 }

@@ -2,44 +2,38 @@ package model;
 
 import java.util.List;
 
+/**
+ * Bean item representing identifier, secondary name, a list of parent samples and sample type of samples to visualize in a table etc.
+ * @author Andreas Friedrich
+ *
+ */
 public class NewModelBarcodeBean implements IBarcodeBean {
 
-  String Code;
-  String Secondary_Name;
-  List<String> parents;
-  String type;
+  private String code;
+  private String codedString;
+  private String info1;
+  private String info2;
+  private List<String> parents;
+  private String type;
+  private String treatment;
 
-  public NewModelBarcodeBean(String code, String secondaryName, String type, List<String> parents) {
-    this.Code = code;
-    this.Secondary_Name = secondaryName;
+  public NewModelBarcodeBean(String code, String codedString, String info1, String info2, String type, List<String> parents, String treatment) {
+    this.treatment = treatment;
+    this.code = code;
+    this.codedString = codedString;
+    this.info1 = info1;
+    this.info2 = info2;
     this.type = type;
     this.parents = parents;
   }
   
   @Override
   public String toString() {
-    return Code+" "+Secondary_Name+" "+type+" "+parents;
+    return code+" "+info1+" "+info2+" "+parents;
   }
 
   public String getCode() {
-    return Code;
-  }
-
-  public void setCode(String code) {
-    this.Code = code;
-  }
-
-  public String getSecondary_Name() {
-    return Secondary_Name;
-  }
-
-  public void setSecondary_Name(String secondaryName) {
-    this.Secondary_Name = secondaryName;
-  }
-
-  @Override
-  public String getDescription() {
-    return Secondary_Name;
+    return code;
   }
 
   @Override
@@ -57,5 +51,24 @@ public class NewModelBarcodeBean implements IBarcodeBean {
     return parents.size() > 0;
   }
 
+  @Override
+  public String getTopInfo() {
+    return info1;
+  }
+
+  @Override
+  public String getBottomInfo() {
+    return info2;
+  }
+
+  @Override
+  public String getCodedString() {
+    return codedString;
+  }
+
+  @Override
+  public String getSheetTreatment() {
+    return treatment;
+  }
 
 }

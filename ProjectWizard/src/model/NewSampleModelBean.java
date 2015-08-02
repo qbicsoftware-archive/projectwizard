@@ -1,5 +1,10 @@
 package model;
 
+/**
+ * Bean item representing identifier, secondary name and sample type of samples to visualize in a table etc.
+ * @author Andreas Friedrich
+ *
+ */
 public class NewSampleModelBean {
 
   String Code;

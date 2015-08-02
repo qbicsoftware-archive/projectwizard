@@ -1,29 +1,39 @@
 package model;
 
+/**
+ * Bean Object representing an experiment with some information about its samples to provide an
+ * overview, e.g. for barcode creation
+ * 
+ * @author Andreas Friedrich
+ * 
+ */
 public class ExperimentBarcodeSummaryBean {
-  
-  String ID_Range;
+
   String Bio_Type;
   String Amount;
-  String experiment;
-  
-  public ExperimentBarcodeSummaryBean(String idRange, String bioType, String amount, String experiment) {
-    ID_Range = idRange;
+  String experimentID;
+
+  /**
+   * Creates a new ExperimentBarcodeSummaryBean
+   * 
+   * @param bioType the type of samples in this experiment, for example tissue or measurement type
+   * @param amount the amount of samples in this experiment
+   * @param experimentID the experiment identifier
+   */
+  public ExperimentBarcodeSummaryBean(String bioType, String amount, String expID) {
     Bio_Type = bioType;
     Amount = amount;
-    this.experiment = experiment;
+    this.experimentID = expID;
   }
 
+  // show only code
   public String getExperiment() {
-    return experiment;
-  }
-  
-  public String getID_Range() {
-    return ID_Range;
+    String[] split = experimentID.split("/");
+    return split[split.length - 1];
   }
 
-  public void setID_Range(String iD_Range) {
-    ID_Range = iD_Range;
+  public String fetchExperimentID() {
+    return experimentID;
   }
 
   public String getBio_Type() {

@@ -1,23 +1,34 @@
 package model;
 
+/**
+ * Bean item representing experiments with their ID, type and the number of numOfSamples they contain
+ * @author Andreas Friedrich
+ *
+ */
 public class ExperimentBean {
   
-  private String code;
+  private String ID;
   private String experiment_type;
-  private String samples;
+  private String numOfSamples;
 
-  public ExperimentBean(String code, String experimentTypeCode, String samples) {
-    this.code = code;
+  /**
+   * Creates a new ExperimentBean
+   * @param id of experiment
+   * @param experimentTypeCode the type code of the experiment
+   * @param numOfSamples number of samples in this experiment
+   */
+  public ExperimentBean(String ID, String experimentTypeCode, String numOfSamples) {
+    this.ID = ID;
     this.experiment_type = experimentTypeCode;
-    this.samples = samples;
+    this.numOfSamples = numOfSamples;
   }
 
-  public String getCode() {
-    return code;
+  public String getID() {
+    return ID;
   }
 
-  public void setCode(String code) {
-    this.code = code;
+  public void setID(String ID) {
+    this.ID = ID;
   }
 
   public String getExperiment_type() {
@@ -29,11 +40,11 @@ public class ExperimentBean {
   }
 
   public String getSamples() {
-    return samples;
+    return numOfSamples;
   }
 
   public void setSamples(String samples) {
-    this.samples = samples;
+    this.numOfSamples = samples;
   }
 
 }

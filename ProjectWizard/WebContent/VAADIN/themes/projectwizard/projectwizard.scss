@@ -1,12 +1,52 @@
 /* Import the reindeer theme.*/
 /* This only allows us to use the mixins defined in it and does not add any styles by itself. */
-@import "../reindeer/reindeer.scss";
+@import "../valo/valo";
 
 /* This contains all of your theme.*/
 /* If somebody wants to extend the theme she will include this mixin. */
 @mixin projectwizard {
   /* Include all the styles from the reindeer theme */
-  @include reindeer;
+  @include valo;
 
   /* Insert your theme rules here */
+   .v-label-info {
+     border-color: #197DE1;
+     border-style: solid;
+     border-width: 1px;
+     box-shadow: 2px  2px 0 rgba(102, 153, 255, 0.5),
+     			-2px -2px 0 rgba(102, 153, 255, 0.5),
+     			-2px  2px 0 rgba(102, 153, 255, 0.5),
+     			 2px -2px 0 rgba(102, 153, 255, 0.5);
+     border-radius: 8px;
+     padding: 8px;
+   }
+   
+   .v-textfield-barcode-preview {
+     font-family: monospace;
+     font-size: 75% !important;
+     background-color: transparent !important;
+     border-top-style: none !important;
+     border-right-style: none !important;
+     border-bottom-style: none !important;
+     border-left-style: none !important;
+   }
+   
+   .v-caption-awesomecaption .v-captiontext {
+    font-family: FontAwesome;
+   }
+     
+   .v-icon-bigicon {
+     color: #197DE1;
+     font-size: 30px;
+     border: none;
+     border-style: none;
+     background: transparent;
+     padding: 0;
+	 -webkit-border-radius: 0;
+     -moz-border-radius: 0;
+     border-radius: 0;
+     outline: none;
+    }
+    
+ }
 }

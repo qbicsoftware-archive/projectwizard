@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE ivy-module [
-	<!ENTITY vaadin.version "7.3.3">
+	<!ENTITY vaadin.version "7.4.3">
 ]>
 <ivy-module version="2.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -40,5 +40,9 @@
 		<!-- Compiler for custom widget sets. Should not be deployed -->
 		<dependency org="com.vaadin" name="vaadin-client-compiler"
 			rev="&vaadin.version;" conf="widgetset-compile->default" />
+			
+					<!--logging -->
+		<dependency org="org.apache.logging.log4j" name="log4j-api" rev="2.2" />
+  		<dependency org="org.apache.logging.log4j" name="log4j-core" rev="2.2" />
 	</dependencies>
 </ivy-module>

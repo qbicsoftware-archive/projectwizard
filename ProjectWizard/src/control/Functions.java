@@ -4,10 +4,6 @@ package control;
 import java.util.ArrayList;
 import java.util.List;
 
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
-
-import model.ISampleBean;
-
 /**
  * Helper functions used for sample creation
  * 
@@ -62,6 +58,27 @@ public class Functions {
   }
 
   /**
+   * Increments to the next sample string in the order, meaning the project code stays the same and
+   * the 3 letter number is incremented, except if it's 999, then the following letter is
+   * incremented and the number starts with 001 again.
+   * 
+   * @param code a 10 digit sample code
+   * @return a new sample code
+   */
+  public static String incrementSampleCode(String code) {
+    String old = code.substring(5, 8);
+    String num = "";
+    int newNum = Integer.parseInt(old) + 1;
+    char letter = code.charAt(8);
+    if (newNum > 999) {
+      num = "001" + incrementUppercase(letter);
+    } else
+      num = createCountString(newNum, 3) + letter;
+    String res = code.substring(0, 5)+num;
+    return res+checksum(res);
+  }
+
+  /**
    * Checks which of two Strings can be parsed to a larger Integer and returns it.
    * 
    * @param a a String
@@ -112,6 +129,11 @@ public class Functions {
     }
     return mapToChar(sum % 34);
   }
+  
+  public static void main(String[] args) {
+    String test = "QMELA005A";
+    System.out.println(checksum(test));
+  }
 
   /**
    * Parses a whole String list to integers and returns them in another list.
@@ -127,6 +149,12 @@ public class Functions {
     return res;
   }
 
+  /**
+   * Returns a String denoting the range of a list of barcodes as used in QBiC
+   * 
+   * @param ids List of code strings
+   * @return String denoting a range of the barcodes
+   */
   public static String getBarcodeRange(List<String> ids) {
     String head = getProjectPrefix(ids.get(0));
     String min = ids.get(0).substring(5, 8);
@@ -140,9 +168,15 @@ public class Functions {
     }
     return head + min + "-" + max;
   }
-  
+
+  /**
+   * Checks if a String fits the QBiC barcode pattern
+   * 
+   * @param code A String that may be a barcode
+   * @return true if String is a QBiC barcode, false if not
+   */
   public static boolean isQbicBarcode(String code) {
-    String pattern = "Q[A-Z]{4}[0-9]{3}[A-Z0-9]{2}";
+    String pattern = "Q[A-Z0-9]{4}[0-9]{3}[A-Z0-9]{2}";
     return code.matches(pattern);
   }
 
@@ -158,4 +192,5 @@ public class Functions {
     else
       return sample.substring(0, 5);
   }
+
 }

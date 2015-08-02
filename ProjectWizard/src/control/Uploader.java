@@ -6,15 +6,17 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 
+import logging.Log4j2Logger;
 import main.ProjectwizardUI;
 
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.Upload;
 
 /**
- * Class handling the TSV upload
+ * Uploader for tsv files
+ * 
  * @author Andreas Friedrich
- *
+ * 
  */
 @SuppressWarnings("serial")
 public class Uploader implements Upload.SucceededListener, Upload.FailedListener, Upload.Receiver {
@@ -22,16 +24,23 @@ public class Uploader implements Upload.SucceededListener, Upload.FailedListener
   Panel root; // Root element for contained components.
   File file; // File to write to.
   String error;
+  
+  logging.Logger logger = new Log4j2Logger(Uploader.class);
 
   public Uploader() {}
 
-  // Callback method to begin receiving the upload.
+  /**
+   * Callback method to begin receiving the upload.
+   */
   public OutputStream receiveUpload(String filename, String MIMEType) {
     FileOutputStream fos = null; // Output stream to write to
-    file = new File(ProjectwizardUI.tmpFolder + filename);
-    if (!MIMEType.equals("text/plain") && !MIMEType.equals("text/tab-separated-values")) {
-      error = "Wrong File type. Please only upload tsv or txt files.";
-    }
+    error = null;
+    file = new File(ProjectwizardUI.tmpFolder + "up_" + filename);
+    // TODO probably not needed; some browsers set MIME information to application/octet-stream,
+    // which leads to bug
+    // if (!MIMEType.equals("text/plain") && !MIMEType.equals("text/tab-separated-values")) {
+    // error = "Wrong File type. Please only upload tsv or txt files.";
+    // }
     try {
       // Open the file for writing.
       fos = new FileOutputStream(file);
@@ -51,17 +60,21 @@ public class Uploader implements Upload.SucceededListener, Upload.FailedListener
     return file;
   }
 
-  // This is called if the upload is finished.
+  /**
+   * This is called if the upload is finished.
+   */
   public void uploadSucceeded(Upload.SucceededEvent event) {
     // Display the uploaded file in the image panel.
-    System.out.println("Uploading " + event.getFilename() + " of type '" + event.getMIMEType()
+    logger.info("Uploading " + event.getFilename() + " of type '" + event.getMIMEType()
         + "' successful.");
   }
 
-  // This is called if the upload fails.
+  /**
+   * This is called if the upload fails.
+   */
   public void uploadFailed(Upload.FailedEvent event) {
     // Log the failure on screen.
-    System.out.println("Uploading " + event.getFilename() + " of type '" + event.getMIMEType()
+    logger.error("Uploading " + event.getFilename() + " of type '" + event.getMIMEType()
         + "' failed.");
   }
 }
