@@ -13,6 +13,7 @@ import model.NewSampleModelBean;
 import org.vaadin.teemu.wizards.WizardStep;
 
 import componentwrappers.CustomVisibilityComponent;
+import componentwrappers.StandardTextField;
 import uicomponents.ProjectSelectionComponent;
 
 import com.vaadin.data.util.BeanItemContainer;
@@ -40,8 +41,9 @@ public class ProjectContextStep implements WizardStep {
 
   private VerticalLayout main;
 
-  private CustomVisibilityComponent spaceCode;
+  private ComboBox spaceCode;
   private ProjectSelectionComponent projectInfoComponent;
+  private TextField expName;
 
   List<ExperimentBean> experiments;
 
@@ -69,9 +71,8 @@ public class ProjectContextStep implements WizardStep {
     main.setSpacing(true);
     main.setSizeUndefined();
     Collections.sort(openbisSpaces);
-    ComboBox spBox = new ComboBox("Project Name", openbisSpaces);
-    spBox.setStyleName(ProjectwizardUI.boxTheme);
-    spaceCode = new CustomVisibilityComponent(spBox);
+    spaceCode = new ComboBox("Project Name", openbisSpaces);
+    spaceCode.setStyleName(ProjectwizardUI.boxTheme);
     spaceCode.setNullSelectionAllowed(false);
     spaceCode.setImmediate(true);
 
@@ -99,19 +100,24 @@ public class ProjectContextStep implements WizardStep {
     samples.setContainerDataSource(new BeanItemContainer<NewSampleModelBean>(
         NewSampleModelBean.class));
 
-    Label info =
-        new Label(
-            "If you want to add to or copy an existing experiment, please select the experiment. "
-                + "When copying lower tier samples, they will be attached to existing samples that are higher in the hierarchy."
-                + " Downloaded TSVs will always contain all attached sample tiers.");
-    info.setStyleName("info");
-    info.setWidth("350px");
+    // Label info =
+    // new Label(
+    // "If you want to add to or copy an existing experiment, please select the experiment. "
+    // +
+    // "When copying lower tier samples, they will be attached to existing samples that are higher in the hierarchy."
+    // + " Downloaded TSVs will always contain all attached sample tiers.");
+    // info.setStyleName("info");
+    // info.setWidth("350px");
+
+    expName = new StandardTextField("Experiment name");
+    expName.setVisible(false);
+    expName.setInputPrompt("Optional short name");
 
     grid = new GridLayout(2, 5);
     grid.setSpacing(true);
     grid.setMargin(true);
-    Component c = ProjectwizardUI.questionize(spaceCode, "Name of the project", "Project Name");
-    grid.addComponent(c, 0, 0);
+    grid.addComponent(
+        ProjectwizardUI.questionize(spaceCode, "Name of the project", "Project Name"), 0, 0);
     grid.addComponent(projectInfoComponent, 0, 1);
     Component context =
         ProjectwizardUI
@@ -124,8 +130,10 @@ public class ProjectContextStep implements WizardStep {
                 "Project Context");
     grid.addComponent(context, 0, 2);
     grid.addComponent(experimentTable, 0, 3);
-    // grid.addComponent(info, 1, 0, 1, 1);
     grid.addComponent(samples, 1, 2, 1, 3);
+    // expNameLayout = new VerticalLayout();
+    // expNameLayout.addComponent(expName);
+    grid.addComponent(expName, 0, 4);
 
     main.addComponent(grid);
 
@@ -316,7 +324,7 @@ public class ProjectContextStep implements WizardStep {
   }
 
   public ComboBox getSpaceBox() {
-    return (ComboBox) spaceCode.getInnerComponent();
+    return spaceCode;
   }
 
   public Table getExperimentTable() {
@@ -339,27 +347,26 @@ public class ProjectContextStep implements WizardStep {
     return res;
   }
 
-  public boolean copyModeSet() {
-    String context = (String) projectContext.getValue();
-    return contextOptions.get(3).equals(context);
-  }
+  // public boolean copyModeSet() {
+  // String context = (String) projectContext.getValue();
+  // return contextOptions.get(3).equals(context);
+  // }
 
   public boolean fetchTSVModeSet() {
     String context = (String) projectContext.getValue();
     return contextOptions.get(3).equals(context);
   }
 
-  public boolean projectInfoSet() {
-    return projectInfoComponent.getSecondaryName() != null
-        && !projectInfoComponent.getSecondaryName().isEmpty();
+  public boolean expSecondaryNameSet() {
+    return expName != null && !expName.isEmpty();
   }
 
   public String getDescription() {
     return projectInfoComponent.getProjectDescription();
   }
 
-  public String getProjectSecondaryName() {
-    return projectInfoComponent.getSecondaryName();
+  public String getExpSecondaryName() {
+    return expName.getValue();
   }
 
   public void tryEnableCustomProject(String code) {
@@ -368,6 +375,10 @@ public class ProjectContextStep implements WizardStep {
 
   public void makeContextVisible() {
     projectContext.setVisible(true);
+  }
+
+  public void enableExpName(boolean b) {
+    expName.setVisible(b);
   }
 
 }

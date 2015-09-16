@@ -24,8 +24,8 @@ public class OpenbisBiologicalEntity extends AOpenbisSample {
     * @param ncbiOrganism The organism the entity belongs to
     */
   public OpenbisBiologicalEntity(String openbisName, String space, String experiment, String secondaryName, String additionalNotes,
-      List<Factor> factors, String ncbiOrganism) {
-    super(openbisName, space, experiment, secondaryName, additionalNotes, factors, "");
+      List<Factor> factors, String ncbiOrganism, String extID) {
+    super(openbisName, space, experiment, secondaryName, additionalNotes, factors, "", extID);
     this.ncbiOrganism = ncbiOrganism;
     this.sampleType = "Q_BIOLOGICAL_ENTITY";
   }

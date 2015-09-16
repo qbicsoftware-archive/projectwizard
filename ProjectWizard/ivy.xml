@@ -44,5 +44,8 @@
 					<!--logging -->
 		<dependency org="org.apache.logging.log4j" name="log4j-api" rev="2.2" />
   		<dependency org="org.apache.logging.log4j" name="log4j-core" rev="2.2" />
+  		<dependency org="com.github.lookfirst" name="sardine" rev="5.5" />
+  		<dependency org="commons-io" name="commons-io" rev="2.4" />
+  		<dependency org="org.slf4j" name ="slf4j-simple" rev="1.6.4" />
 	</dependencies>
 </ivy-module>

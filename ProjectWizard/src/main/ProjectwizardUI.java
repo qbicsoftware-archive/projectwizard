@@ -10,8 +10,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.servlet.annotation.WebServlet;
+
+import logging.Log4j2Logger;
 
 import org.vaadin.teemu.wizards.Wizard;
 import org.vaadin.teemu.wizards.event.WizardCancelledEvent;
@@ -20,12 +23,13 @@ import org.vaadin.teemu.wizards.event.WizardProgressListener;
 import org.vaadin.teemu.wizards.event.WizardStepActivationEvent;
 import org.vaadin.teemu.wizards.event.WizardStepSetChangedEvent;
 
+import views.AdminView;
 import views.StandaloneTSVImport;
 import views.WizardBarcodeView;
 
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Role;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SpaceWithProjectsAndRoleAssignments;
 
-import com.liferay.portal.model.Role;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.VaadinServletConfiguration;
 import com.vaadin.server.FontAwesome;
@@ -41,14 +45,13 @@ import com.vaadin.ui.PopupView;
 import com.vaadin.ui.PopupView.Content;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.SelectedTabChangeListener;
-import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.TabSheet.SelectedTabChangeEvent;
 import com.vaadin.ui.themes.ValoTheme;
 import componentwrappers.CustomVisibilityComponent;
 
-import control.AdminController;
+import control.AttachmentConfig;
 import control.BarcodeController;
 import control.UploadController;
 import control.VisibilityChangeListener;
@@ -65,10 +68,8 @@ public class ProjectwizardUI extends UI {
   public static class Servlet extends VaadinServlet {
   }
 
-  private String version = "Version 0.963, 27.07.15";
-  private List<String> rolesWithWritePermission = new ArrayList<String>(Arrays.asList(
-      "ADMIN(space)", "ADMIN(instance)")); // TODO define and use
-  private String superpower = "ADMIN(instance)";
+  logging.Logger logger = new Log4j2Logger(ProjectwizardUI.class);
+  private String version = "Version 0.9691, 15.09.15";
 
   private String DATASOURCE_USER = "datasource.user";
   private String DATASOURCE_PASS = "datasource.password";
@@ -76,6 +77,10 @@ public class ProjectwizardUI extends UI {
   private String TMP_FOLDER = "tmp.folder";
   private String BARCODE_SCRIPTS = "barcode.scripts";
   private String PATH_VARIABLE = "path.variable";
+  private String MAX_ATTACHMENT_SIZE = "max.upload.size";
+  private String ATTACHMENT_URI = "attachment.uri";
+  private String ATTACHMENT_USER = "attachment.user";
+  private String ATTACHMENT_PASS = "attachment.password";
 
   public static String boxTheme = ValoTheme.COMBOBOX_SMALL;
   public static String fieldTheme = ValoTheme.TEXTFIELD_SMALL;
@@ -138,10 +143,15 @@ public class ProjectwizardUI extends UI {
   private String dataSourceURL;
   private String barcodeScripts;
   private String pathVar;
+  private String attachmentSize;
+  private String attachmentURI;
+  private String attachmentUser;
+  private String attachmentPass;
 
   OpenBisClient openbis;
 
   private final TabSheet tabs = new TabSheet();
+  private boolean isAdmin = false;
 
   @Override
   protected void init(VaadinRequest request) {
@@ -158,8 +168,9 @@ public class ProjectwizardUI extends UI {
         userID = LiferayAndVaadinUtils.getUser().getScreenName();
       } catch (Exception e) {
         success = false;
-        layout.addComponent(new Label("Unkown user. Are you logged in?"));
+        layout.addComponent(new Label("Unknown user. Are you logged in?"));
       }
+    isAdmin = userID.equals("admin");
     // establish connection to the OpenBIS API
     try {
       this.openbis = new OpenBisClient(dataSourceUser, dataSourcePass, dataSourceURL);
@@ -179,7 +190,7 @@ public class ProjectwizardUI extends UI {
 
     if (LiferayAndVaadinUtils.isLiferayPortlet())
       try {
-        for (Role r : LiferayAndVaadinUtils.getUser().getRoles())
+        for (com.liferay.portal.model.Role r : LiferayAndVaadinUtils.getUser().getRoles())
           if (r.getName().equals("Administrator")) {
             layout.addComponent(new Label(version));
             layout.addComponent(new Label("User: " + userID));
@@ -197,8 +208,14 @@ public class ProjectwizardUI extends UI {
   private List<String> getUserSpaces(String userID) {
     List<String> userSpaces = new ArrayList<String>();
     for (SpaceWithProjectsAndRoleAssignments s : openbis.getFacade().getSpacesWithProjects()) {
-      if (!s.getRoles(userID).isEmpty())
+      Set<Role> roles = s.getRoles(userID);
+      if (!roles.isEmpty()) {
         userSpaces.add(s.getCode());
+        if (!isAdmin) {
+          for (Role r : roles)
+            isAdmin = r.toString().equals("ADMIN(instance)");
+        }
+      }
     }
     return userSpaces;
   }
@@ -207,7 +224,11 @@ public class ProjectwizardUI extends UI {
       final List<String> sampleTypes, final String user) {
     final List<String> spaces = getUserSpaces(user);
     tabs.removeAllComponents();
-    WizardController c = new WizardController(openbis, taxMap, tissueMap, sampleTypes, spaces);
+    AttachmentConfig attachConfig =
+        new AttachmentConfig(Integer.parseInt(attachmentSize), attachmentURI, attachmentUser,
+            attachmentPass);
+    WizardController c =
+        new WizardController(openbis, taxMap, tissueMap, sampleTypes, spaces, pathVar, attachConfig);
     c.init();
     Wizard w = c.getWizard();
     WizardProgressListener wl = new WizardProgressListener() {
@@ -233,18 +254,24 @@ public class ProjectwizardUI extends UI {
     VerticalLayout wLayout = new VerticalLayout();
     wLayout.addComponent(w);
     wLayout.setMargin(true);
-    tabs.addTab(wLayout, "Create Project");
+    tabs.addTab(wLayout, "Create Project").setIcon(FontAwesome.FLASK);
     final WizardBarcodeView bw = new WizardBarcodeView(spaces);
     BarcodeController bc = new BarcodeController(bw, openbis, barcodeScripts, pathVar);
     bc.init();
-    tabs.addTab(bw, "Create Barcodes");
+    tabs.addTab(bw, "Create Barcodes").setIcon(FontAwesome.BARCODE);
     StandaloneTSVImport tsvImport = new StandaloneTSVImport();
-    UploadController uc = new UploadController(tsvImport, new OpenbisCreationController(openbis));
+
+    OpenbisCreationController creationController = new OpenbisCreationController(openbis);
+
+    UploadController uc = new UploadController(tsvImport, creationController);
     uc.init();
-    tabs.addTab(tsvImport, "Import Project");
-    if (user.equals("admin")) {
-      tabs.addTab(new AdminController(openbis, taxMap, tissueMap, sampleTypes, spaces).getView(),
-          "Useful Admin Functions");
+    tabs.addTab(tsvImport, "Import Project").setIcon(FontAwesome.FILE);
+    if (isAdmin) {
+      logger.debug("User is " + user + " and can see admin panel.");
+      VerticalLayout padding = new VerticalLayout();
+      padding.setMargin(true);
+      padding.addComponent(new AdminView(openbis, creationController));
+      tabs.addTab(padding, "Admin Functions").setIcon(FontAwesome.WRENCH);
     }
     tabs.addSelectedTabChangeListener(new SelectedTabChangeListener() {
 
@@ -275,6 +302,10 @@ public class ProjectwizardUI extends UI {
       dataSourceURL = config.getProperty(DATASOURCE_URL);
       barcodeScripts = config.getProperty(BARCODE_SCRIPTS);
       pathVar = config.getProperty(PATH_VARIABLE);
+      attachmentSize = config.getProperty(MAX_ATTACHMENT_SIZE);
+      attachmentURI = config.getProperty(ATTACHMENT_URI);
+      attachmentUser = config.getProperty(ATTACHMENT_USER);
+      attachmentPass = config.getProperty(ATTACHMENT_PASS);
     } catch (IOException e) {
       System.err.println("Failed to load configuration: " + e);
     }

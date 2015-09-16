@@ -1,7 +1,7 @@
 package model;
 
 /**
- * Bean item representing experiments with their ID, type and the number of numOfSamples they contain
+ * Bean item representing context with their ID, type and the number of numOfSamples they contain
  * @author Andreas Friedrich
  *
  */

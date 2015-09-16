@@ -15,16 +15,18 @@ public class NewModelBarcodeBean implements IBarcodeBean {
   private String info2;
   private List<String> parents;
   private String type;
-  private String treatment;
+  private String secondaryName;
+  private String extID;
 
-  public NewModelBarcodeBean(String code, String codedString, String info1, String info2, String type, List<String> parents, String treatment) {
-    this.treatment = treatment;
+  public NewModelBarcodeBean(String code, String codedString, String info1, String info2, String type, List<String> parents, String secondaryName, String extID) {
+    this.secondaryName = secondaryName;
     this.code = code;
     this.codedString = codedString;
     this.info1 = info1;
     this.info2 = info2;
     this.type = type;
     this.parents = parents;
+    this.extID = extID;
   }
   
   @Override
@@ -52,12 +54,12 @@ public class NewModelBarcodeBean implements IBarcodeBean {
   }
 
   @Override
-  public String getTopInfo() {
+  public String firstInfo() {
     return info1;
   }
 
   @Override
-  public String getBottomInfo() {
+  public String altInfo() {
     return info2;
   }
 
@@ -67,8 +69,13 @@ public class NewModelBarcodeBean implements IBarcodeBean {
   }
 
   @Override
-  public String getSheetTreatment() {
-    return treatment;
+  public String getSecondaryName() {
+    return secondaryName;
+  }
+
+  @Override
+  public String getExtID() {
+    return extID;
   }
 
 }

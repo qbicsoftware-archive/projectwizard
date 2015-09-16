@@ -10,6 +10,7 @@ import logging.Log4j2Logger;
 import main.OpenBisClient;
 import views.AdminView;
 
+@Deprecated
 public class AdminController {
 
   private AdminView view;
@@ -28,7 +29,7 @@ public class AdminController {
     this.tissueMap = tissueMap;
     this.measureTypes = sampleTypes;
     this.spaces = spaces;
-    this.view = new AdminView();
+//    this.view = new AdminView();
     init();
   }
 

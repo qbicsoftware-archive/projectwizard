@@ -11,8 +11,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Observable;
-import java.util.Observer;
 import java.util.Random;
 
 import javax.xml.bind.JAXBException;
@@ -58,12 +56,15 @@ import com.vaadin.ui.themes.ValoTheme;
 import steps.ConditionInstanceStep;
 import steps.EntityStep;
 import steps.ExtractionStep;
+import steps.FinishStep;
 import steps.PoolingStep;
 import steps.ProjectContextStep;
 import steps.TailoringStep;
 import steps.TestStep;
 import steps.SummaryRegisterStep;
 import uicomponents.ProjectSelectionComponent;
+import processes.AttachmentMover;
+import processes.RegisteredSamplesReadyRunnable;
 import properties.Factor;
 
 /**
@@ -95,6 +96,9 @@ public class WizardController {
 
   logging.Logger logger = new Log4j2Logger(WizardController.class);
 
+  private AttachmentMover mover;
+  private int maxUploadSize;
+
   /**
    * 
    * @param openbis OpenBisClient API
@@ -102,15 +106,20 @@ public class WizardController {
    * @param tissueMap Map containing the tissue
    * @param sampleTypes List containing the different sample (technology) types
    * @param spaces List of space names existing in openBIS
+   * @param dataMoverFolder for attachment upload
+   * @param uploadSize
    */
   public WizardController(OpenBisClient openbis, Map<String, String> taxMap,
-      Map<String, String> tissueMap, List<String> sampleTypes, List<String> spaces) {
+      Map<String, String> tissueMap, List<String> sampleTypes, List<String> spaces, String pathVar,
+      AttachmentConfig attachmentConfig) {
+    maxUploadSize = attachmentConfig.getMaxSize();
     this.openbis = openbis;
     this.openbisCreator = new OpenbisCreationController(openbis);
     this.taxMap = taxMap;
     this.tissueMap = tissueMap;
     this.measureTypes = sampleTypes;
     this.spaces = spaces;
+    this.mover = new AttachmentMover(pathVar, attachmentConfig);
   }
 
   public class ProjectNameValidator implements Validator {
@@ -256,7 +265,7 @@ public class WizardController {
   }
 
   public static enum Steps {
-    Project_Context, Entities, Entity_Conditions, Entity_Tailoring, Extraction, Extract_Conditions, Extract_Tailoring, Extract_Pooling, Test_Samples, Test_Sample_Pooling, Registration;
+    Project_Context, Entities, Entity_Conditions, Entity_Tailoring, Extraction, Extract_Conditions, Extract_Tailoring, Extract_Pooling, Test_Samples, Test_Sample_Pooling, Registration, Finish;
   }
 
   /**
@@ -279,9 +288,10 @@ public class WizardController {
         new ConditionInstanceStep(tissueMap.keySet(), "Tissues", "Extr. Variables");
     final TailoringStep negStep2 = new TailoringStep("Sample Extracts", true);
     final TestStep techStep = new TestStep(measureTypes);
-    final SummaryRegisterStep regStep = new SummaryRegisterStep(w);
+    final SummaryRegisterStep regStep = new SummaryRegisterStep();
     final PoolingStep poolStep1 = new PoolingStep(Steps.Extract_Pooling);
     final PoolingStep poolStep2 = new PoolingStep(Steps.Test_Sample_Pooling);
+    final FinishStep finishStep = new FinishStep(mover, maxUploadSize, w);
 
     steps = new HashMap<Steps, WizardStep>();
     steps.put(Steps.Project_Context, contextStep);
@@ -295,6 +305,7 @@ public class WizardController {
     steps.put(Steps.Test_Samples, techStep);
     steps.put(Steps.Test_Sample_Pooling, poolStep2);
     steps.put(Steps.Registration, regStep);
+    steps.put(Steps.Finish, finishStep);
 
     this.dataAggregator = new WizardDataAggregator(steps, openbis, taxMap, tissueMap);
     w.addStep(contextStep);
@@ -340,10 +351,11 @@ public class WizardController {
           regStep.getRegisterButton().setEnabled(false);
           ProjectContextStep context = (ProjectContextStep) steps.get(Steps.Project_Context);
           String desc = context.getDescription();
-          String projInfo = context.getProjectSecondaryName();
+          String expSecondaryName = context.getExpSecondaryName();
           openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(regStep.getSamples(),
-              desc, projInfo, regStep.getProgressBar(), regStep.getProgressLabel(),
+              desc, expSecondaryName, regStep.getProgressBar(), regStep.getProgressLabel(),
               new RegisteredSamplesReadyRunnable(regStep));
+          w.addStep(steps.get(Steps.Finish));
         }
       }
 
@@ -517,6 +529,7 @@ public class WizardController {
 
       @Override
       public void valueChange(ValueChangeEvent event) {
+        contextStep.enableExpName(false);
         if (contextStep.getProjectContext().getValue() != null) {
           resetNextSteps();
           OptionGroup projectContext = contextStep.getProjectContext();
@@ -544,21 +557,25 @@ public class WizardController {
             dataAggregator.setInheritEntities(false);
             dataAggregator.setInheritExtracts(true);
           }
-          // new experiments
+          // new context
           if (contextOptions.get(0).equals(context)) {
             setCreateEntities();
             dataAggregator.setInheritEntities(false);
             dataAggregator.setInheritExtracts(false);
             contextStep.hideExperiments();
+            contextStep.enableExpName(true);
           }
-          // copy experiments
+          // copy context
           // if (contextOptions.get(3).equals(context)) {
-          // beans.addAll(experiments);
+          // beans.addAll(context);
           // setUpLoadStep();
           // }
           // read only tsv creation
           if (contextOptions.get(3).equals(context)) {
-            beans.addAll(experiments);
+            for (ExperimentBean b : experiments) {
+              if (b.getExperiment_type().equals(ExperimentType.Q_EXPERIMENTAL_DESIGN.toString()))
+                beans.add(b);
+            }
             setUpLoadStep();
           }
           if (beans.size() > 0)
@@ -800,22 +817,22 @@ public class WizardController {
             regStep.setRegEnabled(true);
           }
           // Copy mode
-          if (contextStep.copyModeSet()) {
-            try {
-              dataAggregator.copyExperiment();
-            } catch (JAXBException e1) {
-              e1.printStackTrace();
-            }
-            createTSV();
-            try {
-              prep.processTSV(dataAggregator.getTSV(), false);
-            } catch (IOException e) {
-              e.printStackTrace();
-            }
-            armDownloadButtons(regStep.getDownloadButton(), regStep.getGraphButton());
-            regStep.setSummary(prep.getSummary());
-            regStep.setProcessed(prep.getProcessed());
-          }
+          // if (contextStep.copyModeSet()) {
+          // try {
+          // dataAggregator.copyExperiment();
+          // } catch (JAXBException e1) {
+          // e1.printStackTrace();
+          // }
+          // createTSV();
+          // try {
+          // prep.processTSV(dataAggregator.getTSV(), false);
+          // } catch (IOException e) {
+          // e.printStackTrace();
+          // }
+          // armDownloadButtons(regStep.getDownloadButton(), regStep.getGraphButton());
+          // regStep.setSummary(prep.getSummary());
+          // regStep.setProcessed(prep.getProcessed());
+          // }
           // Write TSV mode
           if (contextStep.fetchTSVModeSet()) {
             try {
@@ -831,8 +848,27 @@ public class WizardController {
             }
             armDownloadButtons(regStep.getDownloadButton(), regStep.getGraphButton());
             regStep.setSummary(prep.getSummary());
-            regStep.setProcessed(prep.getProcessed());
+            // logger.debug("set processed samples");
+            // regStep.setProcessed(prep.getProcessed());
           }
+        }
+        if (event.getActivatedStep().equals(finishStep)) {
+          String proj = dataAggregator.getProjectCode();
+          Project p = openbis.getProjectByCode(proj);
+          Map<String, List<Sample>> samplesByExperiment = new HashMap<String, List<Sample>>();
+          for (Sample s : openbis.getSamplesOfProject(p.getIdentifier())) {
+            String expID = s.getExperimentIdentifierOrNull();
+            String exp = expID.substring(expID.lastIndexOf("/") + 1);
+            if (samplesByExperiment.containsKey(exp)) {
+              List<Sample> lis = samplesByExperiment.get(exp);
+              lis.add(s);
+              samplesByExperiment.put(exp, lis);
+            } else {
+              List<Sample> lis = new ArrayList<Sample>(Arrays.asList(s));
+              samplesByExperiment.put(exp, lis);
+            }
+          }
+          finishStep.setExperimentInfos(proj, p.getDescription(), samplesByExperiment);
         }
       }
     };

@@ -1,4 +1,4 @@
-package control;
+package processes;
 
 import views.IRegistrationView;
 

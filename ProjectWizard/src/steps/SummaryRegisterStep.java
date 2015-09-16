@@ -1,7 +1,6 @@
 package steps;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import logging.Log4j2Logger;
@@ -17,22 +16,18 @@ import views.IRegistrationView;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.Table;
-import com.vaadin.ui.TextArea;
 import com.vaadin.ui.UI;
-import com.vaadin.ui.Upload;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import componentwrappers.CustomVisibilityComponent;
-import control.WizardController;
 
 /**
  * Wizard Step to downloadTSV and upload the TSV file to and from and register samples and
- * experiments
+ * context
  * 
  * @author Andreas Friedrich
  * 
@@ -44,15 +39,14 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
   private Button register;
   private Button downloadGraph;
   private Table summary;
-  private List<List<List<ISampleBean>>> samples;
+  private List<List<ISampleBean>> samples;
   private Label registerInfo;
   private ProgressBar bar;
-  private Wizard w;
   private CustomVisibilityComponent summaryComponent;
   logging.Logger logger = new Log4j2Logger(SummaryRegisterStep.class);
+  private boolean registrationComplete = false;
 
-  public SummaryRegisterStep(Wizard w) {
-    this.w = w;
+  public SummaryRegisterStep() {
     main = new VerticalLayout();
     main.setMargin(true);
     main.setSpacing(true);
@@ -72,6 +66,10 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
     summary = new Table("Summary");
     summary.setStyleName(ValoTheme.TABLE_SMALL);
     summary.setPageLength(3);
+    summary.setColumnHeader("ID_Range", "ID Range");
+    summary.setColumnHeader("amount", "Samples");
+    summary.setColumnHeader("type", "Sample Type");
+    
     summaryComponent =
         new CustomVisibilityComponent(
             ProjectwizardUI
@@ -123,7 +121,11 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
 
   @Override
   public boolean onAdvance() {
-    return true;
+    return registrationComplete();
+  }
+
+  private boolean registrationComplete() {
+    return registrationComplete ;
   }
 
   @Override
@@ -146,7 +148,7 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
     enableDownloads(true);
   }
 
-  public void setProcessed(List<List<List<ISampleBean>>> processed) {
+  public void setProcessed(List<List<ISampleBean>> processed) {
     samples = processed;
   }
 
@@ -154,19 +156,19 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
     register.setEnabled(b);
   }
 
-  public List<List<List<ISampleBean>>> getSamples() {
+  public List<List<ISampleBean>> getSamples() {
     return samples;
   }
 
   public void registrationDone() {
-    logger.info("Registration complete!");
-    w.getFinishButton().setVisible(true);
+    logger.info("Sample registration complete!");
     Notification n =
         new Notification(
-            "Registration of samples complete. You can end the project creation by clicking 'Finish'.");
+            "Registration of samples complete. Press 'next' for a summary and additional options.");
     n.setStyleName(ValoTheme.NOTIFICATION_CLOSABLE);
     n.setDelayMsec(-1);
     n.show(UI.getCurrent().getPage());
+    registrationComplete = true;
   }
 
   public ProgressBar getProgressBar() {

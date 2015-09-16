@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.util.Observable;
 import java.util.Observer;
 
+import processes.RegisteredSamplesReadyRunnable;
+
 import views.StandaloneTSVImport;
 
 import logging.Log4j2Logger;

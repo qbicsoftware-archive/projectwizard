@@ -25,8 +25,8 @@ public class OpenbisTestSample extends AOpenbisSample {
    * @param parent Extract parent of this sample
    */
   public OpenbisTestSample(String openbisName, String space, String experiment, String secondaryName, String additionalNotes,
-      List<Factor> factors, String sampleType, String parent) {
-    super(openbisName, space, experiment, secondaryName, additionalNotes, factors, parent);
+      List<Factor> factors, String sampleType, String parent, String extID) {
+    super(openbisName, space, experiment, secondaryName, additionalNotes, factors, parent, extID);
     this.Q_SAMPLE_TYPE = sampleType;
     this.sampleType = "Q_TEST_SAMPLE";
   }

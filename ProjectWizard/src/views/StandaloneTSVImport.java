@@ -13,12 +13,9 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.Table;
-import com.vaadin.ui.TextArea;
 import com.vaadin.ui.Upload;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-
-import control.Uploader;
 
 public class StandaloneTSVImport extends VerticalLayout implements IRegistrationView {
 
@@ -30,10 +27,10 @@ public class StandaloneTSVImport extends VerticalLayout implements IRegistration
   private Label error;
   private Upload upload;
   private Table summary;
-  private List<List<List<ISampleBean>>> samples;
+  private List<List<ISampleBean>> samples;
   private Label registerInfo;
   private ProgressBar bar;
-  
+
   logging.Logger logger = new Log4j2Logger(StandaloneTSVImport.class);
 
   public StandaloneTSVImport() {
@@ -42,7 +39,7 @@ public class StandaloneTSVImport extends VerticalLayout implements IRegistration
 
     Label info =
         new Label(
-            "Here you can upload a(n edited) tsv file of a previously created project. "
+            "Here you can upload (edited) spreadsheet files of a previously created project. "
                 + "Registering samples may take a few seconds.");
     info.setIcon(FontAwesome.INFO);
     info.setStyleName("info");
@@ -53,6 +50,9 @@ public class StandaloneTSVImport extends VerticalLayout implements IRegistration
     summary.setStyleName(ValoTheme.TABLE_SMALL);
     summary.setPageLength(3);
     summary.setVisible(false);
+    summary.setColumnHeader("ID_Range", "ID Range");
+    summary.setColumnHeader("amount", "Samples");
+    summary.setColumnHeader("type", "Sample Type");
     addComponent(summary);
 
     error = new Label();
@@ -100,15 +100,15 @@ public class StandaloneTSVImport extends VerticalLayout implements IRegistration
     summary.setVisible(true);
   }
 
-  public void setProcessed(List<List<List<ISampleBean>>> processed) {
+  public void setProcessed(List<List<ISampleBean>> processed) {
     samples = processed;
   }
 
   public void setRegEnabled(boolean b) {
     register.setEnabled(b);
   }
-
-  public List<List<List<ISampleBean>>> getSamples() {
+  
+  public List<List<ISampleBean>> getSamples() {
     return samples;
   }
 

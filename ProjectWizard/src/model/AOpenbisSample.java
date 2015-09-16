@@ -23,6 +23,7 @@ public abstract class AOpenbisSample {
   List<Factor> factors;
   String Q_ADDITIONAL_NOTES;
   String parent;
+  String Q_EXTERNALDB_ID;
 
   /**
    * Constructor of an abstract openbis sample
@@ -35,7 +36,7 @@ public abstract class AOpenbisSample {
    * @param parent A parent sample code this sample is attached to
    */
   AOpenbisSample(String code, String space, String experiment, String secondaryName,
-      String additionalNotes, List<Factor> factors, String parent) {
+      String additionalNotes, List<Factor> factors, String parent, String externalID) {
     this.code = code;
     this.space = space;
     this.experiment = experiment;
@@ -43,6 +44,7 @@ public abstract class AOpenbisSample {
     this.Q_SECONDARY_NAME = secondaryName;
     this.factors = factors;
     this.parent = parent;
+    this.Q_EXTERNALDB_ID = externalID;
   }
 
   public void setSampleType(String sampleType) {
@@ -94,6 +96,7 @@ public abstract class AOpenbisSample {
     res.put("code", code);
     res.put("Q_ADDITIONAL_INFO", Q_ADDITIONAL_NOTES);
     res.put("Q_SECONDARY_NAME", Q_SECONDARY_NAME);
+    res.put("Q_EXTERNALDB_ID", Q_EXTERNALDB_ID);
     res.put("PARENT", parent);
     fillInFactors(res);
     return res;
@@ -156,6 +159,14 @@ public abstract class AOpenbisSample {
 
   public List<Factor> getFactors() {
     return factors;
+  }
+  
+  public String getQ_EXTERNALDB_ID() {
+    return Q_EXTERNALDB_ID;
+  }
+  
+  public void setQ_EXTERNALDB_ID(String extID) {
+    this.Q_EXTERNALDB_ID = extID;
   }
 
   public String getQ_ADDITIONAL_NOTES() {

@@ -1,4 +1,4 @@
-package control;
+package processes;
 
 import java.util.List;
 
@@ -17,29 +17,34 @@ import views.WizardBarcodeView;
  * @author Andreas Friedrich
  * 
  */
-public class SheetBarcodesReadyRunnable implements Runnable {
+public class BarcodesReadyRunnable implements Runnable {
 
   private WizardBarcodeView view;
   private List<IBarcodeBean> barcodeBeans;
   BarcodeCreator creator;
 
-  public SheetBarcodesReadyRunnable(WizardBarcodeView view, BarcodeCreator creator,
-      List<IBarcodeBean> barcodeBeans) {
+  public BarcodesReadyRunnable(WizardBarcodeView view, BarcodeCreator creator,
+      List<IBarcodeBean> barcodeBeans2) {
     this.view = view;
-    this.barcodeBeans = barcodeBeans;
+    this.barcodeBeans = barcodeBeans2;
     this.creator = creator;
   }
 
-  private void attachDownloadToButton() {
-    FileResource sheetSource = creator.createAndDLSheet(barcodeBeans, view.getSorter());
+  private void attachDownloadsToButtons() {
+    FileResource sheetSource = creator.createAndDLSheet(barcodeBeans, view.getHeaders());
     FileDownloader sheetDL = new FileDownloader(sheetSource);
-    sheetDL.extend(view.getButtonSheet());
+    // sheetDL.extend(view.getButtonSheet());
+
+    FileResource pdfSource = creator.zipAndDownloadBarcodes(barcodeBeans);
+    FileDownloader pdfDL = new FileDownloader(pdfSource);
+    // pdfDL.extend(view.getButtonTube());
   }
 
   @Override
   public void run() {
-    attachDownloadToButton();
+    attachDownloadsToButtons();
     view.creationDone();
     view.sheetReady();
+    view.tubesReady();
   }
 }

@@ -1,4 +1,4 @@
-package control;
+package processes;
 
 import java.util.List;
 
@@ -33,7 +33,7 @@ public class TubeBarcodesReadyRunnable implements Runnable {
   private void attachDownloadToButton() {
     FileResource pdfSource = creator.zipAndDownloadBarcodes(barcodeBeans);
     FileDownloader pdfDL = new FileDownloader(pdfSource);
-    pdfDL.extend(view.getButtonTube());
+    pdfDL.extend(view.getDownloadButton());
   }
 
   @Override

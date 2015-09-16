@@ -6,25 +6,17 @@ import java.util.List;
 import main.ProjectwizardUI;
 
 import com.vaadin.data.Property.ValueChangeListener;
-import com.vaadin.event.FieldEvents.FocusEvent;
-import com.vaadin.event.FieldEvents.FocusListener;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.ui.AbstractSelect;
-import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.themes.ValoTheme;
 
 import componentwrappers.CustomVisibilityComponent;
-import componentwrappers.OpenbisInfoTextField;
 import componentwrappers.StandardTextField;
-
-import control.WizardController;
 
 public class ProjectSelectionComponent extends VerticalLayout {
 
@@ -35,7 +27,7 @@ public class ProjectSelectionComponent extends VerticalLayout {
   CustomVisibilityComponent projectBox;
   TextField project;
   Button reload;
-  OpenbisInfoTextField secondaryName;
+//  OpenbisInfoTextField secondaryName;
   TextArea description;
 
   ValueChangeListener projectSelectListener;
@@ -71,15 +63,15 @@ public class ProjectSelectionComponent extends VerticalLayout {
             "Automatically create an unused QBiC project code or fill in your own. "
                 + "The code consists of 5 letters, must start with Q and not contain Y or Z. You can create a new code by clicking "
                 + FontAwesome.REFRESH.getHtml()+".", "New Sub-Project"));
-    secondaryName =
-        new OpenbisInfoTextField("Sub-Project Name", "Optional, user-defined project name");
-    secondaryName.setVisible(false);
-    secondaryName.setInputPrompt("Optional short name");
+//    secondaryName =
+//        new OpenbisInfoTextField("Sub-Project Name", "Optional, user-defined project name");
+//    secondaryName.setVisible(false);
+//    secondaryName.setInputPrompt("Optional short name");
     description = new TextArea("Description");
     description.setStyleName(ProjectwizardUI.fieldTheme);
     description.setInputPrompt("Optional project description");
     description.setVisible(false);
-    addComponent(secondaryName.getInnerComponent());
+//    addComponent(secondaryName.getInnerComponent());
     addComponent(description);
   }
 
@@ -91,7 +83,7 @@ public class ProjectSelectionComponent extends VerticalLayout {
       project.setValue("");
     }
     project.setEnabled(choseNewProject);
-    secondaryName.setVisible(choseNewProject);
+//    secondaryName.setVisible(choseNewProject);
     description.setVisible(choseNewProject);
   }
 
@@ -129,9 +121,9 @@ public class ProjectSelectionComponent extends VerticalLayout {
     return description.getValue();
   }
 
-  public String getSecondaryName() {
-    return secondaryName.getValue();
-  }
+//  public String getSecondaryName() {
+//    return secondaryName.getValue();
+//  }
 
   public void addItems(List<String> projects) {
     ((AbstractSelect) projectBox.getInnerComponent()).addItems(projects);

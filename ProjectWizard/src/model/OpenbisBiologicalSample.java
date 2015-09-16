@@ -27,8 +27,8 @@ public class OpenbisBiologicalSample extends AOpenbisSample {
    * @param parent Entity parent this sample was extracted from
    */
   public OpenbisBiologicalSample(String openbisName, String space, String experiment, String secondaryName, String additionalNotes,
-      List<Factor> factors, String primaryTissue, String tissueDetailed, String parent) {
-    super(openbisName, space, experiment, secondaryName, additionalNotes, factors, parent);
+      List<Factor> factors, String primaryTissue, String tissueDetailed, String parent, String extID) {
+    super(openbisName, space, experiment, secondaryName, additionalNotes, factors, parent, extID);
     this.primaryTissue = primaryTissue;
     this.tissueDetailed = tissueDetailed;
     this.sampleType = "Q_BIOLOGICAL_SAMPLE";

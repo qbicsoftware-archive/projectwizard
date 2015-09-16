@@ -9,6 +9,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
+
+import processes.SheetBarcodesReadyRunnable;
+import processes.TubeBarcodesReadyRunnable;
+
 import logging.Log4j2Logger;
 import main.BarcodeCreator;
 import main.OpenBisClient;
@@ -25,9 +30,13 @@ import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.server.Extension;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.TabSheet.SelectedTabChangeEvent;
+import com.vaadin.ui.TabSheet.SelectedTabChangeListener;
 
+import uicomponents.BarcodePreviewComponent;
 import views.WizardBarcodeView;
 
 /**
@@ -77,32 +86,47 @@ public class BarcodeController {
         String src = event.getButton().getCaption();
         if (src.equals("Prepare Barcodes")) {
           view.creationPressed();
-          Iterator<Extension> it = view.getButtonSheet().getExtensions().iterator();
+          Iterator<Extension> it = view.getDownloadButton().getExtensions().iterator();
           if (it.hasNext())
-            view.getButtonSheet().removeExtension(it.next());
-          it = view.getButtonTube().getExtensions().iterator();
-          if (it.hasNext())
-            view.getButtonTube().removeExtension(it.next());
+            view.getDownloadButton().removeExtension(it.next());
+          // Iterator<Extension> it = view.getButtonSheet().getExtensions().iterator();
+          // if (it.hasNext())
+          // view.getButtonSheet().removeExtension(it.next());
+          // it = view.getButtonTube().getExtensions().iterator();
+          // if (it.hasNext())
+          // view.getButtonTube().removeExtension(it.next());
           barcodeBeans = getSamplesFromExperimentSummaries(view.getExperiments());
-          Collection<String> options = (Collection<String>) view.getPrepOptionGroup().getValue();
+          // Collection<String> options = (Collection<String>) view.getPrepOptionGroup().getValue();
           boolean overwrite = view.getOverwrite();
           String project = view.getProjectCode();
-          if (options.size() == 2) {
-            logger.info("Preparing barcodes (sheet and tubes) for project " + project);
-            creator.findOrCreateBarcodesWithProgress(barcodeBeans, view.getProgressBar(),
-                view.getProgressInfo(), new BarcodesReadyRunnable(view, creator, barcodeBeans),
-                overwrite);
-          } else if (options.contains("Sample Tube Barcodes")) {
+          ProgressBar bar = view.getProgressBar();
+          bar.setVisible(true);
+          if (view.getTabs().getSelectedTab() instanceof BarcodePreviewComponent) {
             logger.info("Preparing barcodes (tubes) for project " + project);
-            creator.findOrCreateTubeBarcodesWithProgress(barcodeBeans, view.getProgressBar(),
-                view.getProgressInfo(), new TubeBarcodesReadyRunnable(view, creator, barcodeBeans),
-                overwrite);
-          } else if (options.contains("Sample Sheet Barcodes")) {
+            creator.findOrCreateTubeBarcodesWithProgress(barcodeBeans, bar, view.getProgressInfo(),
+                new TubeBarcodesReadyRunnable(view, creator, barcodeBeans), overwrite);
+          } else {
             logger.info("Preparing barcodes (sheet) for project " + project);
             creator
-                .findOrCreateSheetBarcodesWithProgress(barcodeBeans, view.getProgressBar(), view
-                    .getProgressInfo(), new SheetBarcodesReadyRunnable(view, creator, barcodeBeans));
+                .findOrCreateSheetBarcodesWithProgress(barcodeBeans, bar, view.getProgressInfo(),
+                    new SheetBarcodesReadyRunnable(view, creator, barcodeBeans));
           }
+          // if (options.size() == 2) {
+          // logger.info("Preparing barcodes (sheet and tubes) for project " + project);
+          // creator.findOrCreateBarcodesWithProgress(barcodeBeans, view.getProgressBar(),
+          // view.getProgressInfo(), new BarcodesReadyRunnable(view, creator, barcodeBeans),
+          // overwrite);
+          // } else if (options.contains("Sample Tube Barcodes")) {
+          // logger.info("Preparing barcodes (tubes) for project " + project);
+          // creator.findOrCreateTubeBarcodesWithProgress(barcodeBeans, view.getProgressBar(),
+          // view.getProgressInfo(), new TubeBarcodesReadyRunnable(view, creator, barcodeBeans),
+          // overwrite);
+          // } else if (options.contains("Sample Sheet Barcodes")) {
+          // logger.info("Preparing barcodes (sheet) for project " + project);
+          // creator
+          // .findOrCreateSheetBarcodesWithProgress(barcodeBeans, view.getProgressBar(), view
+          // .getProgressInfo(), new SheetBarcodesReadyRunnable(view, creator, barcodeBeans));
+          // }
         }
       }
     };
@@ -162,29 +186,42 @@ public class BarcodeController {
       public void valueChange(ValueChangeEvent event) {
         barcodeBeans = null;
         view.reset();
-        view.enablePrep(expSelected() && optionSelected());
+        view.enablePrep(expSelected());// && optionSelected());
         if (expSelected() && tubesSelected())
           view.enablePreview(getUsefulSampleFromExperiment());
       }
     };
     view.getExperimentTable().addValueChangeListener(expSelectListener);
 
-    ValueChangeListener optionListener = new ValueChangeListener() {
+    SelectedTabChangeListener tabListener = new SelectedTabChangeListener() {
       @Override
-      public void valueChange(ValueChangeEvent event) {
-        if (optionSelected()) {
-          view.enablePrep(expSelected());
-          if (tubesSelected() && expSelected())
-            view.enablePreview(getUsefulSampleFromExperiment());
-          else
-            view.disablePreview();
-        } else
+      public void selectedTabChange(SelectedTabChangeEvent event) {
+        view.reset();
+        view.enablePrep(expSelected());
+        if (tubesSelected() && expSelected())
+          view.enablePreview(getUsefulSampleFromExperiment());
+        else
           view.disablePreview();
-
-
       }
     };
-    view.getPrepOptionGroup().addValueChangeListener(optionListener);
+    view.getTabs().addSelectedTabChangeListener(tabListener);
+
+    // ValueChangeListener optionListener = new ValueChangeListener() {
+    // @Override
+    // public void valueChange(ValueChangeEvent event) {
+    // if (optionSelected()) {
+    // view.enablePrep(expSelected());
+    // if (tubesSelected() && expSelected())
+    // view.enablePreview(getUsefulSampleFromExperiment());
+    // else
+    // view.disablePreview();
+    // } else
+    // view.disablePreview();
+    //
+    //
+    // }
+    // };
+    // view.getPrepOptionGroup().addValueChangeListener(optionListener);
   }
 
   public void reactToProjectSelection(String project) {
@@ -236,17 +273,18 @@ public class BarcodeController {
   }
 
   private boolean tubesSelected() {
-    return ((Collection<String>) view.getPrepOptionGroup().getValue())
-        .contains("Sample Tube Barcodes");
+    return view.getTabs().getSelectedTab() instanceof BarcodePreviewComponent;
+    // return ((Collection<String>) view.getPrepOptionGroup().getValue()) != null;// TODO
+    // .contains("Sample Tube Barcodes");
   }
 
   private boolean expSelected() {
     return view.getExperiments().size() > 0;
   }
 
-  private boolean optionSelected() {
-    return ((Collection<String>) view.getPrepOptionGroup().getValue()).size() > 0;
-  }
+  // private boolean optionSelected() {
+  // return ((Collection<String>) view.getPrepOptionGroup().getValue()).size() > 0;
+  // }
 
   protected List<IBarcodeBean> getSamplesFromExperimentSummaries(
       Collection<ExperimentBarcodeSummaryBean> experiments) {
@@ -268,10 +306,10 @@ public class BarcodeController {
         bioType = s.getProperties().get("Q_SAMPLE_TYPE");
       }
       if (types.contains(type))
-        samples
-            .add(new NewModelBarcodeBean(s.getCode(), view.getCodedString(s), view.getInfo1(s),
-                view.getInfo2(s), bioType, parentMap.get(s), s.getProperties().get(
-                    "Q_SECONDARY_NAME")));
+        samples.add(new NewModelBarcodeBean(s.getCode(), view.getCodedString(s), view.getInfo1(s,
+            StringUtils.join(parentMap.get(s), " ")), view.getInfo2(s,
+            StringUtils.join(parentMap.get(s), " ")), bioType, parentMap.get(s), s.getProperties()
+            .get("Q_SECONDARY_NAME"), s.getProperties().get("Q_EXTERNALDB_ID")));
     }
     return samples;
   }
@@ -285,17 +323,16 @@ public class BarcodeController {
     params.put("codes", codes);
     QueryTableModel resTable = openbis.getAggregationService("get-parentmap", params);
     Map<String, List<String>> parentMap = new HashMap<String, List<String>>();
-    String curCode = (String) resTable.getRows().get(0)[0];
-    List<String> parents = new ArrayList<String>();
+
     for (Serializable[] ss : resTable.getRows()) {
       String code = (String) ss[0];
       String parent = (String) ss[1];
-      if (code.equals(curCode))
+      if (parentMap.containsKey(code)) {
+        List<String> parents = parentMap.get(code);
         parents.add(parent);
-      else {
-        parentMap.put(curCode, parents);
-        parents = new ArrayList<String>();
-        curCode = code;
+        parentMap.put(code, parents);
+      } else {
+        parentMap.put(code, new ArrayList<String>(Arrays.asList(parent)));
       }
     }
     Map<Sample, List<String>> res = new HashMap<Sample, List<String>>();
