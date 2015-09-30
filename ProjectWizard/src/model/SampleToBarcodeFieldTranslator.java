@@ -12,7 +12,7 @@ import control.BarcodeController;
 
 public class SampleToBarcodeFieldTranslator {
 
-  private logging.Logger logger = new Log4j2Logger(BarcodeController.class);
+  private logging.Logger logger = new Log4j2Logger(SampleToBarcodeFieldTranslator.class);
 
   public String buildInfo(ComboBox select, Sample s, String parents) {
     Map<String, String> map = s.getProperties();
@@ -41,6 +41,13 @@ public class SampleToBarcodeFieldTranslator {
         break;
       case "QBiC ID":
         res = s.getCode();
+        break;
+      case "Lab ID":
+        res = map.get("Q_EXTERNALDB_ID");
+        break;
+      default:
+        if (!in.equals(""))
+          logger.error("Unknown input: " + in + ". Field will be empty!");
     }
     if (res == null)
       return "";

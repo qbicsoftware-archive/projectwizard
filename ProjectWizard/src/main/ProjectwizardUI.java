@@ -69,7 +69,7 @@ public class ProjectwizardUI extends UI {
   }
 
   logging.Logger logger = new Log4j2Logger(ProjectwizardUI.class);
-  private String version = "Version 0.9691, 15.09.15";
+  private String version = "Version 0.9692, 29.09.15";
 
   private String DATASOURCE_USER = "datasource.user";
   private String DATASOURCE_PASS = "datasource.password";

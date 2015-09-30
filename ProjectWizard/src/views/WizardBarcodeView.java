@@ -8,6 +8,7 @@ import java.util.List;
 import uicomponents.BarcodePreviewComponent;
 import uicomponents.SheetOptionComponent;
 
+import logging.Log4j2Logger;
 import main.ProjectwizardUI;
 import model.ExperimentBarcodeSummaryBean;
 import model.ExperimentBean;
@@ -27,6 +28,7 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import componentwrappers.CustomVisibilityComponent;
+import control.BarcodeController;
 
 /**
  * View class for the Sample Sheet and Barcode pdf creation
@@ -36,6 +38,7 @@ import componentwrappers.CustomVisibilityComponent;
  */
 public class WizardBarcodeView extends VerticalLayout {
 
+  logging.Logger logger = new Log4j2Logger(WizardBarcodeView.class);
   /**
    * 
    */

@@ -3,6 +3,7 @@ package uicomponents;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import logging.Log4j2Logger;
 import main.ProjectwizardUI;
 import model.SampleToBarcodeFieldTranslator;
 
@@ -23,6 +24,8 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class BarcodePreviewComponent extends VerticalLayout {
+
+  private logging.Logger logger = new Log4j2Logger(BarcodePreviewComponent.class);
 
   /**
    * 
@@ -171,9 +174,9 @@ public class BarcodePreviewComponent extends VerticalLayout {
     info2.setValue(getInfo(select2, example));
     setFieldsReadOnly(true);
   }
-  
+
   public String getCodeString(Sample s) {
-    return translator.getCodeString(example, (String) codedName.getValue());
+    return translator.getCodeString(s, (String) codedName.getValue());
   }
 
   public String getInfo(ComboBox b, Sample s) {
