@@ -2,6 +2,7 @@ package steps;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import logging.Log4j2Logger;
 import main.ProjectwizardUI;
@@ -13,9 +14,12 @@ import org.vaadin.teemu.wizards.WizardStep;
 
 import views.IRegistrationView;
 
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
+
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.ProgressBar;
@@ -26,8 +30,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import componentwrappers.CustomVisibilityComponent;
 
 /**
- * Wizard Step to downloadTSV and upload the TSV file to and from and register samples and
- * context
+ * Wizard Step to downloadTSV and upload the TSV file to and from and register samples and context
  * 
  * @author Andreas Friedrich
  * 
@@ -64,26 +67,35 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
     // main.addComponent(info);
 
     summary = new Table("Summary");
+    summary.addContainerProperty("Type", String.class, null);
+    summary.addContainerProperty("Number of Samples", Integer.class, null);
     summary.setStyleName(ValoTheme.TABLE_SMALL);
-    summary.setPageLength(3);
-    summary.setColumnHeader("ID_Range", "ID Range");
-    summary.setColumnHeader("amount", "Samples");
-    summary.setColumnHeader("type", "Sample Type");
-    
+    summary.setPageLength(1);
+    // main.addComponent(summary);
+
+    // summary = new Table("Summary");
+    // summary.setStyleName(ValoTheme.TABLE_SMALL);
+    // summary.setPageLength(3);
+    // summary.setColumnHeader("ID_Range", "ID Range");
+    // summary.setColumnHeader("amount", "Samples");
+    // summary.setColumnHeader("type", "Sample Type");
+
     summaryComponent =
-        new CustomVisibilityComponent(
-            ProjectwizardUI
-                .questionize(
-                    summary,
-                    "This is a summary of samples for Biological Entities, Tissue Extracts and "
-                        + "samples that will be measured. A spreadsheet of these samples can be downloaded below.",
-                    "Experiment Summary"));
+        new CustomVisibilityComponent(ProjectwizardUI.questionize(summary,
+            "This is a summary of samples for Sample Sources/Patients, Tissue Extracts and "
+                + "samples that will be measured.", "Experiment Summary"));
     summaryComponent.setVisible(false);
     main.addComponent(summaryComponent.getInnerComponent());
 
     downloadTSV = new Button("Download Spreadsheet");
     downloadTSV.setEnabled(false);
-    main.addComponent(downloadTSV);
+    HorizontalLayout tsvInfo = new HorizontalLayout();
+    tsvInfo.addComponent(downloadTSV);
+    main.addComponent(ProjectwizardUI
+        .questionize(
+            tsvInfo,
+            "You can download a technical spreadsheet to register your samples at a later time instead. More informative spreadsheets are available in the next step.",
+            "TSV Download"));
 
     downloadGraph = new Button("Download Graph");
     downloadGraph.setEnabled(false);
@@ -98,6 +110,44 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
     bar = new ProgressBar();
     main.addComponent(registerInfo);
     main.addComponent(bar);
+  }
+
+//  public void setSummary(ArrayList<SampleSummaryBean> arrayList) {
+//    summaryComponent.setVisible(false);
+//    BeanItemContainer<SampleSummaryBean> c =
+//        new BeanItemContainer<SampleSummaryBean>(SampleSummaryBean.class);
+//    c.addAll(arrayList);
+//    summary.setPageLength(arrayList.size());
+//    summary.setContainerDataSource(c);
+//    summaryComponent.setVisible(true);
+//    enableDownloads(true);
+//  }
+
+  public void setSummary(ArrayList<SampleSummaryBean> beans) {
+    int i = 0;
+    for(SampleSummaryBean b : beans) {
+      i++;
+      int amount = Integer.parseInt(b.getAmount());
+      String type = "Unknown";
+      String sampleType = b.getType();
+      switch (sampleType) {
+        case "Biological Source":
+          type = "Sample Sources";
+          break;
+        case "Extracted Samples":
+          type = "Sample Extracts";
+          break;
+        case "Prepared Samples":
+          type = "Sample Preparations";
+          break;
+        default:
+          break;
+      }
+      summary.addItem(new Object[] {type, amount}, i);
+    }
+    summary.setPageLength(i);
+    summaryComponent.setVisible(true);
+    enableDownloads(true);
   }
 
   public void enableDownloads(boolean enabled) {
@@ -125,7 +175,7 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
   }
 
   private boolean registrationComplete() {
-    return registrationComplete ;
+    return registrationComplete;
   }
 
   @Override
@@ -135,17 +185,6 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
 
   public Button getRegisterButton() {
     return this.register;
-  }
-
-  public void setSummary(ArrayList<SampleSummaryBean> arrayList) {
-    summaryComponent.setVisible(false);
-    BeanItemContainer<SampleSummaryBean> c =
-        new BeanItemContainer<SampleSummaryBean>(SampleSummaryBean.class);
-    c.addAll(arrayList);
-    summary.setPageLength(arrayList.size());
-    summary.setContainerDataSource(c);
-    summaryComponent.setVisible(true);
-    enableDownloads(true);
   }
 
   public void setProcessed(List<List<ISampleBean>> processed) {
@@ -164,7 +203,7 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
     logger.info("Sample registration complete!");
     Notification n =
         new Notification(
-            "Registration of samples complete. Press 'next' for a summary and additional options.");
+            "Registration of samples complete. Press 'next' for additional options.");
     n.setStyleName(ValoTheme.NOTIFICATION_CLOSABLE);
     n.setDelayMsec(-1);
     n.show(UI.getCurrent().getPage());

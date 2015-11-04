@@ -27,7 +27,7 @@ public class ProjectSelectionComponent extends VerticalLayout {
   CustomVisibilityComponent projectBox;
   TextField project;
   Button reload;
-//  OpenbisInfoTextField secondaryName;
+  TextField expName;
   TextArea description;
 
   ValueChangeListener projectSelectListener;
@@ -61,17 +61,18 @@ public class ProjectSelectionComponent extends VerticalLayout {
         .questionize(
             newProj,
             "Automatically create an unused QBiC project code or fill in your own. "
-                + "The code consists of 5 letters, must start with Q and not contain Y or Z. You can create a new code by clicking "
-                + FontAwesome.REFRESH.getHtml()+".", "New Sub-Project"));
-//    secondaryName =
-//        new OpenbisInfoTextField("Sub-Project Name", "Optional, user-defined project name");
-//    secondaryName.setVisible(false);
-//    secondaryName.setInputPrompt("Optional short name");
+                + "The code consists of 5 characters, must start with Q and not contain Y or Z. You can create a new code by clicking "
+                + FontAwesome.REFRESH.getHtml() + ".", "New Sub-Project"));
+    expName = new StandardTextField("Sub-Project name");
+    expName.setVisible(false);
+    expName.setInputPrompt("Optional short name");
+    addComponent(expName);
+    
     description = new TextArea("Description");
     description.setStyleName(ProjectwizardUI.fieldTheme);
     description.setInputPrompt("Optional project description");
     description.setVisible(false);
-//    addComponent(secondaryName.getInnerComponent());
+    // addComponent(secondaryName.getInnerComponent());
     addComponent(description);
   }
 
@@ -83,7 +84,7 @@ public class ProjectSelectionComponent extends VerticalLayout {
       project.setValue("");
     }
     project.setEnabled(choseNewProject);
-//    secondaryName.setVisible(choseNewProject);
+    expName.setVisible(choseNewProject);
     description.setVisible(choseNewProject);
   }
 
@@ -121,9 +122,9 @@ public class ProjectSelectionComponent extends VerticalLayout {
     return description.getValue();
   }
 
-//  public String getSecondaryName() {
-//    return secondaryName.getValue();
-//  }
+   public String getSecondaryName() {
+   return expName.getValue();
+   }
 
   public void addItems(List<String> projects) {
     ((AbstractSelect) projectBox.getInnerComponent()).addItems(projects);
@@ -137,6 +138,10 @@ public class ProjectSelectionComponent extends VerticalLayout {
 
   public void enableProjectBox(boolean b) {
     projectBox.setEnabled(b);
+  }
+
+  public TextField getExpNameField() {
+    return expName;
   }
 
 }

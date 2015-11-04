@@ -1,12 +1,15 @@
 package main;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -15,7 +18,9 @@ import java.util.Set;
 import javax.servlet.annotation.WebServlet;
 
 import logging.Log4j2Logger;
+import model.AttachmentConfig;
 
+import org.apache.commons.io.FileUtils;
 import org.vaadin.teemu.wizards.Wizard;
 import org.vaadin.teemu.wizards.event.WizardCancelledEvent;
 import org.vaadin.teemu.wizards.event.WizardCompletedEvent;
@@ -28,8 +33,12 @@ import views.StandaloneTSVImport;
 import views.WizardBarcodeView;
 
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Role;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SpaceWithProjectsAndRoleAssignments;
+import ch.systemsx.cisd.openbis.plugin.query.shared.api.v1.dto.QueryTableModel;
 
+import com.github.sardine.Sardine;
+import com.github.sardine.SardineFactory;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.VaadinServletConfiguration;
 import com.vaadin.server.FontAwesome;
@@ -38,10 +47,12 @@ import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinServlet;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.PopupView;
+import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.PopupView.Content;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.SelectedTabChangeListener;
@@ -51,9 +62,8 @@ import com.vaadin.ui.TabSheet.SelectedTabChangeEvent;
 import com.vaadin.ui.themes.ValoTheme;
 import componentwrappers.CustomVisibilityComponent;
 
-import control.AttachmentConfig;
 import control.BarcodeController;
-import control.UploadController;
+import control.ExperimentImportController;
 import control.VisibilityChangeListener;
 import control.WizardController;
 import de.uni_tuebingen.qbic.main.LiferayAndVaadinUtils;
@@ -77,7 +87,7 @@ public class ProjectwizardUI extends UI {
   private String TMP_FOLDER = "tmp.folder";
   private String BARCODE_SCRIPTS = "barcode.scripts";
   private String PATH_VARIABLE = "path.variable";
-  private String MAX_ATTACHMENT_SIZE = "max.upload.size";
+  private String MAX_ATTACHMENT_SIZE = "max.attachment.size";
   private String ATTACHMENT_URI = "attachment.uri";
   private String ATTACHMENT_USER = "attachment.user";
   private String ATTACHMENT_PASS = "attachment.password";
@@ -228,8 +238,8 @@ public class ProjectwizardUI extends UI {
         new AttachmentConfig(Integer.parseInt(attachmentSize), attachmentURI, attachmentUser,
             attachmentPass);
     WizardController c =
-        new WizardController(openbis, taxMap, tissueMap, sampleTypes, spaces, pathVar, attachConfig);
-    c.init();
+        new WizardController(openbis, taxMap, tissueMap, sampleTypes, spaces, attachConfig);
+    c.init(user);
     Wizard w = c.getWizard();
     WizardProgressListener wl = new WizardProgressListener() {
 
@@ -254,6 +264,7 @@ public class ProjectwizardUI extends UI {
     VerticalLayout wLayout = new VerticalLayout();
     wLayout.addComponent(w);
     wLayout.setMargin(true);
+
     tabs.addTab(wLayout, "Create Project").setIcon(FontAwesome.FLASK);
     final WizardBarcodeView bw = new WizardBarcodeView(spaces);
     BarcodeController bc = new BarcodeController(bw, openbis, barcodeScripts, pathVar);
@@ -263,14 +274,14 @@ public class ProjectwizardUI extends UI {
 
     OpenbisCreationController creationController = new OpenbisCreationController(openbis);
 
-    UploadController uc = new UploadController(tsvImport, creationController);
-    uc.init();
+    ExperimentImportController uc = new ExperimentImportController(tsvImport, creationController);
+    uc.init(user);
     tabs.addTab(tsvImport, "Import Project").setIcon(FontAwesome.FILE);
     if (isAdmin) {
       logger.debug("User is " + user + " and can see admin panel.");
       VerticalLayout padding = new VerticalLayout();
       padding.setMargin(true);
-      padding.addComponent(new AdminView(openbis, creationController));
+      padding.addComponent(new AdminView(openbis, creationController, user));
       tabs.addTab(padding, "Admin Functions").setIcon(FontAwesome.WRENCH);
     }
     tabs.addSelectedTabChangeListener(new SelectedTabChangeListener() {
@@ -281,13 +292,13 @@ public class ProjectwizardUI extends UI {
       }
     });
   }
-
+  
   private void readConfig() {
     Properties config = new Properties();
     try {
       List<String> configs =
           new ArrayList<String>(Arrays.asList("/Users/frieda/Desktop/testing/portlet.properties",
-              "/home/rayslife/portlet.properties", "/usr/local/share/guse/portlets.properties",
+              "/home/luser/liferay-portal-6.2-ce-ga4/portlets.properties", "/usr/local/share/guse/portlets.properties",
               "/home/tomcat-liferay/liferay_production/portlets.properties"));
       for (String s : configs) {
         File f = new File(s);

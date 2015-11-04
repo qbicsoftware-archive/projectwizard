@@ -1,40 +1,57 @@
 package steps;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.bind.JAXBException;
+
 import logging.Log4j2Logger;
+import main.OpenBisClient;
+import main.ProjectwizardUI;
+import model.AttachmentConfig;
 import model.AttachmentInformation;
-import model.ExperimentBean;
+import model.ISampleBean;
 
 import org.vaadin.teemu.wizards.Wizard;
 import org.vaadin.teemu.wizards.WizardStep;
 
+import parser.XMLParser;
 import processes.AttachmentMover;
 import processes.MoveUploadsReadyRunnable;
-import processes.RegisteredSamplesReadyRunnable;
+import processes.TSVReadyRunnable;
+import properties.Factor;
 
-import uicomponents.UploadsPanel;
+import main.UploadsPanel;
 
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
+import ch.systemsx.cisd.openbis.plugin.query.shared.api.v1.dto.QueryTableModel;
 
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
-import com.vaadin.data.util.BeanItemContainer;
+import com.vaadin.server.FileDownloader;
+import com.vaadin.server.StreamResource;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
+import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.themes.ValoTheme;
+
+import concurrency.UpdateProgressBar;
 
 import de.uni_tuebingen.qbic.main.LiferayAndVaadinUtils;
 
@@ -46,79 +63,78 @@ import de.uni_tuebingen.qbic.main.LiferayAndVaadinUtils;
  */
 public class FinishStep implements WizardStep {
 
-  // "upload successful - it may take a few minutes for your files to show up in the navigator."
-
   private VerticalLayout main;
   private Label header;
-  private Table summary;
-//  private CheckBox attach;
+  private VerticalLayout downloads;
+  private ProgressBar bar;
+  private Label info;
+  private Button dlEntities;
+  private Button dlExtracts;
+  private Button dlPreps;
+  // private Table summary;
+  private CheckBox attach;
   private UploadsPanel uploads;
   private Wizard w;
+  private AttachmentConfig attachConfig;
 
   private logging.Logger logger = new Log4j2Logger(FinishStep.class);
+  private List<FileDownloader> downloaders = new ArrayList<FileDownloader>();
 
-  public FinishStep(final AttachmentMover mover, int uploadSize, final Wizard w) {
+  public FinishStep(final Wizard w, AttachmentConfig attachmentConfig) {
     this.w = w;
-    String userID = "admin";
-    if (LiferayAndVaadinUtils.isLiferayPortlet())
-      try {
-        userID = LiferayAndVaadinUtils.getUser().getScreenName();
-      } catch (Exception e) {
-        logger.error(e.getMessage());
-        logger.error("Could not contact Liferay for User screen name.");
-      }
+    this.attachConfig = attachmentConfig;
 
     main = new VerticalLayout();
     main.setMargin(true);
     main.setSpacing(true);
     header = new Label("Summary");
     header.setContentMode(ContentMode.PREFORMATTED);
+    header.setWidth("300px");
     main.addComponent(header);
-    // main.addComponent(ProjectwizardUI.questionize(header,
-    // "Here you can download a spreadsheet of the samples in your experiment "
-    // + "and register your project in the database. "
-    // + "Registering samples may take a few seconds.", "Summary"));
+    main.addComponent(ProjectwizardUI
+        .questionize(
+            header,
+            "Here you can download spreadsheets of the samples in your experiment "
+                + "and upload informative files belonging to your project, e.g. treatment information. "
+                + "It might take a few seconds for your files to show up in our project browser.",
+            "Last Step"));
 
-    // Label info =
-    // new Label("You can download a spreadsheet of the samples in your experiment. "
-    // + "Registering samples may take a few seconds.");
-    // info.setStyleName("info");
-    // info.setWidth("350px");
-    // main.addComponent(info);
+    // summary = new Table("It consists of these steps:");
+    // summary.addContainerProperty("Type", String.class, null);
+    // summary.addContainerProperty("Number of Samples", Integer.class, null);
+    // summary.setStyleName(ValoTheme.TABLE_SMALL);
+    // summary.setPageLength(1);
+    // main.addComponent(summary);
+    downloads = new VerticalLayout();
+    downloads.setCaption("Download Spreadsheets:");
+    downloads.setSpacing(true);
+    dlEntities = new Button("Sample Sources");
+    dlExtracts = new Button("Sample Extracts");
+    dlPreps = new Button("Sample Preparations");
+    dlEntities.setEnabled(false);
+    dlExtracts.setEnabled(false);
+    dlPreps.setEnabled(false);
+    downloads.addComponent(dlEntities);
+    downloads.addComponent(dlExtracts);
+    downloads.addComponent(dlPreps);
 
-    summary = new Table("It consists of these steps:");
-    summary.addContainerProperty("Type", String.class, null);
-    summary.addContainerProperty("Number of Samples", Integer.class, null);
-    summary.setStyleName(ValoTheme.TABLE_SMALL);
-    summary.setPageLength(1);
-    main.addComponent(summary);
-//    attach = new CheckBox("Upload Additional Files");
-//    attach.setVisible(false);
-//    attach.addValueChangeListener(new ValueChangeListener() {
-//
-//      @Override
-//      public void valueChange(ValueChangeEvent event) {
-//        uploads.setVisible(attach.getValue());
-//        w.getFinishButton().setVisible(!attach.getValue());
-//      }
-//    });
-//    main.addComponent(attach);
-    uploads =
-        new UploadsPanel("QTEST", new ArrayList<String>(Arrays.asList("E1 (Design)",
-            "E2 (Extraction)", "E3 (Preparation)")), userID, uploadSize);
-    uploads.setVisible(false);
-    final Button commit = uploads.getCommitButton();
-    final FinishStep view = this;
-    commit.addClickListener(new ClickListener() {
+    this.bar = new ProgressBar();
+    this.info = new Label();
+    info.setCaption("Preparing Spreadsheets");
+    main.addComponent(bar);
+    main.addComponent(info);
+    main.addComponent(downloads);
+    attach = new CheckBox("Upload Additional Files");
+    attach.setVisible(false);
+    attach.addValueChangeListener(new ValueChangeListener() {
 
       @Override
-      public void buttonClick(ClickEvent event) {
-        uploads.startCommit();
-        mover.moveAttachments(new ArrayList<AttachmentInformation>(uploads.getAttachments().values()),
-            uploads.getBar(), uploads.getLabel(), new MoveUploadsReadyRunnable(view));
+      public void valueChange(ValueChangeEvent event) {
+        uploads.setVisible(attach.getValue());
+        w.getFinishButton().setVisible(!attach.getValue());
       }
     });
-    main.addComponent(uploads);
+    main.addComponent(attach);
   }
 
   public void fileCommitDone() {
@@ -134,41 +150,139 @@ public class FinishStep implements WizardStep {
     w.getFinishButton().setVisible(true);
   }
 
-  public void setExperimentInfos(String proj, String desc,
-      Map<String, List<Sample>> samplesByExperiment) {
-    int entities = 0;
-    int samples = 0;
-    int i = 0;
+  public void setExperimentInfos(String space, String proj, String desc,
+      Map<String, List<Sample>> samplesByExperiment, OpenBisClient openbis) {
+    int entitieNum = 0;
+    int samplesNum = 0;
+    List<String> ids = new ArrayList<String>();
+    // int i = 0;
     for (String exp : samplesByExperiment.keySet()) {
-      i++;
+      // i++;
       List<Sample> samps = samplesByExperiment.get(exp);
+      for (Sample s : samps)
+        ids.add(s.getIdentifier());
       int amount = samps.size();
-      String type = "Unknown";
+      // String type = "Unknown";
       String sampleType = samps.get(0).getSampleTypeCode();
       switch (sampleType) {
         case "Q_BIOLOGICAL_ENTITY":
-          entities += amount;
-          type = "Sample Sources";
+          entitieNum += amount;
+          // type = "Sample Sources";
           break;
         case "Q_BIOLOGICAL_SAMPLE":
-          samples += amount;
-          type = "Sample Extracts";
+          samplesNum += amount;
+          // type = "Sample Extracts";
           break;
         case "Q_TEST_SAMPLE":
-          samples += amount;
-          type = "Sample Preparations";
+          samplesNum += amount;
+          // type = "Sample Preparations";
           break;
         default:
           break;
       }
-      summary.addItem(new Object[] {type, amount}, i);
+      // summary.addItem(new Object[] {type, amount}, i);
     }
-    summary.setPageLength(summary.size());
+    // summary.setPageLength(summary.size());
     header.setValue("Your Experimental Design was registered. Project " + proj + " now has "
-        + entities + " Sample Sources and " + samples + " samples. \n" + "Project description: "
-        + desc.substring(0, Math.min(desc.length(), 60)) + "...");
-//    enableUploads(true);
-    w.getFinishButton().setVisible(true);//TODO
+        + entitieNum + " Sample Sources and " + samplesNum + " samples. \n"
+        + "Project description: " + desc.substring(0, Math.min(desc.length(), 60)) + "...");
+    w.getFinishButton().setVisible(true);
+
+    initUpload(space, proj, openbis);
+    prepareSpreadsheets(ids, space, proj, openbis);
+  }
+
+  private void prepareSpreadsheets(final List<String> ids, final String space,
+      final String project, final OpenBisClient openbis) {
+
+    final FinishStep layout = this;
+    bar.setVisible(true);
+    info.setVisible(true);
+
+    final int todo = 1;
+    Thread t = new Thread(new Runnable() {
+      volatile int current = 0;
+
+      @Override
+      public void run() {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put(
+            "types",
+            new ArrayList<String>(Arrays.asList("Q_BIOLOGICAL_ENTITY", "Q_BIOLOGICAL_SAMPLE",
+                "Q_TEST_SAMPLE")));
+        params.put("ids", ids);
+        updateProgressBar(current, todo, bar, info);
+
+        while (openbis.getSamplesOfProject("/" + space + "/" + project).size() < ids.size()) {
+          try {
+            Thread.sleep(50);
+          } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          }
+        }
+        QueryTableModel table =
+            openbis.getAggregationService("get-experimental-design-tsv", params);
+        current++;
+        updateProgressBar(current, todo, bar, info);
+
+        UI.getCurrent().setPollInterval(-1);
+        UI.getCurrent().access(new TSVReadyRunnable(layout, table, project));
+      }
+    });
+    t.start();
+    UI.getCurrent().setPollInterval(100);
+  }
+
+  private void updateProgressBar(int current, int todo, ProgressBar bar, Label info) {
+    double frac = current * 1.0 / todo;
+    UI.getCurrent().access(new UpdateProgressBar(bar, info, frac));
+  }
+
+  public void armButtons(List<StreamResource> streams) {
+    armDownloadButton(dlEntities, streams.get(0), 1);
+    armDownloadButton(dlExtracts, streams.get(1), 2);
+    if (streams.size() > 2)
+      armDownloadButton(dlPreps, streams.get(2), 3);
+  }
+
+  protected void armDownloadButton(Button b, StreamResource stream, int dlnum) {
+    if (downloaders.size() < dlnum) {
+      FileDownloader dl = new FileDownloader(stream);
+      dl.extend(b);
+      downloaders.add(dl);
+    } else
+      downloaders.get(dlnum - 1).setFileDownloadResource(stream);
+    b.setEnabled(true);
+  }
+
+  private void initUpload(String space, String project, OpenBisClient openbis) {
+    String userID = "admin";
+    if (LiferayAndVaadinUtils.isLiferayPortlet())
+      try {
+        userID = LiferayAndVaadinUtils.getUser().getScreenName();
+      } catch (Exception e) {
+        logger.error(e.getMessage());
+        logger.error("Could not contact Liferay for User screen name.");
+      }
+
+    uploads =
+        new UploadsPanel(ProjectwizardUI.tmpFolder, space, project, new ArrayList<String>(
+            Arrays.asList("Experimental Design")), userID, attachConfig, openbis);
+    // new UploadsPanel(project, new ArrayList<String>(Arrays.asList("E1 (Design)",
+    // "E2 (Extraction)", "E3 (Preparation)")), userID, uploadSize);
+    // final Button commit = uploads.getCommitButton();
+    // final FinishStep view = this;
+    // commit.addClickListener(new ClickListener() {
+    //
+    // @Override
+    // public void buttonClick(ClickEvent event) {
+    // uploads.startCommit();
+    // mover.moveAttachments(new ArrayList<AttachmentInformation>(uploads.getAttachments()
+    // .values()), uploads.getBar(), uploads.getLabel(), new MoveUploadsReadyRunnable(view));
+    // }
+    // });
+    main.addComponent(uploads);
   }
 
   @Override
@@ -191,12 +305,16 @@ public class FinishStep implements WizardStep {
     return true;
   }
 
-//  private void enableUploads(boolean b) {
-//    attach.setVisible(true);
-//  }
-
-  public void resetSummary() {
-    summary.removeAllItems();
+  private void enableUploads(boolean b) {
+    uploads.setVisible(true);
   }
+
+  public void enableDownloads(boolean b) {
+    downloads.setEnabled(b);
+  }
+
+  // public void resetSummary() {
+  // summary.removeAllItems();
+  // }
 
 }

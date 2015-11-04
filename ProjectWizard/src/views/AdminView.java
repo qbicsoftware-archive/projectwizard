@@ -24,6 +24,8 @@ public class AdminView extends VerticalLayout {
   // space
   private TextField space;
   private Button createSpace;
+  // projects TODO add 
+  private Button createProject;
   // mcc patients
   private MCCView addMultiScale;
 
@@ -35,7 +37,7 @@ public class AdminView extends VerticalLayout {
   // logger
   logging.Logger logger = new Log4j2Logger(AdminView.class);
 
-  public AdminView(OpenBisClient openbis, OpenbisCreationController creationController) {
+  public AdminView(OpenBisClient openbis, OpenbisCreationController creationController, String user) {
     this.openbis = openbis;
     tabs = new TabSheet();
     tabs.setStyleName(ValoTheme.TABSHEET_FRAMED);
@@ -53,7 +55,7 @@ public class AdminView extends VerticalLayout {
     metadataUpload = new MetadataUploadView(openbis);
     tabs.addTab(metadataUpload, "Update Metadata");
 
-    addMultiScale = new MCCView(openbis, creationController);
+    addMultiScale = new MCCView(openbis, creationController, user);
     addMultiScale.setSpacing(true);
     addMultiScale.setMargin(true);
     

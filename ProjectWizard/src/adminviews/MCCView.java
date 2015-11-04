@@ -53,9 +53,10 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
 
   logging.Logger logger = new Log4j2Logger(MCCView.class);
 
-  OpenBisClient openbis;
-  OpenbisCreationController creator;
-  XMLParser p = new XMLParser();
+  private OpenBisClient openbis;
+  private OpenbisCreationController creator;
+  private XMLParser p = new XMLParser();
+  private String user;
   // view
   private String mccSpace = "MULTISCALEHCC";
   private ComboBox mccProjects;
@@ -79,9 +80,10 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
   private Set<String> cases;
   private SampleCounter counter;
 
-  public MCCView(OpenBisClient openbis, OpenbisCreationController creationController) {
+  public MCCView(OpenBisClient openbis, OpenbisCreationController creationController, String user) {
     this.openbis = openbis;
     this.creator = creationController;
+    this.user = user;
 
     this.cases = new HashSet<String>();
     this.patients = new ArrayList<String>();
@@ -312,7 +314,7 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
         addSamples.setEnabled(false);
         creator.prepareXMLProps(samps);
         creator.registerProjectWithExperimentsAndSamplesBatchWise(samps, null, null, bar,
-            registerInfo, new RegisteredSamplesReadyRunnable(getView()));
+            registerInfo, new RegisteredSamplesReadyRunnable(getView()), user);
       }
     });
   }

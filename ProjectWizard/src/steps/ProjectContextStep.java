@@ -43,7 +43,7 @@ public class ProjectContextStep implements WizardStep {
 
   private ComboBox spaceCode;
   private ProjectSelectionComponent projectInfoComponent;
-  private TextField expName;
+//  private TextField expName;
 
   List<ExperimentBean> experiments;
 
@@ -109,9 +109,10 @@ public class ProjectContextStep implements WizardStep {
     // info.setStyleName("info");
     // info.setWidth("350px");
 
-    expName = new StandardTextField("Experiment name");
-    expName.setVisible(false);
-    expName.setInputPrompt("Optional short name");
+    //was moved to ProjectSelectionComponent
+//    expName = new StandardTextField("Experiment name");
+//    expName.setVisible(false);
+//    expName.setInputPrompt("Optional short name");
 
     grid = new GridLayout(2, 5);
     grid.setSpacing(true);
@@ -133,7 +134,7 @@ public class ProjectContextStep implements WizardStep {
     grid.addComponent(samples, 1, 2, 1, 3);
     // expNameLayout = new VerticalLayout();
     // expNameLayout.addComponent(expName);
-    grid.addComponent(expName, 0, 4);
+//    grid.addComponent(expName, 0, 4);
 
     main.addComponent(grid);
 
@@ -358,6 +359,7 @@ public class ProjectContextStep implements WizardStep {
   }
 
   public boolean expSecondaryNameSet() {
+    TextField expName = projectInfoComponent.getExpNameField();
     return expName != null && !expName.isEmpty();
   }
 
@@ -366,7 +368,7 @@ public class ProjectContextStep implements WizardStep {
   }
 
   public String getExpSecondaryName() {
-    return expName.getValue();
+    return projectInfoComponent.getExpNameField().getValue();
   }
 
   public void tryEnableCustomProject(String code) {
@@ -377,8 +379,8 @@ public class ProjectContextStep implements WizardStep {
     projectContext.setVisible(true);
   }
 
-  public void enableExpName(boolean b) {
-    expName.setVisible(b);
-  }
+//  public void enableExpName(boolean b) {
+//    expName.setVisible(b);
+//  }
 
 }

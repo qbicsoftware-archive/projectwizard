@@ -20,6 +20,7 @@ import main.OpenBisClient;
 import main.OpenbisCreationController;
 import main.SamplePreparator;
 import model.AOpenbisSample;
+import model.AttachmentConfig;
 import model.ExperimentBean;
 import model.ExperimentType;
 import model.NewSampleModelBean;
@@ -96,8 +97,7 @@ public class WizardController {
 
   logging.Logger logger = new Log4j2Logger(WizardController.class);
 
-  private AttachmentMover mover;
-  private int maxUploadSize;
+  private AttachmentConfig attachConfig;
 
   /**
    * 
@@ -110,16 +110,15 @@ public class WizardController {
    * @param uploadSize
    */
   public WizardController(OpenBisClient openbis, Map<String, String> taxMap,
-      Map<String, String> tissueMap, List<String> sampleTypes, List<String> spaces, String pathVar,
+      Map<String, String> tissueMap, List<String> sampleTypes, List<String> spaces,
       AttachmentConfig attachmentConfig) {
-    maxUploadSize = attachmentConfig.getMaxSize();
     this.openbis = openbis;
     this.openbisCreator = new OpenbisCreationController(openbis);
     this.taxMap = taxMap;
     this.tissueMap = tissueMap;
     this.measureTypes = sampleTypes;
     this.spaces = spaces;
-    this.mover = new AttachmentMover(pathVar, attachmentConfig);
+    this.attachConfig = attachmentConfig;
   }
 
   public class ProjectNameValidator implements Validator {
@@ -271,7 +270,7 @@ public class WizardController {
   /**
    * Initialize all possible steps in the wizard and the listeners used
    */
-  public void init() {
+  public void init(final String user) {
     this.w = new Wizard();
     w.getFinishButton().setVisible(false);
     w.getFinishButton().setStyleName(ValoTheme.BUTTON_DANGER);
@@ -291,7 +290,7 @@ public class WizardController {
     final SummaryRegisterStep regStep = new SummaryRegisterStep();
     final PoolingStep poolStep1 = new PoolingStep(Steps.Extract_Pooling);
     final PoolingStep poolStep2 = new PoolingStep(Steps.Test_Sample_Pooling);
-    final FinishStep finishStep = new FinishStep(mover, maxUploadSize, w);
+    final FinishStep finishStep = new FinishStep(w, attachConfig);
 
     steps = new HashMap<Steps, WizardStep>();
     steps.put(Steps.Project_Context, contextStep);
@@ -354,65 +353,10 @@ public class WizardController {
           String expSecondaryName = context.getExpSecondaryName();
           openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(regStep.getSamples(),
               desc, expSecondaryName, regStep.getProgressBar(), regStep.getProgressLabel(),
-              new RegisteredSamplesReadyRunnable(regStep));
+              new RegisteredSamplesReadyRunnable(regStep), user);
           w.addStep(steps.get(Steps.Finish));
         }
       }
-
-      /**
-       * Creates Factor instances from the XML Factor and Gene Loci columns of the TSV and creates
-       * and XML from them that can be registered to the openBIS model
-       * 
-       * @param metadata The metadata map of a sample
-       */
-      // private void fixXMLProps(Map<String, String> metadata) {
-      // XMLParser p = new XMLParser();
-      // LociParser lp = new LociParser();
-      // List<Factor> factors = new ArrayList<Factor>();
-      // if (metadata.get("XML_FACTORS") != null) {
-      // String[] fStrings = metadata.get("XML_FACTORS").split(";");
-      // for (String factor : fStrings) {
-      // if (factor.length() > 1) {
-      // String[] fields = factor.split(":");
-      // for (int i = 0; i < fields.length; i++)
-      // fields[i] = fields[i].trim();
-      // String lab = fields[0].replace(" ", "");
-      // String val = fields[1];
-      // if (fields.length > 2)
-      // factors.add(new Factor(lab, val, fields[2]));
-      // else
-      // factors.add(new Factor(lab, val));
-      // }
-      // }
-      // try {
-      // metadata.put("Q_PROPERTIES", p.toString(p.createXMLFromFactors(factors)));
-      // } catch (JAXBException e) {
-      // e.printStackTrace();
-      // }
-      // }
-      // metadata.remove("XML_FACTORS");
-      //
-      // List<GeneLocus> loci = new ArrayList<GeneLocus>();
-      // if (metadata.get("XML_LOCI") != null) {
-      // String[] lStrings = metadata.get("XML_LOCI").split(";");
-      // for (String locus : lStrings) {
-      // if (locus.length() > 1) {
-      // String[] fields = locus.split(":");
-      // for (int i = 0; i < fields.length; i++)
-      // fields[i] = fields[i].trim();
-      // String lab = fields[0];
-      // String[] alleles = fields[1].split("/");
-      // loci.add(new GeneLocus(lab, new ArrayList<String>(Arrays.asList(alleles))));
-      // }
-      // }
-      // try {
-      // metadata.put("Q_LOCI", lp.toString(lp.createXMLFromLoci(loci)));
-      // } catch (JAXBException e) {
-      // e.printStackTrace();
-      // }
-      // }
-      // metadata.remove("XML_LOCI");
-      // }
     };
     regStep.getDownloadButton().addClickListener(cl);
     regStep.getRegisterButton().addClickListener(cl);
@@ -529,7 +473,7 @@ public class WizardController {
 
       @Override
       public void valueChange(ValueChangeEvent event) {
-        contextStep.enableExpName(false);
+        // contextStep.enableExpName(false);
         if (contextStep.getProjectContext().getValue() != null) {
           resetNextSteps();
           OptionGroup projectContext = contextStep.getProjectContext();
@@ -563,7 +507,7 @@ public class WizardController {
             dataAggregator.setInheritEntities(false);
             dataAggregator.setInheritExtracts(false);
             contextStep.hideExperiments();
-            contextStep.enableExpName(true);
+            // contextStep.enableExpName(true);
           }
           // copy context
           // if (contextOptions.get(3).equals(context)) {
@@ -816,23 +760,6 @@ public class WizardController {
           if (regStep.summaryIsSet()) {
             regStep.setRegEnabled(true);
           }
-          // Copy mode
-          // if (contextStep.copyModeSet()) {
-          // try {
-          // dataAggregator.copyExperiment();
-          // } catch (JAXBException e1) {
-          // e1.printStackTrace();
-          // }
-          // createTSV();
-          // try {
-          // prep.processTSV(dataAggregator.getTSV(), false);
-          // } catch (IOException e) {
-          // e.printStackTrace();
-          // }
-          // armDownloadButtons(regStep.getDownloadButton(), regStep.getGraphButton());
-          // regStep.setSummary(prep.getSummary());
-          // regStep.setProcessed(prep.getProcessed());
-          // }
           // Write TSV mode
           if (contextStep.fetchTSVModeSet()) {
             try {
@@ -868,7 +795,8 @@ public class WizardController {
               samplesByExperiment.put(exp, lis);
             }
           }
-          finishStep.setExperimentInfos(proj, p.getDescription(), samplesByExperiment);
+          finishStep.setExperimentInfos(p.getSpaceCode(), proj, p.getDescription(),
+              samplesByExperiment, openbis);
         }
       }
     };
