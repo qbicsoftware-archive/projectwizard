@@ -15,15 +15,17 @@ import properties.Factor;
  */
 public abstract class AOpenbisSample {
 
-  String space;
-  String sampleType;
-  String code;
-  String experiment;
-  String Q_SECONDARY_NAME;
-  List<Factor> factors;
-  String Q_ADDITIONAL_NOTES;
-  String parent;
-  String Q_EXTERNALDB_ID;
+  private int tempID;
+  private List<Integer> tempParentIDs;
+  private String space;
+  private String sampleType;
+  private String code;
+  private String experiment;
+  private String Q_SECONDARY_NAME;
+  private List<Factor> factors;
+  private String Q_ADDITIONAL_NOTES;
+  private String parent;
+  private String Q_EXTERNALDB_ID;
 
   /**
    * Constructor of an abstract openbis sample
@@ -36,15 +38,60 @@ public abstract class AOpenbisSample {
    * @param parent A parent sample code this sample is attached to
    */
   AOpenbisSample(String code, String space, String experiment, String secondaryName,
-      String additionalNotes, List<Factor> factors, String parent, String externalID) {
+      String additionalNotes, List<Factor> factors, String parent, String externalID,
+      String sampleType) {
     this.code = code;
     this.space = space;
     this.experiment = experiment;
+    this.sampleType = sampleType;
     this.Q_ADDITIONAL_NOTES = additionalNotes;
     this.Q_SECONDARY_NAME = secondaryName;
     this.factors = factors;
     this.parent = parent;
     this.Q_EXTERNALDB_ID = externalID;
+  }
+
+  // this is the new version for entities
+  AOpenbisSample(int tempID, String secondaryName, String additionalNotes, List<Factor> factors,
+      String externalID, List<Integer> tempParentIDs, String sampleType) {
+    this.tempID = tempID;
+    this.sampleType = sampleType;
+    this.Q_SECONDARY_NAME = secondaryName;
+    this.Q_ADDITIONAL_NOTES = additionalNotes;
+    this.Q_EXTERNALDB_ID = externalID;
+    this.factors = factors;
+    this.tempParentIDs = tempParentIDs;
+  }
+
+  // this is the new version for all child samples
+  AOpenbisSample(int tempID, List<AOpenbisSample> parents, String sampleType, String secondaryName,
+      String externalID, List<Factor> newFactors, String additionalNotes) {
+    this.tempID = tempID;
+    this.sampleType = sampleType;
+    this.Q_SECONDARY_NAME = secondaryName;
+    this.Q_ADDITIONAL_NOTES = additionalNotes;
+    this.Q_EXTERNALDB_ID = externalID;
+    Map<String, Factor> oldFactors = new HashMap<String, Factor>();
+    this.tempParentIDs = new ArrayList<Integer>();
+    for (AOpenbisSample s : parents) {
+      this.tempParentIDs.add(s.getTempID());
+      for (Factor f : s.getFactors()) {
+        String lab = f.getLabel();
+        if (oldFactors.containsKey(lab)) {
+          String value = oldFactors.get(lab).getValue() + oldFactors.get(lab).getUnit();
+          String newValue = f.getValue() + f.getUnit();
+          if (!value.equals(newValue))
+            oldFactors.put(lab, new Factor(lab, "mixed"));
+        } else
+          oldFactors.put(lab, f);
+      }
+    }
+    this.factors = new ArrayList<Factor>();
+    if (parents.size() > 0) {
+      for (String lab : parents.get(0).getFactorLabels())
+        this.factors.add(oldFactors.get(lab));
+    }
+    this.factors.addAll(newFactors);
   }
 
   public void setSampleType(String sampleType) {
@@ -160,11 +207,11 @@ public abstract class AOpenbisSample {
   public List<Factor> getFactors() {
     return factors;
   }
-  
+
   public String getQ_EXTERNALDB_ID() {
     return Q_EXTERNALDB_ID;
   }
-  
+
   public void setQ_EXTERNALDB_ID(String extID) {
     this.Q_EXTERNALDB_ID = extID;
   }
@@ -178,6 +225,18 @@ public abstract class AOpenbisSample {
   }
 
   public String toString() {
-    return sampleType + " " + code + " " + Q_SECONDARY_NAME +" "+getValueMap();
+    return sampleType + " " + code + " " + Q_SECONDARY_NAME + " " + getValueMap();
+  }
+
+  public Integer getTempID() {
+    return tempID;
+  }
+
+  public List<Integer> getTempParentIDs() {
+    return tempParentIDs;
+  }
+
+  public void addFactor(Factor factor) {
+    this.factors.add(factor);
   }
 }

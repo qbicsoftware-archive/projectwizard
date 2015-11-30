@@ -1,5 +1,7 @@
 package uicomponents;
 
+import incubator.LabelingMethod;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,10 +15,10 @@ import model.AOpenbisSample;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.themes.ValoTheme;
 import componentwrappers.StandardTextField;
 
 /**
@@ -34,6 +36,8 @@ public class SummaryTable extends VerticalLayout {
   private Table table;
   private Map<String, AOpenbisSample> map;
   private String name;
+  private boolean isotopes = false;
+  private LabelingMethod labelingMethod;
 
   public SummaryTable(String name) {
     this.name = name;
@@ -45,18 +49,35 @@ public class SummaryTable extends VerticalLayout {
     for (Object id : table.getItemIds()) {
       String key = (String) table.getItem(id).getItemProperty("ID").getValue();
       AOpenbisSample s = map.get(key);
-      String secName = parseSecName(table.getItem(id).getItemProperty("Secondary Name").getValue());
+      String secName = parseSecName(id);
       s.setQ_SECONDARY_NAME(secName);
       if (secName == null)
         secName = "";
-      if (!secName.equals("DELETED"))
+      if (!secName.equals("DELETED")) {
+        if (isotopes) {
+          System.out.println(id);
+          System.out.println("object " + s + " with code " + s.getCode());
+          System.out.println("factors before:");
+          for (Factor f : s.getFactors())
+            System.out.println(f);
+          System.out.println("factors after parsing:");
+          String method = labelingMethod.getName();
+          s.addFactor(new Factor(method.toLowerCase(), parseLabel(method, id)));
+          for (Factor f : s.getFactors())
+            System.out.println(f);
+        }
         res.add(s);
+      }
     }
     return res;
   }
 
-  private String parseSecName(Object value) {
-    return ((TextField) value).getValue();
+  private String parseLabel(String name, Object id) {
+    return (String) ((ComboBox) table.getItem(id).getItemProperty(name).getValue()).getValue();
+  }
+
+  private String parseSecName(Object id) {
+    return ((TextField) table.getItem(id).getItemProperty("Secondary Name").getValue()).getValue();
   }
 
   public void setPageLength(int size) {
@@ -70,12 +91,19 @@ public class SummaryTable extends VerticalLayout {
     addComponent(table);
   }
 
-  public void initTable(List<AOpenbisSample> samples) {
+  public void initTable(List<AOpenbisSample> samples, LabelingMethod labelingMethod) {
+    if (labelingMethod != null) {
+      this.labelingMethod = labelingMethod;
+      isotopes = true;
+    }
     table.setStyleName(ProjectwizardUI.tableTheme);
     table.addContainerProperty("ID", String.class, null);
     table.setColumnWidth("ID", 35);
     table.addContainerProperty("Secondary Name", TextField.class, null);
     table.setImmediate(true);
+
+    if (isotopes)
+      table.addContainerProperty(labelingMethod.getName(), ComboBox.class, null);
 
     List<String> factorLabels = new ArrayList<String>();
     int maxCols = 0;
@@ -102,9 +130,13 @@ public class SummaryTable extends VerticalLayout {
 
     table.addContainerProperty("Customize", Button.class, null);
     table.setColumnWidth("Customize", 85);
+
+    List<String> reagents = null;
+    if (isotopes)
+      reagents = labelingMethod.getReagents();
     for (int i = 0; i < samples.size(); i++) {
       AOpenbisSample s = samples.get(i);
-      String id = Integer.toString(i + 1);
+      String id = Integer.toString(i);
       map.put(id, s);
 
       // The Table item identifier for the row.
@@ -148,6 +180,13 @@ public class SummaryTable extends VerticalLayout {
       tf.setImmediate(true);
       tf.setValue(s.getQ_SECONDARY_NAME());
       row.add(tf);
+      if (isotopes) {
+        ComboBox cb = new ComboBox();
+        cb.setImmediate(true);
+        cb.addItems(reagents);
+        cb.select(reagents.get(i % reagents.size()));
+        row.add(cb);
+      }
       int missing = maxCols - s.getFactors().size();
       for (Factor f : s.getFactors()) {
         String v = f.getValue();
@@ -161,5 +200,4 @@ public class SummaryTable extends VerticalLayout {
       table.addItem(row.toArray(new Object[row.size()]), itemId);
     }
   }
-
 }

@@ -1,5 +1,7 @@
 package steps;
 
+import incubator.DBManager;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -48,8 +50,12 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
   private CustomVisibilityComponent summaryComponent;
   logging.Logger logger = new Log4j2Logger(SummaryRegisterStep.class);
   private boolean registrationComplete = false;
+  DBManager dbm;
+  private int investigatorID;
+  private String projectCode;
 
-  public SummaryRegisterStep() {
+  public SummaryRegisterStep(DBManager dbm) {
+    this.dbm = dbm;
     main = new VerticalLayout();
     main.setMargin(true);
     main.setSpacing(true);
@@ -59,26 +65,11 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
             + "and register your project in the database. "
             + "Registering samples may take a few seconds.", "Sample Registration"));
 
-    // Label info =
-    // new Label("You can download a spreadsheet of the samples in your experiment. "
-    // + "Registering samples may take a few seconds.");
-    // info.setStyleName("info");
-    // info.setWidth("350px");
-    // main.addComponent(info);
-
     summary = new Table("Summary");
     summary.addContainerProperty("Type", String.class, null);
     summary.addContainerProperty("Number of Samples", Integer.class, null);
     summary.setStyleName(ValoTheme.TABLE_SMALL);
     summary.setPageLength(1);
-    // main.addComponent(summary);
-
-    // summary = new Table("Summary");
-    // summary.setStyleName(ValoTheme.TABLE_SMALL);
-    // summary.setPageLength(3);
-    // summary.setColumnHeader("ID_Range", "ID Range");
-    // summary.setColumnHeader("amount", "Samples");
-    // summary.setColumnHeader("type", "Sample Type");
 
     summaryComponent =
         new CustomVisibilityComponent(ProjectwizardUI.questionize(summary,
@@ -112,36 +103,40 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
     main.addComponent(bar);
   }
 
-//  public void setSummary(ArrayList<SampleSummaryBean> arrayList) {
-//    summaryComponent.setVisible(false);
-//    BeanItemContainer<SampleSummaryBean> c =
-//        new BeanItemContainer<SampleSummaryBean>(SampleSummaryBean.class);
-//    c.addAll(arrayList);
-//    summary.setPageLength(arrayList.size());
-//    summary.setContainerDataSource(c);
-//    summaryComponent.setVisible(true);
-//    enableDownloads(true);
-//  }
+  // public void setSummary(ArrayList<SampleSummaryBean> arrayList) {
+  // summaryComponent.setVisible(false);
+  // BeanItemContainer<SampleSummaryBean> c =
+  // new BeanItemContainer<SampleSummaryBean>(SampleSummaryBean.class);
+  // c.addAll(arrayList);
+  // summary.setPageLength(arrayList.size());
+  // summary.setContainerDataSource(c);
+  // summaryComponent.setVisible(true);
+  // enableDownloads(true);
+  // }
 
   public void setSummary(ArrayList<SampleSummaryBean> beans) {
     int i = 0;
-    for(SampleSummaryBean b : beans) {
+    for (SampleSummaryBean b : beans) {
       i++;
       int amount = Integer.parseInt(b.getAmount());
       String type = "Unknown";
       String sampleType = b.getType();
-      switch (sampleType) {
-        case "Biological Source":
-          type = "Sample Sources";
-          break;
-        case "Extracted Samples":
-          type = "Sample Extracts";
-          break;
-        case "Prepared Samples":
-          type = "Sample Preparations";
-          break;
-        default:
-          break;
+      if (b.isPool())
+        type = "Pooled/Multiplexed";
+      else {
+        switch (sampleType) {
+          case "Biological Source":
+            type = "Sample Sources";
+            break;
+          case "Extracted Samples":
+            type = "Sample Extracts";
+            break;
+          case "Prepared Samples":
+            type = "Sample Preparations";
+            break;
+          default:
+            break;
+        }
       }
       summary.addItem(new Object[] {type, amount}, i);
     }
@@ -201,13 +196,22 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
 
   public void registrationDone() {
     logger.info("Sample registration complete!");
+    addInvestigatorToDB();
     Notification n =
-        new Notification(
-            "Registration of samples complete. Press 'next' for additional options.");
+        new Notification("Registration of samples complete. Press 'next' for additional options.");
     n.setStyleName(ValoTheme.NOTIFICATION_CLOSABLE);
     n.setDelayMsec(-1);
     n.show(UI.getCurrent().getPage());
     registrationComplete = true;
+  }
+
+  public void setInvestigatorAndProject(int id, String projectCode) {
+    this.investigatorID = id;
+    this.projectCode = projectCode;
+  }
+
+  private void addInvestigatorToDB() {
+    dbm.addProjectForPrincipalInvestigator(investigatorID, projectCode);
   }
 
   public ProgressBar getProgressBar() {

@@ -64,7 +64,7 @@ import de.uni_tuebingen.qbic.main.LiferayAndVaadinUtils;
 public class FinishStep implements WizardStep {
 
   private VerticalLayout main;
-  private Label header;
+  private Label summary;
   private VerticalLayout downloads;
   private ProgressBar bar;
   private Label info;
@@ -87,10 +87,7 @@ public class FinishStep implements WizardStep {
     main = new VerticalLayout();
     main.setMargin(true);
     main.setSpacing(true);
-    header = new Label("Summary");
-    header.setContentMode(ContentMode.PREFORMATTED);
-    header.setWidth("300px");
-    main.addComponent(header);
+    Label header = new Label("Summary and File Upload");
     main.addComponent(ProjectwizardUI
         .questionize(
             header,
@@ -98,13 +95,11 @@ public class FinishStep implements WizardStep {
                 + "and upload informative files belonging to your project, e.g. treatment information. "
                 + "It might take a few seconds for your files to show up in our project browser.",
             "Last Step"));
+    summary = new Label();
+    summary.setContentMode(ContentMode.PREFORMATTED);
+    summary.setWidth("300px");
+    main.addComponent(summary);
 
-    // summary = new Table("It consists of these steps:");
-    // summary.addContainerProperty("Type", String.class, null);
-    // summary.addContainerProperty("Number of Samples", Integer.class, null);
-    // summary.setStyleName(ValoTheme.TABLE_SMALL);
-    // summary.setPageLength(1);
-    // main.addComponent(summary);
     downloads = new VerticalLayout();
     downloads.setCaption("Download Spreadsheets:");
     downloads.setSpacing(true);
@@ -183,7 +178,7 @@ public class FinishStep implements WizardStep {
       // summary.addItem(new Object[] {type, amount}, i);
     }
     // summary.setPageLength(summary.size());
-    header.setValue("Your Experimental Design was registered. Project " + proj + " now has "
+    summary.setValue("Your Experimental Design was registered. Project " + proj + " now has "
         + entitieNum + " Sample Sources and " + samplesNum + " samples. \n"
         + "Project description: " + desc.substring(0, Math.min(desc.length(), 60)) + "...");
     w.getFinishButton().setVisible(true);
@@ -257,6 +252,8 @@ public class FinishStep implements WizardStep {
   }
 
   private void initUpload(String space, String project, OpenBisClient openbis) {
+    if (uploads != null)
+      main.removeComponent(uploads);
     String userID = "admin";
     if (LiferayAndVaadinUtils.isLiferayPortlet())
       try {
@@ -266,22 +263,9 @@ public class FinishStep implements WizardStep {
         logger.error("Could not contact Liferay for User screen name.");
       }
 
-    uploads =
+    this.uploads =
         new UploadsPanel(ProjectwizardUI.tmpFolder, space, project, new ArrayList<String>(
             Arrays.asList("Experimental Design")), userID, attachConfig, openbis);
-    // new UploadsPanel(project, new ArrayList<String>(Arrays.asList("E1 (Design)",
-    // "E2 (Extraction)", "E3 (Preparation)")), userID, uploadSize);
-    // final Button commit = uploads.getCommitButton();
-    // final FinishStep view = this;
-    // commit.addClickListener(new ClickListener() {
-    //
-    // @Override
-    // public void buttonClick(ClickEvent event) {
-    // uploads.startCommit();
-    // mover.moveAttachments(new ArrayList<AttachmentInformation>(uploads.getAttachments()
-    // .values()), uploads.getBar(), uploads.getLabel(), new MoveUploadsReadyRunnable(view));
-    // }
-    // });
     main.addComponent(uploads);
   }
 
@@ -305,16 +289,8 @@ public class FinishStep implements WizardStep {
     return true;
   }
 
-  private void enableUploads(boolean b) {
-    uploads.setVisible(true);
-  }
-
   public void enableDownloads(boolean b) {
     downloads.setEnabled(b);
   }
-
-  // public void resetSummary() {
-  // summary.removeAllItems();
-  // }
 
 }

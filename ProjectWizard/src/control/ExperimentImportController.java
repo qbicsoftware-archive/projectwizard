@@ -106,7 +106,7 @@ public class ExperimentImportController {
         if (src.equals("Register All")) {
           view.getRegisterButton().setEnabled(false);
           openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(view.getSamples(),
-              projectInfo.getDescription(), projectInfo.getSecondaryName(), view.getProgressBar(),
+              projectInfo.getDescription(), projectInfo.getSecondaryName(), null, view.getProgressBar(),
               view.getProgressLabel(), new RegisteredSamplesReadyRunnable(view), user);
         }
       }

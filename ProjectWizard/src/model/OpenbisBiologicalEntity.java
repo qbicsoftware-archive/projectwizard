@@ -25,9 +25,8 @@ public class OpenbisBiologicalEntity extends AOpenbisSample {
     */
   public OpenbisBiologicalEntity(String openbisName, String space, String experiment, String secondaryName, String additionalNotes,
       List<Factor> factors, String ncbiOrganism, String extID) {
-    super(openbisName, space, experiment, secondaryName, additionalNotes, factors, "", extID);
+    super(openbisName, space, experiment, secondaryName, additionalNotes, factors, "", extID, "Q_BIOLOGICAL_ENTITY");
     this.ncbiOrganism = ncbiOrganism;
-    this.sampleType = "Q_BIOLOGICAL_ENTITY";
   }
   
   public Map<String,String> getValueMap() {

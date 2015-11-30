@@ -26,9 +26,14 @@ public class OpenbisTestSample extends AOpenbisSample {
    */
   public OpenbisTestSample(String openbisName, String space, String experiment, String secondaryName, String additionalNotes,
       List<Factor> factors, String sampleType, String parent, String extID) {
-    super(openbisName, space, experiment, secondaryName, additionalNotes, factors, parent, extID);
+    super(openbisName, space, experiment, secondaryName, additionalNotes, factors, parent, extID, "Q_TEST_SAMPLE");
     this.Q_SAMPLE_TYPE = sampleType;
-    this.sampleType = "Q_TEST_SAMPLE";
+  }
+  
+  public OpenbisTestSample(int tempID, List<AOpenbisSample> parents, String sampleType, String secondaryName,
+      String externalID, List<Factor> newFactors, String additionalNotes) {
+    super(tempID, parents, "Q_TEST_SAMPLE", secondaryName, externalID, newFactors, additionalNotes);
+    this.Q_SAMPLE_TYPE = sampleType;
   }
 
   public Map<String, String> getValueMap() {

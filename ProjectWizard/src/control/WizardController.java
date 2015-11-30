@@ -1,6 +1,9 @@
 package control;
 
 
+import incubator.DBManager;
+import incubator.DBVocabularies;
+
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -37,7 +40,6 @@ import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
 
-import com.vaadin.data.Validator;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.validator.CompositeValidator;
@@ -56,15 +58,14 @@ import com.vaadin.ui.themes.ValoTheme;
 
 import steps.ConditionInstanceStep;
 import steps.EntityStep;
-import steps.ExtractionStep;
+import incubator.ExtractionStep;
 import steps.FinishStep;
 import steps.PoolingStep;
 import steps.ProjectContextStep;
 import steps.TailoringStep;
 import steps.TestStep;
 import steps.SummaryRegisterStep;
-import uicomponents.ProjectSelectionComponent;
-import processes.AttachmentMover;
+import uicomponents.ProjectInformationComponent;
 import processes.RegisteredSamplesReadyRunnable;
 import properties.Factor;
 
@@ -85,15 +86,12 @@ public class WizardController {
   private boolean extractFactorInstancesSet = false;
   private boolean extractPoolsSet = false;
   private boolean testPoolsSet = false;
-  private Map<String, String> taxMap;
-  private Map<String, String> tissueMap;
-  private List<String> measureTypes;
-  private List<String> spaces;
+  private DBVocabularies vocabularies;
+  private DBManager dbm;
   private FileDownloader tsvDL;
   private FileDownloader graphDL;
   SamplePreparator prep = new SamplePreparator();
-  protected List<String> designExperimentTypes = new ArrayList<String>(Arrays.asList(
-      "Q_EXPERIMENTAL_DESIGN", "Q_SAMPLE_EXTRACTION", "Q_SAMPLE_PREPARATION"));
+  protected List<String> designExperimentTypes;
 
   logging.Logger logger = new Log4j2Logger(WizardController.class);
 
@@ -102,6 +100,7 @@ public class WizardController {
   /**
    * 
    * @param openbis OpenBisClient API
+   * @param dbm
    * @param taxMap Map containing the NCBI taxonomy (labels and ids) taken from openBIS
    * @param tissueMap Map containing the tissue
    * @param sampleTypes List containing the different sample (technology) types
@@ -109,31 +108,13 @@ public class WizardController {
    * @param dataMoverFolder for attachment upload
    * @param uploadSize
    */
-  public WizardController(OpenBisClient openbis, Map<String, String> taxMap,
-      Map<String, String> tissueMap, List<String> sampleTypes, List<String> spaces,
+  public WizardController(OpenBisClient openbis, DBManager dbm, DBVocabularies vocabularies,
       AttachmentConfig attachmentConfig) {
     this.openbis = openbis;
+    this.dbm = dbm;
     this.openbisCreator = new OpenbisCreationController(openbis);
-    this.taxMap = taxMap;
-    this.tissueMap = tissueMap;
-    this.measureTypes = sampleTypes;
-    this.spaces = spaces;
+    this.vocabularies = vocabularies;
     this.attachConfig = attachmentConfig;
-  }
-
-  public class ProjectNameValidator implements Validator {
-    /**
-   * 
-   */
-    private static final long serialVersionUID = -321169606539673206L;
-
-    @Override
-    public void validate(Object value) throws InvalidValueException {
-      String val = (String) value;
-      if (!val.isEmpty() && val != null)
-        if (openbis.getProjectByCode(val.toUpperCase()) != null)
-          throw new InvalidValueException("Project code already in use");
-    }
   }
 
   // Functions to add steps to the wizard depending on context
@@ -276,18 +257,21 @@ public class WizardController {
     w.getFinishButton().setStyleName(ValoTheme.BUTTON_DANGER);
     w.getCancelButton().setStyleName(ValoTheme.BUTTON_DANGER);
 
-    final ProjectSelectionComponent projSelection = new ProjectSelectionComponent();
-    final ProjectContextStep contextStep = new ProjectContextStep(spaces, projSelection);
-    final EntityStep entStep = new EntityStep(taxMap);
+    final ProjectInformationComponent projSelection =
+        new ProjectInformationComponent(vocabularies.getInvestigators().keySet());
+    final ProjectContextStep contextStep =
+        new ProjectContextStep(vocabularies.getSpaces(), projSelection);
+    final EntityStep entStep = new EntityStep(vocabularies.getTaxMap());
     final ConditionInstanceStep entCondInstStep =
-        new ConditionInstanceStep(taxMap.keySet(), "Species", "Biol. Variables");
-    final TailoringStep negStep1 = new TailoringStep("Biological Entities", false);
-    final ExtractionStep extrStep = new ExtractionStep(tissueMap);
+        new ConditionInstanceStep(vocabularies.getTaxMap().keySet(), "Species", "Biol. Variables");
+    final TailoringStep negStep1 = new TailoringStep("Sample Sources", false);
+    final ExtractionStep extrStep = new ExtractionStep(vocabularies.getTissueMap());
     final ConditionInstanceStep extrCondInstStep =
-        new ConditionInstanceStep(tissueMap.keySet(), "Tissues", "Extr. Variables");
+        new ConditionInstanceStep(vocabularies.getTissueMap().keySet(), "Tissues",
+            "Extr. Variables");
     final TailoringStep negStep2 = new TailoringStep("Sample Extracts", true);
-    final TestStep techStep = new TestStep(measureTypes);
-    final SummaryRegisterStep regStep = new SummaryRegisterStep();
+    final TestStep techStep = new TestStep(vocabularies);
+    final SummaryRegisterStep regStep = new SummaryRegisterStep(dbm);
     final PoolingStep poolStep1 = new PoolingStep(Steps.Extract_Pooling);
     final PoolingStep poolStep2 = new PoolingStep(Steps.Test_Sample_Pooling);
     final FinishStep finishStep = new FinishStep(w, attachConfig);
@@ -306,7 +290,9 @@ public class WizardController {
     steps.put(Steps.Registration, regStep);
     steps.put(Steps.Finish, finishStep);
 
-    this.dataAggregator = new WizardDataAggregator(steps, openbis, taxMap, tissueMap);
+    this.dataAggregator =
+        new WizardDataAggregator(steps, openbis, vocabularies.getTaxMap(),
+            vocabularies.getTissueMap());
     w.addStep(contextStep);
 
     FocusListener fListener = new FocusListener() {
@@ -351,9 +337,13 @@ public class WizardController {
           ProjectContextStep context = (ProjectContextStep) steps.get(Steps.Project_Context);
           String desc = context.getDescription();
           String expSecondaryName = context.getExpSecondaryName();
+          //TODO this needs work
           openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(regStep.getSamples(),
-              desc, expSecondaryName, regStep.getProgressBar(), regStep.getProgressLabel(),
+              desc, expSecondaryName, techStep.getMSExperimentProperties(), regStep.getProgressBar(), regStep.getProgressLabel(),
               new RegisteredSamplesReadyRunnable(regStep), user);
+//          openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(regStep.getSamples(),
+//              desc, expSecondaryName, regStep.getProgressBar(), regStep.getProgressLabel(),
+//              new RegisteredSamplesReadyRunnable(regStep), user);
           w.addStep(steps.get(Steps.Finish));
         }
       }
@@ -568,7 +558,7 @@ public class WizardController {
         }
       }
     };
-    techStep.setPoolListener(testPoolListener);
+    techStep.initTestStep(testPoolListener);
 
 
     ValueChangeListener noMeasureListener = new ValueChangeListener() {
@@ -632,7 +622,7 @@ public class WizardController {
         new RegexpValidator("Q[A-Xa-x0-9]{4}",
             "Project must have length of 5, start with Q and not contain Y or Z");
     vd.addValidator(p);
-    vd.addValidator(new ProjectNameValidator());
+    vd.addValidator(new ProjectNameValidator(openbis));
     f.addValidator(vd);
     f.setImmediate(true);
     f.setValidationVisible(true);
@@ -678,7 +668,8 @@ public class WizardController {
         // Negative Selection of Entities
         if (event.getActivatedStep().equals(negStep1)) {
           try {
-            negStep1.setSamples(dataAggregator.prepareEntities(entCondInstStep.getPreSelection()));
+            negStep1.setSamples(dataAggregator.prepareEntities(entCondInstStep.getPreSelection()),
+                null);
           } catch (JAXBException e) {
             e.printStackTrace();
           }
@@ -705,7 +696,8 @@ public class WizardController {
         if (event.getActivatedStep().equals(negStep2)) {
           extractPoolsSet = false;
           try {
-            negStep2.setSamples(dataAggregator.prepareExtracts(extrCondInstStep.getPreSelection()));
+            negStep2.setSamples(dataAggregator.prepareExtracts(extrCondInstStep.getPreSelection()),
+                extrStep.getLabelingMethod());
           } catch (JAXBException e) {
             e.printStackTrace();
           }
@@ -755,6 +747,9 @@ public class WizardController {
             }
             armDownloadButtons(regStep.getDownloadButton(), regStep.getGraphButton());
             regStep.setSummary(prep.getSummary());
+            int investigator =
+                vocabularies.getInvestigators().get(contextStep.getPrincipalInvestigator());
+            regStep.setInvestigatorAndProject(investigator, contextStep.getProjectCode());
             regStep.setProcessed(prep.getProcessed());
           }
           if (regStep.summaryIsSet()) {

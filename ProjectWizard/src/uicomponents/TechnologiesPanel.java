@@ -27,6 +27,7 @@ public class TechnologiesPanel extends HorizontalLayout {
   List<TechChooser> choosers;
   Button.ClickListener buttonListener;
   ValueChangeListener poolListener;
+  ValueChangeListener proteinListener;
   GridLayout buttonGrid;
   Button add;
   Button remove;
@@ -39,9 +40,10 @@ public class TechnologiesPanel extends HorizontalLayout {
    * @param techOptions List of different possible conditions
    * @param conditionsSet (empty) option group that makes it possible to listen to the conditions
    *        inside this component from the outside
+   * @param proteinListener
    */
   public TechnologiesPanel(List<String> techOptions, OptionGroup conditionsSet,
-      ValueChangeListener poolListener) {
+      ValueChangeListener poolListener, ValueChangeListener proteinListener) {
     this.options = techOptions;
 
     this.conditionsSet = conditionsSet;
@@ -52,10 +54,13 @@ public class TechnologiesPanel extends HorizontalLayout {
     ProjectwizardUI.iconButton(remove, FontAwesome.MINUS_SQUARE);
     initListener();
     this.poolListener = poolListener;
+    this.proteinListener = proteinListener;
 
     choosers = new ArrayList<TechChooser>();
     TechChooser c = new TechChooser(techOptions);
+    c.setImmediate(true);
     c.addPoolListener(poolListener);
+    c.addProteinListener(proteinListener);
     choosers.add(c);
     addComponent(c);
     c.showHelpers();
@@ -85,6 +90,14 @@ public class TechnologiesPanel extends HorizontalLayout {
     remove.addClickListener(buttonListener);
   }
 
+  public boolean poolingSet() {
+    boolean res = false;
+    for (TechChooser c : choosers) {
+      res |= c.poolingSet();
+    }
+    return res;
+  }
+
   public List<TestSampleInformation> getTechInfo() {
     List<TestSampleInformation> res = new ArrayList<TestSampleInformation>();
     for (TechChooser c : choosers) {
@@ -95,9 +108,10 @@ public class TechnologiesPanel extends HorizontalLayout {
   }
 
   private void add() {
-    choosers.get(choosers.size()-1).hideHelpers();
+    choosers.get(choosers.size() - 1).hideHelpers();
     TechChooser c = new TechChooser(options);
     c.addPoolListener(poolListener);
+    c.addProteinListener(proteinListener);
     choosers.add(c);
 
     c.showHelpers();
@@ -114,6 +128,7 @@ public class TechnologiesPanel extends HorizontalLayout {
       removeComponent(last);
       choosers.remove(last);
       last.removePoolListener(poolListener);
+      last.removeProteinListener(proteinListener);
       choosers.get(size - 2).showHelpers();
     }
   }

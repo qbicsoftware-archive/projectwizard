@@ -13,15 +13,13 @@ import model.NewSampleModelBean;
 import org.vaadin.teemu.wizards.WizardStep;
 
 import componentwrappers.CustomVisibilityComponent;
-import componentwrappers.StandardTextField;
-import uicomponents.ProjectSelectionComponent;
+import uicomponents.ProjectInformationComponent;
 
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.GridLayout;
-import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.Table;
@@ -42,8 +40,8 @@ public class ProjectContextStep implements WizardStep {
   private VerticalLayout main;
 
   private ComboBox spaceCode;
-  private ProjectSelectionComponent projectInfoComponent;
-//  private TextField expName;
+  private ProjectInformationComponent projectInfoComponent;
+  // private TextField expName;
 
   List<ExperimentBean> experiments;
 
@@ -52,7 +50,7 @@ public class ProjectContextStep implements WizardStep {
   private Table samples;
 
   List<String> contextOptions = new ArrayList<String>(Arrays.asList("Add a new experiment",
-      "Add sample extraction to existing biological entities",
+      "Add sample extraction to existing sample sources",
       "Measure existing extracted samples again", // "Copy parts of a project",
       "Download existing sample spreadsheet"));
   private CustomVisibilityComponent projectContext;
@@ -65,7 +63,7 @@ public class ProjectContextStep implements WizardStep {
    * @param openbisSpaces List of Spaces to select from in the openBIS instance
    * @param newProjectCode
    */
-  public ProjectContextStep(List<String> openbisSpaces, ProjectSelectionComponent projSelect) {
+  public ProjectContextStep(List<String> openbisSpaces, ProjectInformationComponent projSelect) {
     main = new VerticalLayout();
     main.setMargin(true);
     main.setSpacing(true);
@@ -109,10 +107,10 @@ public class ProjectContextStep implements WizardStep {
     // info.setStyleName("info");
     // info.setWidth("350px");
 
-    //was moved to ProjectSelectionComponent
-//    expName = new StandardTextField("Experiment name");
-//    expName.setVisible(false);
-//    expName.setInputPrompt("Optional short name");
+    // was moved to ProjectSelectionComponent
+    // expName = new StandardTextField("Experiment name");
+    // expName.setVisible(false);
+    // expName.setInputPrompt("Optional short name");
 
     grid = new GridLayout(2, 5);
     grid.setSpacing(true);
@@ -134,15 +132,24 @@ public class ProjectContextStep implements WizardStep {
     grid.addComponent(samples, 1, 2, 1, 3);
     // expNameLayout = new VerticalLayout();
     // expNameLayout.addComponent(expName);
-//    grid.addComponent(expName, 0, 4);
+    // grid.addComponent(expName, 0, 4);
 
     main.addComponent(grid);
 
     initListeners();
   }
+  
+  public String getPrincipalInvestigator() {
+    return projectInfoComponent.getInvestigator();
+  }
 
   private void initListeners() {
     projectInfoComponent.getCodeButton().addClickListener(new Button.ClickListener() {
+
+      /**
+       * 
+       */
+      private static final long serialVersionUID = 7932750235689517217L;
 
       @Override
       public void buttonClick(ClickEvent event) {
@@ -156,7 +163,7 @@ public class ProjectContextStep implements WizardStep {
   }
 
   public void setProjectCodes(List<String> projects) {
-    projectInfoComponent.addItems(projects);
+    projectInfoComponent.addProjects(projects);
     projectInfoComponent.enableProjectBox(true);
     projectInfoComponent.setVisible(true);
   }
@@ -264,8 +271,15 @@ public class ProjectContextStep implements WizardStep {
         else {
           n = new Notification("Please select an existing experiment.");
         }
-      else
-        return true;
+      else {
+        if (getProjectBox().isEmpty())
+          if (descriptionReady())
+            return true;
+          else
+            n = new Notification("Please fill in a description.");
+        else
+          return true;
+      }
     } else {
       n = new Notification("Please select a project and subproject or create a new one.");
     }
@@ -273,6 +287,10 @@ public class ProjectContextStep implements WizardStep {
     n.setDelayMsec(-1);
     n.show(UI.getCurrent().getPage());
     return false;
+  }
+
+  private boolean descriptionReady() {
+    return getDescription() != null && !getDescription().isEmpty();
   }
 
   private boolean expSelected() {
@@ -379,8 +397,8 @@ public class ProjectContextStep implements WizardStep {
     projectContext.setVisible(true);
   }
 
-//  public void enableExpName(boolean b) {
-//    expName.setVisible(b);
-//  }
+  // public void enableExpName(boolean b) {
+  // expName.setVisible(b);
+  // }
 
 }

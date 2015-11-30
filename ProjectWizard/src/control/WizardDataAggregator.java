@@ -38,7 +38,7 @@ import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
 import steps.ConditionInstanceStep;
 import steps.EntityStep;
-import steps.ExtractionStep;
+import incubator.ExtractionStep;
 import steps.ProjectContextStep;
 import steps.TestStep;
 
@@ -111,6 +111,7 @@ public class WizardDataAggregator {
     s1 = (ProjectContextStep) steps.get(Steps.Project_Context);
     s2 = (EntityStep) steps.get(Steps.Entities);
     s3 = (ConditionInstanceStep) steps.get(Steps.Entity_Conditions);
+//    s5 = (ExtractionStep) steps.get(Steps.Extraction);
     s5 = (ExtractionStep) steps.get(Steps.Extraction);
     s6 = (ConditionInstanceStep) steps.get(Steps.Extract_Conditions);
     s8 = (TestStep) steps.get(Steps.Test_Samples);
@@ -461,9 +462,10 @@ public class WizardDataAggregator {
             classChar = Functions.incrementUppercase(classChar);
             classChars.put(secondaryName, classChar);
           }
+          List<Factor> curFactors = new ArrayList<Factor>(factors);
           incrementOrCreateBarcode();
           extracts.add(new OpenbisBiologicalSample(nextBarcode, spaceCode, experiments.get(expNum)
-              .getOpenbisName(), secondaryName, "", factors, tissueCode, "", e.getCode(), "")); // TODO
+              .getOpenbisName(), secondaryName, "", curFactors, tissueCode, "", e.getCode(), "")); // TODO
                                                                                                 // ext
                                                                                                 // db
                                                                                                 // id

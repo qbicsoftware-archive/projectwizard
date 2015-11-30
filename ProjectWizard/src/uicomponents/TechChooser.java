@@ -33,15 +33,15 @@ public class TechChooser extends VerticalLayout {
    * @param nullSelectionAllowed true, if the conditions may be empty
    */
   public TechChooser(List<String> options) {
-    chooser = new ComboBox("Measurement Type", options);
+    chooser = new ComboBox("Analyte", options);
     chooser.setStyleName(ProjectwizardUI.boxTheme);
     replicates = new OpenbisInfoTextField("Techn. Replicates", "", "50px", "1");
-    pool = new CheckBox("Pool Samples");
+    pool = new CheckBox("Pool/Multiplex Samples");
     setSpacing(true);
     helpers = new ArrayList<HorizontalLayout>();
     HorizontalLayout help1 =
-        ProjectwizardUI.questionize(chooser, "Choose the material that is measured.",
-            "Measurement Types");
+        ProjectwizardUI.questionize(chooser, "Choose the analyte that is measured.",
+            "Analytes");
     addComponent(help1);
     HorizontalLayout help2 =
         ProjectwizardUI.questionize(replicates.getInnerComponent(),
@@ -54,14 +54,6 @@ public class TechChooser extends VerticalLayout {
     helpers.add(help1);
     helpers.add(help2);
     helpers.add(help3);
-  }
-
-  public void addPoolListener(ValueChangeListener l) {
-    this.pool.addValueChangeListener(l);
-  }
-
-  public boolean chooserSet() {
-    return chooser.getValue() != null;
   }
 
   public boolean isSet() {
@@ -92,7 +84,23 @@ public class TechChooser extends VerticalLayout {
     chooser.setValue(chooser.getNullSelectionItemId());
   }
 
+  public void addPoolListener(ValueChangeListener l) {
+    this.pool.addValueChangeListener(l);
+  }
+
   public void removePoolListener(ValueChangeListener poolListener) {
     this.pool.removeValueChangeListener(poolListener);
+  }
+
+  public void addProteinListener(ValueChangeListener proteinListener) {
+    this.chooser.addValueChangeListener(proteinListener);    
+  }
+  
+  public void removeProteinListener(ValueChangeListener proteinListener) {
+    this.chooser.removeValueChangeListener(proteinListener);
+  }
+
+  public boolean poolingSet() {
+    return pool.getValue();
   }
 }

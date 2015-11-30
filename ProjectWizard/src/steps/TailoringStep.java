@@ -1,5 +1,7 @@
 package steps;
 
+import incubator.LabelingMethod;
+
 import java.util.List;
 
 import main.ProjectwizardUI;
@@ -27,7 +29,6 @@ public class TailoringStep implements WizardStep {
 
   private VerticalLayout main;
   private SummaryTable tab;
-  private Label info;
 
   // Pooling
   private CheckBox poolSelect;
@@ -48,10 +49,6 @@ public class TailoringStep implements WizardStep {
         + " more intuitive - experimental variables will be saved in additional columns.", name
         + " Tailoring"));
 
-    // info = new Label();
-    // info.setWidth("350px");
-    // info.setStyleName("info");
-    // main.addComponent(info);
     if (pooling)
       initPooling(name);
     tab = new SummaryTable("Samples");
@@ -66,9 +63,9 @@ public class TailoringStep implements WizardStep {
             + "before measurement.", "Pooling"));
   }
 
-  public void setSamples(List<AOpenbisSample> samples) {
+  public void setSamples(List<AOpenbisSample> samples, LabelingMethod labelingMethod) {
     tab.removeAllItems();
-    tab.initTable(samples);
+    tab.initTable(samples, labelingMethod);
     tab.setVisible(true);
     tab.setPageLength(samples.size());
     main.addComponent(tab);

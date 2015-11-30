@@ -1,15 +1,16 @@
 package main;
 
+import incubator.DBConfig;
+import incubator.DBManager;
+import incubator.DBVocabularies;
+
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.Serializable;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -20,7 +21,6 @@ import javax.servlet.annotation.WebServlet;
 import logging.Log4j2Logger;
 import model.AttachmentConfig;
 
-import org.apache.commons.io.FileUtils;
 import org.vaadin.teemu.wizards.Wizard;
 import org.vaadin.teemu.wizards.event.WizardCancelledEvent;
 import org.vaadin.teemu.wizards.event.WizardCompletedEvent;
@@ -33,12 +33,8 @@ import views.StandaloneTSVImport;
 import views.WizardBarcodeView;
 
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Role;
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SpaceWithProjectsAndRoleAssignments;
-import ch.systemsx.cisd.openbis.plugin.query.shared.api.v1.dto.QueryTableModel;
 
-import com.github.sardine.Sardine;
-import com.github.sardine.SardineFactory;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.VaadinServletConfiguration;
 import com.vaadin.server.FontAwesome;
@@ -47,12 +43,10 @@ import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinServlet;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.PopupView;
-import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.PopupView.Content;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.SelectedTabChangeListener;
@@ -79,18 +73,28 @@ public class ProjectwizardUI extends UI {
   }
 
   logging.Logger logger = new Log4j2Logger(ProjectwizardUI.class);
-  private String version = "Version 0.9692, 29.09.15";
+  private String version = "Version 0.980, 30.11.15";
 
   private String DATASOURCE_USER = "datasource.user";
   private String DATASOURCE_PASS = "datasource.password";
   private String DATASOURCE_URL = "datasource.url";
+
+  private String MYSQL_HOST = "mysql.host";
+  private String MYSQL_DB = "mysql.db";
+  private String MYSQL_USER = "mysql.user";
+  private String MYSQL_PORT = "mysql.port";
+  private String MYSQL_PASS = "mysql.pass";
+
   private String TMP_FOLDER = "tmp.folder";
   private String BARCODE_SCRIPTS = "barcode.scripts";
   private String PATH_VARIABLE = "path.variable";
+
   private String MAX_ATTACHMENT_SIZE = "max.attachment.size";
   private String ATTACHMENT_URI = "attachment.uri";
   private String ATTACHMENT_USER = "attachment.user";
   private String ATTACHMENT_PASS = "attachment.password";
+
+  private String LABELING_METHODS = "vocabulary.ms.labeling";
 
   public static String boxTheme = ValoTheme.COMBOBOX_SMALL;
   public static String fieldTheme = ValoTheme.TEXTFIELD_SMALL;
@@ -148,11 +152,20 @@ public class ProjectwizardUI extends UI {
   }
 
   public static String tmpFolder;
+  public static String MSLabelingMethods;
   private String dataSourceUser;
   private String dataSourcePass;
   private String dataSourceURL;
+
+  private String mysqlHost;
+  private String mysqlPort;
+  private String mysqlDB;
+  private String mysqlUser;
+  private String mysqlPass;
+
   private String barcodeScripts;
   private String pathVar;
+
   private String attachmentSize;
   private String attachmentURI;
   private String attachmentUser;
@@ -191,13 +204,32 @@ public class ProjectwizardUI extends UI {
           "Data Management System could not be reached. Please try again later or contact us."));
     }
     if (success) {
+      // stuff from openbis
+      Map<String, String> taxMap = openbis.getVocabCodesAndLabelsForVocab("Q_NCBI_TAXONOMY");
+      Map<String, String> tissueMap = openbis.getVocabCodesAndLabelsForVocab("Q_PRIMARY_TISSUES");
+      Map<String, String> deviceMap = openbis.getVocabCodesAndLabelsForVocab("Q_MS_DEVICES");
+      List<String> sampleTypes = openbis.getVocabCodesForVocab("Q_SAMPLE_TYPES");
+      List<String> enzymes = openbis.getVocabCodesForVocab("Q_DIGESTION_PROTEASES");
+      List<String> msProtocols = openbis.getVocabCodesForVocab("Q_MS_PROTOCOLS");
+      List<String> lcmsMethods = openbis.getVocabCodesForVocab("Q_MS_LCMS_METHODS");
+      List<String> chromTypes = openbis.getVocabCodesForVocab("Q_CHROMATOGRAPHY_TYPES");
+      final List<String> spaces = getUserSpaces(userID);
+      // stuff from mysql database
+      DBConfig mysqlConfig = new DBConfig(mysqlHost, mysqlPort, mysqlDB, mysqlUser, mysqlPass);
+      DBManager dbm = new DBManager(mysqlConfig);
+      Map<String, Integer> map = dbm.getPrincipalInvestigatorsWithIDs();
+      // hardcoded stuff (experiment types mainly used in the wizard)
+      List<String> expTypes =
+          new ArrayList<String>(Arrays.asList("Q_EXPERIMENTAL_DESIGN", "Q_SAMPLE_EXTRACTION",
+              "Q_SAMPLE_PREPARATION"));
+
+      DBVocabularies vocabs =
+          new DBVocabularies(taxMap, tissueMap, sampleTypes, spaces, map, expTypes, enzymes,
+              deviceMap, msProtocols, lcmsMethods, chromTypes);
       // initialize the View with sample types, spaces and the dictionaries of tissues and species
-      initView(openbis.getVocabCodesAndLabelsForVocab("Q_NCBI_TAXONOMY"),
-          openbis.getVocabCodesAndLabelsForVocab("Q_PRIMARY_TISSUES"),
-          openbis.getVocabCodesForVocab("Q_SAMPLE_TYPES"), userID);
+      initView(dbm, vocabs, userID);
       layout.addComponent(tabs);
     }
-
     if (LiferayAndVaadinUtils.isLiferayPortlet())
       try {
         for (com.liferay.portal.model.Role r : LiferayAndVaadinUtils.getUser().getRoles())
@@ -230,15 +262,12 @@ public class ProjectwizardUI extends UI {
     return userSpaces;
   }
 
-  private void initView(final Map<String, String> taxMap, final Map<String, String> tissueMap,
-      final List<String> sampleTypes, final String user) {
-    final List<String> spaces = getUserSpaces(user);
+  private void initView(final DBManager dbm, final DBVocabularies vocabularies, final String user) {
     tabs.removeAllComponents();
     AttachmentConfig attachConfig =
         new AttachmentConfig(Integer.parseInt(attachmentSize), attachmentURI, attachmentUser,
             attachmentPass);
-    WizardController c =
-        new WizardController(openbis, taxMap, tissueMap, sampleTypes, spaces, attachConfig);
+    WizardController c = new WizardController(openbis, dbm, vocabularies, attachConfig);
     c.init(user);
     Wizard w = c.getWizard();
     WizardProgressListener wl = new WizardProgressListener() {
@@ -251,12 +280,12 @@ public class ProjectwizardUI extends UI {
 
       @Override
       public void wizardCompleted(WizardCompletedEvent event) {
-        initView(taxMap, tissueMap, sampleTypes, user);
+        initView(dbm, vocabularies, user);
       }
 
       @Override
       public void wizardCancelled(WizardCancelledEvent event) {
-        initView(taxMap, tissueMap, sampleTypes, user);
+        initView(dbm, vocabularies, user);
       }
 
     };
@@ -266,7 +295,7 @@ public class ProjectwizardUI extends UI {
     wLayout.setMargin(true);
 
     tabs.addTab(wLayout, "Create Project").setIcon(FontAwesome.FLASK);
-    final WizardBarcodeView bw = new WizardBarcodeView(spaces);
+    final WizardBarcodeView bw = new WizardBarcodeView(vocabularies.getSpaces());
     BarcodeController bc = new BarcodeController(bw, openbis, barcodeScripts, pathVar);
     bc.init();
     tabs.addTab(bw, "Create Barcodes").setIcon(FontAwesome.BARCODE);
@@ -281,7 +310,8 @@ public class ProjectwizardUI extends UI {
       logger.debug("User is " + user + " and can see admin panel.");
       VerticalLayout padding = new VerticalLayout();
       padding.setMargin(true);
-      padding.addComponent(new AdminView(openbis, creationController, user));
+      padding.addComponent(new AdminView(openbis, vocabularies.getSpaces(), creationController,
+          user));
       tabs.addTab(padding, "Admin Functions").setIcon(FontAwesome.WRENCH);
     }
     tabs.addSelectedTabChangeListener(new SelectedTabChangeListener() {
@@ -292,13 +322,14 @@ public class ProjectwizardUI extends UI {
       }
     });
   }
-  
+
   private void readConfig() {
     Properties config = new Properties();
     try {
       List<String> configs =
           new ArrayList<String>(Arrays.asList("/Users/frieda/Desktop/testing/portlet.properties",
-              "/home/luser/liferay-portal-6.2-ce-ga4/portlets.properties", "/usr/local/share/guse/portlets.properties",
+              "/home/luser/liferay-portal-6.2-ce-ga4/portlets.properties",
+              "/usr/local/share/guse/portlets.properties",
               "/home/tomcat-liferay/liferay_production/portlets.properties"));
       for (String s : configs) {
         File f = new File(s);
@@ -311,14 +342,24 @@ public class ProjectwizardUI extends UI {
       dataSourceUser = config.getProperty(DATASOURCE_USER);
       dataSourcePass = config.getProperty(DATASOURCE_PASS);
       dataSourceURL = config.getProperty(DATASOURCE_URL);
+
       barcodeScripts = config.getProperty(BARCODE_SCRIPTS);
       pathVar = config.getProperty(PATH_VARIABLE);
+
+      mysqlHost = config.getProperty(MYSQL_HOST);
+      mysqlDB = config.getProperty(MYSQL_DB);
+      mysqlPort = config.getProperty(MYSQL_PORT);
+      mysqlUser = config.getProperty(MYSQL_USER);
+      mysqlPass = config.getProperty(MYSQL_PASS);
+
       attachmentSize = config.getProperty(MAX_ATTACHMENT_SIZE);
       attachmentURI = config.getProperty(ATTACHMENT_URI);
       attachmentUser = config.getProperty(ATTACHMENT_USER);
       attachmentPass = config.getProperty(ATTACHMENT_PASS);
+
+      MSLabelingMethods = config.getProperty(LABELING_METHODS);
     } catch (IOException e) {
-      System.err.println("Failed to load configuration: " + e);
+      logger.error("Failed to load configuration: " + e);
     }
   }
 

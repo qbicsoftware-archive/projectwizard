@@ -69,21 +69,13 @@ public class EntityStep implements WizardStep {
     main = new VerticalLayout();
     main.setMargin(true);
     main.setSpacing(true);
-    Label header = new Label("Biological Entities");
+    Label header = new Label("Sample Sources");
     main.addComponent(ProjectwizardUI
         .questionize(
             header,
-            "Entities are individual patients, animals or plants that are used in the experiment. "
+            "Sample sources are individual patients, animals or plants that are used in the experiment. "
                 + "You can input (optional) experimental variables, e.g. genotypes, that differ between different experimental groups.",
-            "Biological Entities"));
-
-    Label info =
-        new Label(
-            "Entities are individual patients, animals or plants that are used in the experiment. "
-                + "You can input (optional) experimental variables, e.g. genotypes, that differ between different experimental groups.");
-    info.setWidth("500px");
-    info.setStyleName("info");
-    // main.addComponent(info);
+            "Sample Sources"));
     this.speciesMap = speciesMap;
     ArrayList<String> openbisSpecies = new ArrayList<String>();
     openbisSpecies.addAll(speciesMap.keySet());
@@ -115,7 +107,7 @@ public class EntityStep implements WizardStep {
 
   @Override
   public String getCaption() {
-    return "Biol. Entities";
+    return "Sample Sources";
   }
 
   @Override

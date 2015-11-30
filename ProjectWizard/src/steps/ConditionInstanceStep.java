@@ -62,14 +62,6 @@ public class ConditionInstanceStep implements WizardStep {
     main = new VerticalLayout();
     main.setSpacing(true);
     main.setMargin(true);
-    Label info =
-        new Label(
-            "Please fill in which cases of each experimental variable exist in your study. E.g. "
-                + "if you chose extraction time as a variable, put in the diffrent time points. Afterwards you can "
-                + "choose the replicate number of each case, if your experimental design is asymmetrical.");
-    info.setStyleName("info");
-    info.setWidth("350px");
-    // main.addComponent(info);
     instances = new TabSheet();
     instances.setStyleName(ValoTheme.TABSHEET_FRAMED);
     main.addComponent(instances);
