@@ -6,10 +6,13 @@ import java.util.List;
 import main.ProjectwizardUI;
 
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.data.validator.CompositeValidator;
+import com.vaadin.data.validator.RegexpValidator;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import componentwrappers.StandardTextField;
+import control.ProjectNameValidator;
 
 /**
  * Composite UI component to choose a single condition of an experiment
@@ -58,7 +61,15 @@ public class ConditionChooser extends VerticalLayout {
     if (chooser.getValue() != null) {
       val = chooser.getValue().toString();
       if (val.equals(other)) {
-        freetext = new StandardTextField();
+        freetext = new TextField();
+        freetext.setRequired(true);
+        freetext.setStyleName(ProjectwizardUI.fieldTheme);
+        RegexpValidator factorLabelValidator =
+            new RegexpValidator("[A-Za-z][_A-Za-z0-9]*",
+                "Experimental variable must start with a letter and contain only letters, numbers or underscores ('_')");
+        freetext.addValidator(factorLabelValidator);
+        freetext.setImmediate(true);
+        freetext.setValidationVisible(true);
         addComponent(freetext);
       } else {
         if (this.components.contains(freetext))
@@ -80,6 +91,10 @@ public class ConditionChooser extends VerticalLayout {
       return false;
     else
       return !chooser.getValue().toString().equals(other) || !freetext.getValue().isEmpty();
+  }
+  
+  public boolean isValid() {
+    return !chooser.getValue().toString().equals(other) || freetext.isValid();
   }
 
   public String getCondition() {

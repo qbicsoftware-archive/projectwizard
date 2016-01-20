@@ -1,6 +1,5 @@
 package uicomponents;
 
-import incubator.LabelingMethod;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import properties.Factor;
+import sun.awt.HorizBagLayout;
 
 import main.ProjectwizardUI;
 import model.AOpenbisSample;
@@ -15,7 +15,10 @@ import model.AOpenbisSample;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
@@ -38,10 +41,22 @@ public class SummaryTable extends VerticalLayout {
   private String name;
   private boolean isotopes = false;
   private LabelingMethod labelingMethod;
+  private HorizontalLayout deleteNames;
 
   public SummaryTable(String name) {
+    setSpacing(true);
     this.name = name;
     table = new Table(name);
+    Button clear = new Button("Remove Secondary Names");
+    clear.addClickListener(new ClickListener() {
+
+      @Override
+      public void buttonClick(ClickEvent event) {
+        removeSecondaryNames();
+      }
+    });
+    deleteNames = new HorizontalLayout();
+    deleteNames.addComponent(clear);
   }
 
   public List<AOpenbisSample> getSamples() {
@@ -55,16 +70,10 @@ public class SummaryTable extends VerticalLayout {
         secName = "";
       if (!secName.equals("DELETED")) {
         if (isotopes) {
-          System.out.println(id);
-          System.out.println("object " + s + " with code " + s.getCode());
-          System.out.println("factors before:");
-          for (Factor f : s.getFactors())
-            System.out.println(f);
-          System.out.println("factors after parsing:");
           String method = labelingMethod.getName();
-          s.addFactor(new Factor(method.toLowerCase(), parseLabel(method, id)));
-          for (Factor f : s.getFactors())
-            System.out.println(f);
+          String value = parseLabel(method, id);
+          if (value != null)
+            s.addFactor(new Factor(method.toLowerCase(), value));
         }
         res.add(s);
       }
@@ -85,10 +94,23 @@ public class SummaryTable extends VerticalLayout {
   }
 
   public void removeAllItems() {
-    removeComponent(table);
+    removeAllComponents();
     map = new HashMap<String, AOpenbisSample>();
     table = new Table(name);
     addComponent(table);
+    addComponent(ProjectwizardUI
+        .questionize(
+            deleteNames,
+            "If you don't want to keep any of the proposed secondary names you can use this button to delete all of them.",
+            "Clear Secondary Names"));
+  }
+
+  private void removeSecondaryNames() {
+    for (Object id : table.getItemIds()) {
+      TextField tf = (TextField) table.getItem(id).getItemProperty("Secondary Name").getValue();
+      if (!tf.getValue().equals("DELETED"))
+        tf.setValue("");
+    }
   }
 
   public void initTable(List<AOpenbisSample> samples, LabelingMethod labelingMethod) {

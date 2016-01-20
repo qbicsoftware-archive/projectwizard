@@ -23,7 +23,13 @@ public class SampleExtIDComparator implements Comparator<IBarcodeBean> {
 
   @Override
   public int compare(IBarcodeBean o1, IBarcodeBean o2) {
-    return o1.getExtID().compareTo(o2.getExtID());
+    String s1 = o1.getExtID();
+    String s2 = o2.getExtID();
+    if (s1 == null)
+      s1 = "";
+    if (s2 == null)
+      s2 = "";
+    return s1.compareTo(s2);
   }
 
 }

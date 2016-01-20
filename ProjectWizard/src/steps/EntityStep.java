@@ -117,10 +117,10 @@ public class EntityStep implements WizardStep {
 
   @Override
   public boolean onAdvance() {
-    if (skip || speciesReady() && replicatesReady())
+    if (skip || speciesReady() && replicatesReady() && c.isValid())
       return true;
     else {
-      Notification n = new Notification("Please input species and number of replicates.");
+      Notification n = new Notification("Please fill in the required fields.");
       n.setStyleName(ValoTheme.NOTIFICATION_CLOSABLE);
       n.setDelayMsec(-1);
       n.show(UI.getCurrent().getPage());

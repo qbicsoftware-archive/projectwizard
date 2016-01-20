@@ -1,7 +1,6 @@
 package steps;
 
-import incubator.DBVocabularies;
-import incubator.MSPanel;
+import io.DBVocabularies;
 
 import java.util.List;
 import java.util.Map;
@@ -11,6 +10,7 @@ import model.TestSampleInformation;
 
 import org.vaadin.teemu.wizards.WizardStep;
 
+import uicomponents.MSPanel;
 import uicomponents.TechnologiesPanel;
 
 import com.vaadin.data.Property.ValueChangeEvent;
@@ -35,7 +35,6 @@ public class TestStep implements WizardStep {
 
   private VerticalLayout main;
   private TechnologiesPanel techPanel;
-  // private CustomVisibilityComponent msPanelComponent;
   private MSPanel msPanel;
   private CheckBox noMeasure;
   DBVocabularies vocabs;
@@ -101,10 +100,13 @@ public class TestStep implements WizardStep {
   @Override
   public boolean onAdvance() {
     if (techPanel.isValid() || noMeasure.getValue()) {
-      if (containsProteins && msPanel.isValid())
+      if (containsProteins) {
+        if (msPanel.isValid())
+          return true;
+        else
+          return false;
+      } else
         return true;
-      else
-        return false;
     } else {
       Notification n =
           new Notification("Please input at least one analyte and the number of replicates.");

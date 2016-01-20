@@ -44,7 +44,7 @@ public class StandaloneTSVImport extends VerticalLayout implements IRegistration
     info.setIcon(FontAwesome.INFO);
     info.setStyleName("info");
     info.setWidth("250px");
-    addComponent(info);
+//    addComponent(info);
 
     summary = new Table("Summary");
     summary.setStyleName(ValoTheme.TABLE_SMALL);
@@ -90,13 +90,37 @@ public class StandaloneTSVImport extends VerticalLayout implements IRegistration
     return this.register;
   }
 
-  public void setSummary(ArrayList<SampleSummaryBean> arrayList) {
+  public void setSummary(ArrayList<SampleSummaryBean> beans) {
     summary.setVisible(false);
-    BeanItemContainer<SampleSummaryBean> c =
-        new BeanItemContainer<SampleSummaryBean>(SampleSummaryBean.class);
-    c.addAll(arrayList);
-    summary.setPageLength(arrayList.size());
-    summary.setContainerDataSource(c);
+    summary.addContainerProperty("Type", String.class, null);
+    summary.addContainerProperty("Number of Samples", Integer.class, null);
+    summary.setStyleName(ValoTheme.TABLE_SMALL);
+    int i = 0;
+    for (SampleSummaryBean b : beans) {
+      i++;
+      int amount = Integer.parseInt(b.getAmount());
+      String sampleType = b.getType();
+      String type = sampleType;
+      if (b.isPool())
+        type = "Pooled/Multiplexed";
+      else {
+        switch (sampleType) {
+          case "Biological Source":
+            type = "Sample Sources";
+            break;
+          case "Extracted Samples":
+            type = "Sample Extracts";
+            break;
+          case "Prepared Samples":
+            type = "Sample Preparations";
+            break;
+          default:
+            break;
+        }
+      }
+      summary.addItem(new Object[] {type, amount}, i);
+    }
+    summary.setPageLength(i);
     summary.setVisible(true);
   }
 
@@ -107,7 +131,7 @@ public class StandaloneTSVImport extends VerticalLayout implements IRegistration
   public void setRegEnabled(boolean b) {
     register.setEnabled(b);
   }
-  
+
   public List<List<ISampleBean>> getSamples() {
     return samples;
   }

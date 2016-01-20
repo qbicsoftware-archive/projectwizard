@@ -127,10 +127,10 @@ public class ExtractionStep implements WizardStep {
 
   @Override
   public boolean onAdvance() {
-    if (skip || tissueReady() && replicatesReady())
+    if (skip || tissueReady() && replicatesReady() && c.isValid())
       return true;
     else {
-      Notification n = new Notification("Please input tissue(s) and number of replicates.");
+      Notification n = new Notification("Please fill in the required fields.");
       n.setStyleName(ValoTheme.NOTIFICATION_CLOSABLE);
       n.setDelayMsec(-1);
       n.show(UI.getCurrent().getPage());

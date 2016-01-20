@@ -63,11 +63,11 @@ public class SheetOptionComponent extends VerticalLayout {
   }
 
   public String getInfo1(Sample s, String parents) {
-    return translator.buildInfo(firstOption, s, parents);
+    return translator.buildInfo(firstOption, s, parents, false);
   }
 
   public String getInfo2(Sample s, String parents) {
-    return translator.buildInfo(secondOption, s, parents);
+    return translator.buildInfo(secondOption, s, parents, false);
   }
 
   public List<String> getHeaders() {

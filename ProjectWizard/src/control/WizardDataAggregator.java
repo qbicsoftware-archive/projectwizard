@@ -77,6 +77,7 @@ public class WizardDataAggregator {
   private List<OpenbisExperiment> experiments;
   private String species;
   private String tissue;
+  private String cellLine;
   private List<TestSampleInformation> techTypeInfo = new ArrayList<TestSampleInformation>();
 
   // info needed to create samples
@@ -111,7 +112,7 @@ public class WizardDataAggregator {
     s1 = (ProjectContextStep) steps.get(Steps.Project_Context);
     s2 = (EntityStep) steps.get(Steps.Entities);
     s3 = (ConditionInstanceStep) steps.get(Steps.Entity_Conditions);
-//    s5 = (ExtractionStep) steps.get(Steps.Extraction);
+    // s5 = (ExtractionStep) steps.get(Steps.Extraction);
     s5 = (ExtractionStep) steps.get(Steps.Extraction);
     s6 = (ConditionInstanceStep) steps.get(Steps.Extract_Conditions);
     s8 = (TestStep) steps.get(Steps.Test_Samples);
@@ -124,7 +125,7 @@ public class WizardDataAggregator {
   public String getProjectCode() {
     return projectCode;
   }
-  
+
   /**
    * Fetches context information like space and project and computes first unused IDs of samples and
    * context.
@@ -217,6 +218,7 @@ public class WizardDataAggregator {
    */
   public List<AOpenbisSample> prepareExtracts(Map<Object, Integer> map) throws JAXBException {
     tissue = s5.getTissue();
+    cellLine = s5.getCellLine();
     extractReps = s5.getExtractRepAmount();
 
     // extracts are not created new, but parsed from registered ones
@@ -465,10 +467,11 @@ public class WizardDataAggregator {
           List<Factor> curFactors = new ArrayList<Factor>(factors);
           incrementOrCreateBarcode();
           extracts.add(new OpenbisBiologicalSample(nextBarcode, spaceCode, experiments.get(expNum)
-              .getOpenbisName(), secondaryName, "", curFactors, tissueCode, "", e.getCode(), "")); // TODO
-                                                                                                // ext
-                                                                                                // db
-                                                                                                // id
+              .getOpenbisName(), secondaryName, "", curFactors, tissueCode, cellLine, e.getCode(),
+              "")); // TODO
+          // ext
+          // db
+          // id
         }
       }
     }
@@ -828,8 +831,8 @@ public class WizardDataAggregator {
   }
 
   /**
-   * Creates a tab separated values file of the context created by the wizard, given that
-   * samples have been prepared in the aggregator class
+   * Creates a tab separated values file of the context created by the wizard, given that samples
+   * have been prepared in the aggregator class
    * 
    * @return
    * @throws FileNotFoundException

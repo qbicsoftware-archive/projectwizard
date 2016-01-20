@@ -45,7 +45,7 @@ public class ConditionPropertyPanel extends VerticalLayout {
 
     values = new TextArea("Values");
     values.setWidth("300px");
-    values.setInputPrompt("Please input different occurences of the condition "+condition+",\n" +
+    values.setInputPrompt("Please input different occurrences of the condition "+condition+",\n" +
     		"one per row.");
     values.setImmediate(true);
     values.setRequired(true);

@@ -93,13 +93,13 @@ public class BarcodePreviewComponent extends VerticalLayout {
     setFieldsReadOnly(true);
     select1 =
         new ComboBox("First Info", new ArrayList<String>(Arrays.asList("Tissue/Extr. Material",
-            "Secondary Name", "QBiC ID")));
+            "Secondary Name", "QBiC ID", "Lab ID")));
     select1.setStyleName(ProjectwizardUI.boxTheme);
     select1.setImmediate(true);
     select1.select("Tissue/Extr. Material");
     select2 =
         new ComboBox("Second Info", new ArrayList<String>(Arrays.asList("Tissue/Extr. Material",
-            "Secondary Name", "QBiC ID")));
+            "Secondary Name", "QBiC ID", "Lab ID")));
     select2.select("Secondary Name");
     select2.setImmediate(true);
     select2.setStyleName(ProjectwizardUI.boxTheme);
@@ -180,7 +180,7 @@ public class BarcodePreviewComponent extends VerticalLayout {
   }
 
   public String getInfo(ComboBox b, Sample s) {
-    return translator.buildInfo(b, s, null);
+    return translator.buildInfo(b, s, null, true);
   }
 
   public String getInfo1(Sample s) {

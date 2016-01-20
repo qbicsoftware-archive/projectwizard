@@ -1,12 +1,13 @@
 package io;
 
-import incubator.LabelingMethod;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+
+import uicomponents.LabelingMethod;
 
 public class MethodVocabularyParser {
 

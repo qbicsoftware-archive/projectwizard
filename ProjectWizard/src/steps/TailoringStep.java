@@ -1,6 +1,5 @@
 package steps;
 
-import incubator.LabelingMethod;
 
 import java.util.List;
 
@@ -9,6 +8,7 @@ import model.AOpenbisSample;
 
 import org.vaadin.teemu.wizards.WizardStep;
 
+import uicomponents.LabelingMethod;
 import uicomponents.SummaryTable;
 
 import com.vaadin.ui.CheckBox;

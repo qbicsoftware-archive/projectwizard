@@ -12423,6 +12423,11 @@ div.v-layout.v-horizontal.v-widget {
 	border-left-style: none !important;
 }
 
+.projectwizard .large_font_awesome .v-icon {
+	color: blue;
+	font-size: 20px;
+}
+
 .projectwizard .v-caption-awesomecaption .v-captiontext {
 	font-family: FontAwesome;
 }

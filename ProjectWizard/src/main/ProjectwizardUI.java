@@ -1,19 +1,18 @@
 package main;
 
-import incubator.DBConfig;
-import incubator.DBManager;
-import incubator.DBVocabularies;
+import io.ConfigurationManager;
+import io.ConfigurationManagerFactory;
+import io.DBConfig;
+import io.DBManager;
+import io.DBVocabularies;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 import javax.servlet.annotation.WebServlet;
@@ -73,28 +72,7 @@ public class ProjectwizardUI extends UI {
   }
 
   logging.Logger logger = new Log4j2Logger(ProjectwizardUI.class);
-  private String version = "Version 0.980, 30.11.15";
-
-  private String DATASOURCE_USER = "datasource.user";
-  private String DATASOURCE_PASS = "datasource.password";
-  private String DATASOURCE_URL = "datasource.url";
-
-  private String MYSQL_HOST = "mysql.host";
-  private String MYSQL_DB = "mysql.db";
-  private String MYSQL_USER = "mysql.user";
-  private String MYSQL_PORT = "mysql.port";
-  private String MYSQL_PASS = "mysql.pass";
-
-  private String TMP_FOLDER = "tmp.folder";
-  private String BARCODE_SCRIPTS = "barcode.scripts";
-  private String PATH_VARIABLE = "path.variable";
-
-  private String MAX_ATTACHMENT_SIZE = "max.attachment.size";
-  private String ATTACHMENT_URI = "attachment.uri";
-  private String ATTACHMENT_USER = "attachment.user";
-  private String ATTACHMENT_PASS = "attachment.password";
-
-  private String LABELING_METHODS = "vocabulary.ms.labeling";
+  private String version = "Version 0.986, 11.01.16";
 
   public static String boxTheme = ValoTheme.COMBOBOX_SMALL;
   public static String fieldTheme = ValoTheme.TEXTFIELD_SMALL;
@@ -184,22 +162,29 @@ public class ProjectwizardUI extends UI {
     readConfig();
     layout.setMargin(true);
     setContent(layout);
-    String userID = "admin";
+    String userID = "";
     boolean success = true;
-    if (LiferayAndVaadinUtils.isLiferayPortlet())
-      try {
-        userID = LiferayAndVaadinUtils.getUser().getScreenName();
-      } catch (Exception e) {
+    if (LiferayAndVaadinUtils.isLiferayPortlet()) {
+      logger.info("Wizard is running on Liferay and user is logged in.");
+      userID = LiferayAndVaadinUtils.getUser().getScreenName();
+    } else {
+      if (isDevelopment()) {
+        logger.warn("Checks for local dev version successful. User is granted admin status.");
+        userID = "admin";
+        isAdmin = true;
+      } else {
         success = false;
-        layout.addComponent(new Label("Unknown user. Are you logged in?"));
+        logger.info("User \""+userID+"\" not found. Probably running on Liferay and not logged in.");
+        layout.addComponent(new Label("User not found. Are you logged in?"));
       }
-    isAdmin = userID.equals("admin");
+    }
     // establish connection to the OpenBIS API
     try {
       this.openbis = new OpenBisClient(dataSourceUser, dataSourcePass, dataSourceURL);
       this.openbis.login();
     } catch (Exception e) {
       success = false;
+      logger.error("User \""+userID+"\" could not connect to openBIS and has been informed of this.");
       layout.addComponent(new Label(
           "Data Management System could not be reached. Please try again later or contact us."));
     }
@@ -208,6 +193,7 @@ public class ProjectwizardUI extends UI {
       Map<String, String> taxMap = openbis.getVocabCodesAndLabelsForVocab("Q_NCBI_TAXONOMY");
       Map<String, String> tissueMap = openbis.getVocabCodesAndLabelsForVocab("Q_PRIMARY_TISSUES");
       Map<String, String> deviceMap = openbis.getVocabCodesAndLabelsForVocab("Q_MS_DEVICES");
+      Map<String, String> cellLinesMap = openbis.getVocabCodesAndLabelsForVocab("Q_CELL_LINES");
       List<String> sampleTypes = openbis.getVocabCodesForVocab("Q_SAMPLE_TYPES");
       List<String> enzymes = openbis.getVocabCodesForVocab("Q_DIGESTION_PROTEASES");
       List<String> msProtocols = openbis.getVocabCodesForVocab("Q_MS_PROTOCOLS");
@@ -217,15 +203,20 @@ public class ProjectwizardUI extends UI {
       // stuff from mysql database
       DBConfig mysqlConfig = new DBConfig(mysqlHost, mysqlPort, mysqlDB, mysqlUser, mysqlPass);
       DBManager dbm = new DBManager(mysqlConfig);
-      Map<String, Integer> map = dbm.getPrincipalInvestigatorsWithIDs();
+      Map<String, Integer> map = new HashMap<String, Integer>();
+      try {
+        map = dbm.getPrincipalInvestigatorsWithIDs();
+      } catch (NullPointerException e) {
+        map.put("No Connection", -1);
+      }
       // hardcoded stuff (experiment types mainly used in the wizard)
       List<String> expTypes =
           new ArrayList<String>(Arrays.asList("Q_EXPERIMENTAL_DESIGN", "Q_SAMPLE_EXTRACTION",
               "Q_SAMPLE_PREPARATION"));
 
       DBVocabularies vocabs =
-          new DBVocabularies(taxMap, tissueMap, sampleTypes, spaces, map, expTypes, enzymes,
-              deviceMap, msProtocols, lcmsMethods, chromTypes);
+          new DBVocabularies(taxMap, tissueMap, cellLinesMap, sampleTypes, spaces, map, expTypes,
+              enzymes, deviceMap, msProtocols, lcmsMethods, chromTypes);
       // initialize the View with sample types, spaces and the dictionaries of tissues and species
       initView(dbm, vocabs, userID);
       layout.addComponent(tabs);
@@ -260,6 +251,20 @@ public class ProjectwizardUI extends UI {
       }
     }
     return userSpaces;
+  }
+
+  boolean isDevelopment() {
+    boolean devEnv = false;
+    try {
+      // TODO tests if this is somehow a local development environment
+      // in which case user is granted admin rights. Change so it works for you.
+      // Be careful that this is never true on production or better yet that logged out users can
+      // not see the portlet page.
+      devEnv = new File(".").getCanonicalPath().contains("eclipse");
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return devEnv;
   }
 
   private void initView(final DBManager dbm, final DBVocabularies vocabularies, final String user) {
@@ -307,7 +312,7 @@ public class ProjectwizardUI extends UI {
     uc.init(user);
     tabs.addTab(tsvImport, "Import Project").setIcon(FontAwesome.FILE);
     if (isAdmin) {
-      logger.debug("User is " + user + " and can see admin panel.");
+      logger.info("User is " + user + " and can see admin panel.");
       VerticalLayout padding = new VerticalLayout();
       padding.setMargin(true);
       padding.addComponent(new AdminView(openbis, vocabularies.getSpaces(), creationController,
@@ -324,43 +329,28 @@ public class ProjectwizardUI extends UI {
   }
 
   private void readConfig() {
-    Properties config = new Properties();
-    try {
-      List<String> configs =
-          new ArrayList<String>(Arrays.asList("/Users/frieda/Desktop/testing/portlet.properties",
-              "/home/luser/liferay-portal-6.2-ce-ga4/portlets.properties",
-              "/usr/local/share/guse/portlets.properties",
-              "/home/tomcat-liferay/liferay_production/portlets.properties"));
-      for (String s : configs) {
-        File f = new File(s);
-        if (f.exists())
-          config.load(new FileReader(s));
-      }
-      StringWriter configDebug = new StringWriter();
-      config.list(new PrintWriter(configDebug));
-      tmpFolder = config.getProperty(TMP_FOLDER);
-      dataSourceUser = config.getProperty(DATASOURCE_USER);
-      dataSourcePass = config.getProperty(DATASOURCE_PASS);
-      dataSourceURL = config.getProperty(DATASOURCE_URL);
+    ConfigurationManager c = ConfigurationManagerFactory.getInstance();
 
-      barcodeScripts = config.getProperty(BARCODE_SCRIPTS);
-      pathVar = config.getProperty(PATH_VARIABLE);
+    tmpFolder = c.getTmpFolder();
+    dataSourceUser = c.getDataSourceUser();
+    dataSourcePass = c.getDataSourcePassword();
+    dataSourceURL = c.getDataSourceUrl();
 
-      mysqlHost = config.getProperty(MYSQL_HOST);
-      mysqlDB = config.getProperty(MYSQL_DB);
-      mysqlPort = config.getProperty(MYSQL_PORT);
-      mysqlUser = config.getProperty(MYSQL_USER);
-      mysqlPass = config.getProperty(MYSQL_PASS);
+    barcodeScripts = c.getBarcodeScriptsFolder();
+    pathVar = c.getBarcodePathVariable();
 
-      attachmentSize = config.getProperty(MAX_ATTACHMENT_SIZE);
-      attachmentURI = config.getProperty(ATTACHMENT_URI);
-      attachmentUser = config.getProperty(ATTACHMENT_USER);
-      attachmentPass = config.getProperty(ATTACHMENT_PASS);
+    mysqlHost = c.getMysqlHost();
+    mysqlDB = c.getMysqlDB();
+    mysqlPort = c.getMysqlPort();
+    mysqlUser = c.getMysqlUser();
+    mysqlPass = c.getMysqlPass();
 
-      MSLabelingMethods = config.getProperty(LABELING_METHODS);
-    } catch (IOException e) {
-      logger.error("Failed to load configuration: " + e);
-    }
+    attachmentSize = c.getAttachmentMaxSize();
+    attachmentURI = c.getAttachmentURI();
+    attachmentUser = c.getAttachmentUser();
+    attachmentPass = c.getAttachmenPassword();
+
+    MSLabelingMethods = c.getVocabularyMSLabeling();
   }
 
 }

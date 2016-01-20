@@ -95,6 +95,7 @@ public class MetadataUploadView extends VerticalLayout {
 
       @Override
       public void buttonClick(ClickEvent event) {
+        logger.info("Ingesting metadata");
         openbis.ingest("DSS1", "update-sample-metadata", metadata);
       }
     });
@@ -148,6 +149,7 @@ public class MetadataUploadView extends VerticalLayout {
       }
 
     for (int i = 1; i < header.size(); i++) {
+      //TODO collect properties
       String type = header.get(i);
       Map<String, String> curTypeMap = new HashMap<String, String>();
       for (String[] entData : data) {
@@ -164,6 +166,8 @@ public class MetadataUploadView extends VerticalLayout {
             n.setStyleName(ValoTheme.NOTIFICATION_CLOSABLE);
             n.setDelayMsec(-1);
             n.show(UI.getCurrent().getPage());
+            input.close();
+            b.close();
             return false;
           }
         }
@@ -171,9 +175,12 @@ public class MetadataUploadView extends VerticalLayout {
       if (curTypeMap.size() > 0)
         metadata.put(type, curTypeMap);
     }
+    input.close();
+    b.close();
     metadata.put("identifiers", ids);
     metadata.put("types", new ArrayList<String>(header.subList(1, header.size())));
-    System.out.println(metadata);
+    logger.info("Parsed metadata: ");
+    logger.info(metadata.toString());
     return true;
   }
 }

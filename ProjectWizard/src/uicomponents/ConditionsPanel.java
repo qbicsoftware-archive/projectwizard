@@ -3,6 +3,7 @@ package uicomponents;
 import java.util.ArrayList;
 import java.util.List;
 
+import logging.SysOutLogger;
 import main.ProjectwizardUI;
 
 import com.vaadin.data.Property.ValueChangeEvent;
@@ -93,8 +94,7 @@ public class ConditionsPanel extends HorizontalLayout {
         ProjectwizardUI.questionize(buttonGridComp,
             "Choose (optional) experimental variables for this level of your experiment. "
                 + "You can add or remove variables using " + FontAwesome.PLUS_SQUARE.getHtml()
-                + " and " + FontAwesome.MINUS_SQUARE.getHtml() + ".",
-            "Experimental Variables");
+                + " and " + FontAwesome.MINUS_SQUARE.getHtml() + ".", "Experimental Variables");
     addComponent(buttonGridComp);
     setSpacing(true);
   }
@@ -143,6 +143,14 @@ public class ConditionsPanel extends HorizontalLayout {
     for (ConditionChooser c : choosers) {
       if (c.isSet())
         res.add(c.getCondition());
+    }
+    return res;
+  }
+
+  public boolean isValid() {
+    boolean res = true;
+    for (ConditionChooser c : choosers) {
+      res &= c.isValid();
     }
     return res;
   }

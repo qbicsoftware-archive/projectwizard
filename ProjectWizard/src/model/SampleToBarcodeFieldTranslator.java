@@ -14,7 +14,7 @@ public class SampleToBarcodeFieldTranslator {
 
   private logging.Logger logger = new Log4j2Logger(SampleToBarcodeFieldTranslator.class);
 
-  public String buildInfo(ComboBox select, Sample s, String parents) {
+  public String buildInfo(ComboBox select, Sample s, String parents, boolean cut) {
     Map<String, String> map = s.getProperties();
     String in = "";
     if (select.getValue() != null)
@@ -51,7 +51,9 @@ public class SampleToBarcodeFieldTranslator {
     }
     if (res == null)
       return "";
-    return res.substring(0, Math.min(res.length(), 22));
+    if (cut)
+      res = res.substring(0, Math.min(res.length(), 22));
+    return res;
   }
 
   public String getCodeString(Sample sample, String codedName) {

@@ -1,6 +1,6 @@
 package steps;
 
-import incubator.DBManager;
+import io.DBManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -196,7 +196,8 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
 
   public void registrationDone() {
     logger.info("Sample registration complete!");
-    addInvestigatorToDB();
+    if (investigatorID != -1)
+      tryAddInvestigatorToDB();
     Notification n =
         new Notification("Registration of samples complete. Press 'next' for additional options.");
     n.setStyleName(ValoTheme.NOTIFICATION_CLOSABLE);
@@ -210,7 +211,7 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
     this.projectCode = projectCode;
   }
 
-  private void addInvestigatorToDB() {
+  private void tryAddInvestigatorToDB() {
     dbm.addProjectForPrincipalInvestigator(investigatorID, projectCode);
   }
 

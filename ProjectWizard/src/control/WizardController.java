@@ -1,8 +1,6 @@
 package control;
 
 
-import incubator.DBManager;
-import incubator.DBVocabularies;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
@@ -59,6 +57,8 @@ import com.vaadin.ui.themes.ValoTheme;
 import steps.ConditionInstanceStep;
 import steps.EntityStep;
 import incubator.ExtractionStep;
+import io.DBManager;
+import io.DBVocabularies;
 import steps.FinishStep;
 import steps.PoolingStep;
 import steps.ProjectContextStep;
@@ -115,6 +115,7 @@ public class WizardController {
     this.openbisCreator = new OpenbisCreationController(openbis);
     this.vocabularies = vocabularies;
     this.attachConfig = attachmentConfig;
+    this.designExperimentTypes = vocabularies.getExperimentTypes();
   }
 
   // Functions to add steps to the wizard depending on context
@@ -265,7 +266,7 @@ public class WizardController {
     final ConditionInstanceStep entCondInstStep =
         new ConditionInstanceStep(vocabularies.getTaxMap().keySet(), "Species", "Biol. Variables");
     final TailoringStep negStep1 = new TailoringStep("Sample Sources", false);
-    final ExtractionStep extrStep = new ExtractionStep(vocabularies.getTissueMap());
+    final ExtractionStep extrStep = new ExtractionStep(vocabularies.getTissueMap(), vocabularies.getCellLinesMap());
     final ConditionInstanceStep extrCondInstStep =
         new ConditionInstanceStep(vocabularies.getTissueMap().keySet(), "Tissues",
             "Extr. Variables");
@@ -337,13 +338,14 @@ public class WizardController {
           ProjectContextStep context = (ProjectContextStep) steps.get(Steps.Project_Context);
           String desc = context.getDescription();
           String expSecondaryName = context.getExpSecondaryName();
-          //TODO this needs work
+          // TODO this needs work
           openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(regStep.getSamples(),
-              desc, expSecondaryName, techStep.getMSExperimentProperties(), regStep.getProgressBar(), regStep.getProgressLabel(),
+              desc, expSecondaryName, techStep.getMSExperimentProperties(),
+              regStep.getProgressBar(), regStep.getProgressLabel(),
               new RegisteredSamplesReadyRunnable(regStep), user);
-//          openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(regStep.getSamples(),
-//              desc, expSecondaryName, regStep.getProgressBar(), regStep.getProgressLabel(),
-//              new RegisteredSamplesReadyRunnable(regStep), user);
+          // openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(regStep.getSamples(),
+          // desc, expSecondaryName, regStep.getProgressBar(), regStep.getProgressLabel(),
+          // new RegisteredSamplesReadyRunnable(regStep), user);
           w.addStep(steps.get(Steps.Finish));
         }
       }
@@ -409,6 +411,7 @@ public class WizardController {
           contextStep.makeContextVisible();
           List<ExperimentBean> beans = new ArrayList<ExperimentBean>();
           for (Experiment e : openbis.getExperimentsOfProjectByCode(project)) {
+            System.out.println(e);
             if (designExperimentTypes.contains(e.getExperimentTypeCode())) {
               int numOfSamples = openbis.getSamplesofExperiment(e.getIdentifier()).size();
               beans.add(new ExperimentBean(e.getIdentifier(), e.getExperimentTypeCode(), Integer
@@ -747,8 +750,10 @@ public class WizardController {
             }
             armDownloadButtons(regStep.getDownloadButton(), regStep.getGraphButton());
             regStep.setSummary(prep.getSummary());
-            int investigator =
-                vocabularies.getInvestigators().get(contextStep.getPrincipalInvestigator());
+            int investigator = -1;
+            if (contextStep.getPrincipalInvestigator() != null)
+              investigator =
+                  vocabularies.getInvestigators().get(contextStep.getPrincipalInvestigator());
             regStep.setInvestigatorAndProject(investigator, contextStep.getProjectCode());
             regStep.setProcessed(prep.getProcessed());
           }

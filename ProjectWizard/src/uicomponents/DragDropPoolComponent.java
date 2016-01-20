@@ -48,8 +48,9 @@ public class DragDropPoolComponent extends HorizontalSplitPanel {
     usedTimes = new HashMap<Integer, Integer>();
     left = new VerticalLayout();
     left.setSpacing(true);
-    left.setWidth("300px");
+    left.setWidth("500px");
     tableLayout = new TabSheet();
+    tableLayout.setWidth("100%");
     tableLayout.setStyleName(ValoTheme.TABSHEET_FRAMED);
     tables = new ArrayList<PoolingTable>();
     add = new Button("Add Pool");

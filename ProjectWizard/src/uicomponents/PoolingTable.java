@@ -58,26 +58,29 @@ public class PoolingTable extends VerticalLayout {
     this.usedTimes = usedTimes;
     setSpacing(true);
 
-    HorizontalLayout nameButtonComponent = new HorizontalLayout();
-    nameButtonComponent.setCaption("Secondary Name");
-    secondaryName = new StandardTextField();
+    HorizontalLayout tableButtonComponent = new HorizontalLayout();
+    tableButtonComponent.setCaption("Sample Pool");
+    tableButtonComponent.setSpacing(true);
+    secondaryName = new StandardTextField("Secondary Name");
     secondaryName.setValue(name);
     secondaryName.setStyleName(ProjectwizardUI.fieldTheme);
     moveLeft = new Button();
     ProjectwizardUI.iconButton(moveLeft, FontAwesome.ARROW_CIRCLE_LEFT);
-    nameButtonComponent.addComponent(secondaryName);
-    nameButtonComponent.addComponent(moveLeft);
+    
+    moveLeft.addStyleName("large_font_awesome");
+    addComponent(secondaryName);
+    poolIDs = new HashSet<Integer>();
+    poolTable = new Table();
+    initTable();
+    tableButtonComponent.addComponent(poolTable);
+    tableButtonComponent.addComponent(moveLeft);
     addComponent(ProjectwizardUI
         .questionize(
-            nameButtonComponent,
+            tableButtonComponent,
             "You can add samples to the active pool by "
                 + "selecting them from the right and clicking "+FontAwesome.ARROW_CIRCLE_LEFT.getHtml()+" or by dragging them over with your mouse.",
             "Adding Samples to Pools"));
 
-    poolIDs = new HashSet<Integer>();
-    poolTable = new Table();
-    addComponent(poolTable);
-    initTable();
     initDragAndDrop(new Or(new SourceIs(all), new SourceIs(used)));
     initButtonMover(all, used);
   }
