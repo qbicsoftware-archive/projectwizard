@@ -1,3 +1,18 @@
+/*******************************************************************************
+ * QBiC Project Wizard enables users to create hierarchical experiments including different study
+ * conditions using factorial design. Copyright (C) "2016" Andreas Friedrich
+ * 
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with this program. If
+ * not, see <http://www.gnu.org/licenses/>.
+ *******************************************************************************/
 package control;
 
 import java.io.Serializable;
@@ -58,6 +73,13 @@ public class BarcodeController {
 
   private List<String> barcodeExperiments = new ArrayList<String>(Arrays.asList(
       "Q_SAMPLE_EXTRACTION", "Q_SAMPLE_PREPARATION", "Q_NGS_MEASUREMENT"));
+  private Map<String, String> barcodeSamplesWithTypes = new HashMap<String, String>() {
+    {
+      put("Q_BIOLOGICAL_SAMPLE", "Q_PRIMARY_TISSUE");
+      put("Q_TEST_SAMPLE", "Q_SAMPLE_TYPE");
+      put("Q_NGS_SINGLE_SAMPLE_RUN", "");
+    }
+  };
 
   /**
    * @param bw WizardBarcodeView instance
@@ -67,7 +89,12 @@ public class BarcodeController {
    */
   public BarcodeController(WizardBarcodeView bw, OpenBisClient openbis, String barcodeScripts,
       String pathVar) {
-    view = bw;
+    // view = bw;
+    this.openbis = openbis;
+    creator = new BarcodeCreator(barcodeScripts, pathVar);
+  }
+
+  public BarcodeController(OpenBisClient openbis, String barcodeScripts, String pathVar) {
     this.openbis = openbis;
     creator = new BarcodeCreator(barcodeScripts, pathVar);
   }
@@ -76,7 +103,9 @@ public class BarcodeController {
    * Initializes all listeners
    */
   @SuppressWarnings("serial")
-  public void init() {
+  public void init(WizardBarcodeView bw) {
+    view = bw;
+
     /**
      * Button listeners
      */
@@ -89,14 +118,7 @@ public class BarcodeController {
           Iterator<Extension> it = view.getDownloadButton().getExtensions().iterator();
           if (it.hasNext())
             view.getDownloadButton().removeExtension(it.next());
-          // Iterator<Extension> it = view.getButtonSheet().getExtensions().iterator();
-          // if (it.hasNext())
-          // view.getButtonSheet().removeExtension(it.next());
-          // it = view.getButtonTube().getExtensions().iterator();
-          // if (it.hasNext())
-          // view.getButtonTube().removeExtension(it.next());
           barcodeBeans = getSamplesFromExperimentSummaries(view.getExperiments());
-          // Collection<String> options = (Collection<String>) view.getPrepOptionGroup().getValue();
           boolean overwrite = view.getOverwrite();
           String project = view.getProjectCode();
           ProgressBar bar = view.getProgressBar();
@@ -111,22 +133,6 @@ public class BarcodeController {
                 .findOrCreateSheetBarcodesWithProgress(barcodeBeans, bar, view.getProgressInfo(),
                     new SheetBarcodesReadyRunnable(view, creator, barcodeBeans));
           }
-          // if (options.size() == 2) {
-          // logger.info("Preparing barcodes (sheet and tubes) for project " + project);
-          // creator.findOrCreateBarcodesWithProgress(barcodeBeans, view.getProgressBar(),
-          // view.getProgressInfo(), new BarcodesReadyRunnable(view, creator, barcodeBeans),
-          // overwrite);
-          // } else if (options.contains("Sample Tube Barcodes")) {
-          // logger.info("Preparing barcodes (tubes) for project " + project);
-          // creator.findOrCreateTubeBarcodesWithProgress(barcodeBeans, view.getProgressBar(),
-          // view.getProgressInfo(), new TubeBarcodesReadyRunnable(view, creator, barcodeBeans),
-          // overwrite);
-          // } else if (options.contains("Sample Sheet Barcodes")) {
-          // logger.info("Preparing barcodes (sheet) for project " + project);
-          // creator
-          // .findOrCreateSheetBarcodesWithProgress(barcodeBeans, view.getProgressBar(), view
-          // .getProgressInfo(), new SheetBarcodesReadyRunnable(view, creator, barcodeBeans));
-          // }
         }
       }
     };
@@ -205,23 +211,6 @@ public class BarcodeController {
       }
     };
     view.getTabs().addSelectedTabChangeListener(tabListener);
-
-    // ValueChangeListener optionListener = new ValueChangeListener() {
-    // @Override
-    // public void valueChange(ValueChangeEvent event) {
-    // if (optionSelected()) {
-    // view.enablePrep(expSelected());
-    // if (tubesSelected() && expSelected())
-    // view.enablePreview(getUsefulSampleFromExperiment());
-    // else
-    // view.disablePreview();
-    // } else
-    // view.disablePreview();
-    //
-    //
-    // }
-    // };
-    // view.getPrepOptionGroup().addValueChangeListener(optionListener);
   }
 
   public void reactToProjectSelection(String project) {
@@ -274,23 +263,15 @@ public class BarcodeController {
 
   private boolean tubesSelected() {
     return view.getTabs().getSelectedTab() instanceof BarcodePreviewComponent;
-    // return ((Collection<String>) view.getPrepOptionGroup().getValue()) != null;// TODO
-    // .contains("Sample Tube Barcodes");
   }
 
   private boolean expSelected() {
     return view.getExperiments().size() > 0;
   }
 
-  // private boolean optionSelected() {
-  // return ((Collection<String>) view.getPrepOptionGroup().getValue()).size() > 0;
-  // }
-
   protected List<IBarcodeBean> getSamplesFromExperimentSummaries(
       Collection<ExperimentBarcodeSummaryBean> experiments) {
     List<IBarcodeBean> samples = new ArrayList<IBarcodeBean>();
-    List<String> types =
-        new ArrayList<String>(Arrays.asList("Q_BIOLOGICAL_SAMPLE", "Q_TEST_SAMPLE"));
     List<Sample> openbisSamples = new ArrayList<Sample>();
     for (ExperimentBarcodeSummaryBean b : experiments) {
       openbisSamples.addAll(openbis.getSamplesofExperiment(b.fetchExperimentID()));
@@ -299,17 +280,16 @@ public class BarcodeController {
     for (Sample s : openbisSamples) {
       String type = s.getSampleTypeCode();
       String bioType = "unknown";
-      if (type.equals(types.get(0))) {
-        bioType = s.getProperties().get("Q_PRIMARY_TISSUE");
-      }
-      if (type.equals(types.get(1))) {
-        bioType = s.getProperties().get("Q_SAMPLE_TYPE");
-      }
-      if (types.contains(type))
+      if (barcodeSamplesWithTypes.containsKey(type)) {
+        if (barcodeSamplesWithTypes.get(type).isEmpty())
+          bioType = "NGS RUN";
+        else
+          bioType = s.getProperties().get(barcodeSamplesWithTypes.get(type));
         samples.add(new NewModelBarcodeBean(s.getCode(), view.getCodedString(s), view.getInfo1(s,
             StringUtils.join(parentMap.get(s), " ")), view.getInfo2(s,
             StringUtils.join(parentMap.get(s), " ")), bioType, parentMap.get(s), s.getProperties()
             .get("Q_SECONDARY_NAME"), s.getProperties().get("Q_EXTERNALDB_ID")));
+      }
     }
     return samples;
   }

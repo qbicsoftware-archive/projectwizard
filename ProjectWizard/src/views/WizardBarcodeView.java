@@ -1,3 +1,20 @@
+/*******************************************************************************
+ * QBiC Project Wizard enables users to create hierarchical experiments including different study conditions using factorial design.
+ * Copyright (C) "2016"  Andreas Friedrich
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *******************************************************************************/
 package views;
 
 import java.util.ArrayList;
@@ -58,13 +75,6 @@ public class WizardBarcodeView extends VerticalLayout {
   private Label info;
   private Button download;
 
-  // ??
-  // private Button sheetDownloadButton;
-  // private Button pdfDownloadButton;
-  // private OptionGroup prepSelect;
-
-  // private OptionGroup comparators;
-
   /**
    * Creates a new component view for barcode creation
    * 
@@ -106,25 +116,6 @@ public class WizardBarcodeView extends VerticalLayout {
     sheetPreview = new SheetOptionComponent(translator);
     tubePreview = new BarcodePreviewComponent(translator);
 
-    // prepSelect = new OptionGroup("Prepare");
-    // prepSelect.setStyleName(ValoTheme.OPTIONGROUP_HORIZONTAL);
-    // prepSelect.addItems(Arrays.asList("Sample Sheet Barcodes", "Sample Tube Barcodes"));
-    // prepSelect.setMultiSelect(true);
-    // addComponent(ProjectwizardUI.questionize(prepSelect,
-    // "Prepare barcodes for the A4 sample sheet and/or qr codes for sample tubes.",
-    // "Barcode Preparation"));
-    //
-    // overwrite = new CheckBox("Overwrite existing Tube Barcode Files");
-    // addComponent(ProjectwizardUI.questionize(overwrite,
-    // "Overwrites existing files of barcode stickers. This is useful when "
-    // + "the design was changed after creating them.", "Overwrite Sticker Files"));
-
-    // comparators = new OptionGroup("Sort Sheet by");
-    // comparators.setStyleName(ValoTheme.OPTIONGROUP_HORIZONTAL);
-    // comparators.addItems(SortBy.values());
-    // comparators.setValue(SortBy.ID);
-    // addComponent(comparators);
-
     tabs = new TabSheet();
     tabs.setStyleName(ValoTheme.TABSHEET_FRAMED);
     tabs.addTab(sheetPreview, "Sample Sheet");
@@ -143,18 +134,6 @@ public class WizardBarcodeView extends VerticalLayout {
     prepareBarcodes = new Button("Prepare Barcodes");
     prepareBarcodes.setEnabled(false);
     addComponent(prepareBarcodes);
-
-    // sheetDownloadButton = new Button("Download Sheet");
-    // sheetDownloadButton.setEnabled(false);
-    // pdfDownloadButton = new Button("Download Barcodes");
-    // pdfDownloadButton.setEnabled(false);
-    //
-    // HorizontalLayout dlBox = new HorizontalLayout();
-    // dlBox.addComponent(sheetDownloadButton);
-    // dlBox.addComponent(pdfDownloadButton);
-    // dlBox.addStyleName(ValoTheme.LAYOUT_HORIZONTAL_WRAPPING);
-    // dlBox.setSpacing(true);
-    // addComponent(dlBox);
 
     download = new Button("Download");
     download.setEnabled(false);
@@ -183,12 +162,6 @@ public class WizardBarcodeView extends VerticalLayout {
     mapCols();
     addComponent(experimentTable);
 
-    // prepSelect = new OptionGroup("Prepare");
-    // prepSelect.setStyleName(ValoTheme.OPTIONGROUP_HORIZONTAL);
-    // prepSelect.addItems(Arrays.asList("Sample Sheet Barcodes", "Sample Tube Barcodes"));
-    // prepSelect.setMultiSelect(true);
-    // addComponent(prepSelect);
-
     tubePreview = new BarcodePreviewComponent(translator);
     addComponent(tubePreview);
 
@@ -200,18 +173,6 @@ public class WizardBarcodeView extends VerticalLayout {
     bar = new ProgressBar();
     addComponent(info);
     addComponent(bar);
-
-    // sheetDownloadButton = new Button("Download Sheet");
-    // sheetDownloadButton.setEnabled(false);
-    // pdfDownloadButton = new Button("Download Barcodes");
-    // pdfDownloadButton.setEnabled(false);
-    //
-    // HorizontalLayout dlBox = new HorizontalLayout();
-    // dlBox.addComponent(sheetDownloadButton);
-    // dlBox.addComponent(pdfDownloadButton);
-    // dlBox.addStyleName(ValoTheme.LAYOUT_HORIZONTAL_WRAPPING);
-    // dlBox.setSpacing(true);
-    // addComponent(dlBox);
   }
 
   public boolean getOverwrite() {
@@ -227,17 +188,13 @@ public class WizardBarcodeView extends VerticalLayout {
     spaceBox.setEnabled(false);
     projectBox.setEnabled(false);
     prepareBarcodes.setEnabled(false);
-    // prepSelect.setEnabled(false);
   }
 
   public void reset() {
-    // sheetDownloadButton.setEnabled(false);
-    // pdfDownloadButton.setEnabled(false);
     info.setValue("");
     download.setEnabled(false);
     spaceBox.setEnabled(true);
     projectBox.setEnabled(true);
-    // prepSelect.setEnabled(true);
   }
 
   public void resetProjects() {
@@ -249,9 +206,6 @@ public class WizardBarcodeView extends VerticalLayout {
   public void resetExperiments() {
     experimentTable.setPageLength(1);
     experimentTable.removeAllItems();
-    // prepareTubes.setEnabled(false);
-    // prepSelect.setEnabled(true);
-    // tubePreview.setVisible(false);
     tabsTab.setVisible(false);
   }
 
@@ -312,26 +266,9 @@ public class WizardBarcodeView extends VerticalLayout {
     tabsTab.setVisible(enable);
   }
 
-  // public void enableOtherButtons(boolean enable) {
-  // sheetDownloadButton.setEnabled(!enable);
-  // pdfDownloadButton.setEnabled(!enable);
-  // }
-
   public SortBy getSorter() {
     return sheetPreview.getSorter();
   }
-
-  // public Button getButtonTube() {
-  // return pdfDownloadButton;
-  // }
-  //
-  // public Button getButtonSheet() {
-  // return sheetDownloadButton;
-  // }
-  //
-  // public OptionGroup getPrepOptionGroup() {
-  // return prepSelect;
-  // }
 
   public void creationDone() {
     enableExperiments(true);
@@ -340,12 +277,10 @@ public class WizardBarcodeView extends VerticalLayout {
 
   public void sheetReady() {
     download.setEnabled(true);
-    // sheetDownloadButton.setEnabled(true);
   }
 
   public void tubesReady() {
     download.setEnabled(true);
-    // pdfDownloadButton.setEnabled(true);
   }
 
   public void resetSpace() {
@@ -392,5 +327,9 @@ public class WizardBarcodeView extends VerticalLayout {
 
   public List<String> getHeaders() {
     return sheetPreview.getHeaders();
+  }
+
+  public void initControl(BarcodeController barcodeController) {
+    barcodeController.init(this);
   }
 }

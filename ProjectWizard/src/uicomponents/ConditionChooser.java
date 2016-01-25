@@ -1,7 +1,23 @@
+/*******************************************************************************
+ * QBiC Project Wizard enables users to create hierarchical experiments including different study conditions using factorial design.
+ * Copyright (C) "2016"  Andreas Friedrich
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *******************************************************************************/
 package uicomponents;
 
 import java.util.List;
-
 
 import main.ProjectwizardUI;
 
@@ -16,8 +32,9 @@ import control.ProjectNameValidator;
 
 /**
  * Composite UI component to choose a single condition of an experiment
+ * 
  * @author Andreas Friedrich
- *
+ * 
  */
 public class ConditionChooser extends VerticalLayout {
 
@@ -30,10 +47,12 @@ public class ConditionChooser extends VerticalLayout {
 
   /**
    * Creates a new condition chooser component
+   * 
    * @param options List of different possible conditions
-   * @param other Name of the "other" condition, which when selected will enable an input field for free text
-   * @param special Name of a "special" condition like species for the entity input, which when selected will disable the normal species input
-   * because there is more than one instance
+   * @param other Name of the "other" condition, which when selected will enable an input field for
+   *        free text
+   * @param special Name of a "special" condition like species for the entity input, which when
+   *        selected will disable the normal species input because there is more than one instance
    * @param nullSelectionAllowed true, if the conditions may be empty
    */
   public ConditionChooser(List<String> options, String other, String special,
@@ -65,7 +84,8 @@ public class ConditionChooser extends VerticalLayout {
         freetext.setRequired(true);
         freetext.setStyleName(ProjectwizardUI.fieldTheme);
         RegexpValidator factorLabelValidator =
-            new RegexpValidator("[A-Za-z][_A-Za-z0-9]*",
+            new RegexpValidator(
+                "[A-Za-z][_A-Za-z0-9]*",
                 "Experimental variable must start with a letter and contain only letters, numbers or underscores ('_')");
         freetext.addValidator(factorLabelValidator);
         freetext.setImmediate(true);
@@ -92,9 +112,12 @@ public class ConditionChooser extends VerticalLayout {
     else
       return !chooser.getValue().toString().equals(other) || !freetext.getValue().isEmpty();
   }
-  
+
   public boolean isValid() {
-    return !chooser.getValue().toString().equals(other) || freetext.isValid();
+    if (chooser.getValue() == null)
+      return true;
+    else
+      return !chooser.getValue().toString().equals(other) || freetext.isValid();
   }
 
   public String getCondition() {
