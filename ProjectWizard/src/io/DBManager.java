@@ -49,13 +49,6 @@ public class DBManager {
     }
   }
 
-  public static void main(String[] args) {
-    DBManager dbm =
-        new DBManager(new DBConfig("portal-testing.am10.uni-tuebingen.de", "3306",
-            "project_investigator_db", "mariadbuser", "dZAmDa9-Ysq_Zv1AGygQ"));
-    dbm.printPeople();
-  }
-
   private Connection login() {
     String DB_URL =
         "jdbc:mariadb://" + config.getHostname() + ":" + config.getPort() + "/"
