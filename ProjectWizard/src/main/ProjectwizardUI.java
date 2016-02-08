@@ -35,7 +35,6 @@ import java.util.Set;
 import javax.servlet.annotation.WebServlet;
 
 import logging.Log4j2Logger;
-import logging.SysOutLogger;
 import model.AttachmentConfig;
 
 import org.vaadin.teemu.wizards.Wizard;

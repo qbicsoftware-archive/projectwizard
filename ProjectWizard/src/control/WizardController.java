@@ -416,7 +416,7 @@ public class WizardController {
         contextStep.tryEnableCustomProject(generateProjectCode());
         contextStep.resetExperiments();
         String space = contextStep.getSpaceCode();
-        String project = contextStep.getProjectCode();
+        String project = contextStep.getProjectCode().toUpperCase();
         boolean hasBioEntities = projectHasBioEntities(space, project);
         boolean hasExtracts = projectHasExtracts(space, project);
         contextStep.enableExtractContextOption(hasBioEntities);

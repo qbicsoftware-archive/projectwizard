@@ -1,19 +1,17 @@
 /*******************************************************************************
- * QBiC Project Wizard enables users to create hierarchical experiments including different study conditions using factorial design.
- * Copyright (C) "2016"  Andreas Friedrich
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * QBiC Project Wizard enables users to create hierarchical experiments including different study
+ * conditions using factorial design. Copyright (C) "2016" Andreas Friedrich
+ * 
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with this program. If
+ * not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 package control;
 
@@ -153,7 +151,7 @@ public class WizardDataAggregator {
     firstFreeBarcodeID = 1;// TODO cleanup where not needed
     existingBarcodes = new HashSet<String>();
     spaceCode = s1.getSpaceCode();
-    projectCode = s1.getProjectCode();
+    projectCode = s1.getProjectCode().toUpperCase();
 
     samples = new ArrayList<Sample>();
     if (openbis.projectExists(spaceCode, projectCode)) {
@@ -644,18 +642,22 @@ public class WizardDataAggregator {
   private List<AOpenbisSample> parseExtracts(List<Sample> extracts,
       Map<Sample, Set<Sample>> parentMap) throws JAXBException {
     List<AOpenbisSample> res = new ArrayList<AOpenbisSample>();
+    String[] eSplit = extracts.get(0).getExperimentIdentifierOrNull().split("/");
+    String exp = eSplit[eSplit.length - 1];
     for (Sample s : extracts) {
       String code = s.getCode();
+      logger.debug("parsing new sample " + code);
       // TODO slow
-      String[] eSplit = s.getExperimentIdentifierOrNull().split("/");
       Map<String, String> p = s.getProperties();
-      List<Factor> factors = xmlParser.getFactors(xmlParser.parseXMLString(p.get("Q_PROPERTIES")));
+      List<Factor> factors = new ArrayList<Factor>();
+      // List<Factor> factors =
+      // xmlParser.getFactors(xmlParser.parseXMLString(p.get("Q_PROPERTIES")));
       for (Factor f : factors) {
         String name = f.getValue() + f.getUnit();
         factorMap.put(name, f);
       }
-      res.add(new OpenbisBiologicalSample(code, spaceCode, eSplit[eSplit.length - 1], p
-          .get("Q_SECONDARY_NAME"), p.get("Q_ADDITIONAL_INFO"), factors, p.get("Q_PRIMARY_TISSUE"),
+      res.add(new OpenbisBiologicalSample(code, spaceCode, exp, p.get("Q_SECONDARY_NAME"), p
+          .get("Q_ADDITIONAL_INFO"), factors, p.get("Q_PRIMARY_TISSUE"),
           p.get("Q_TISSUE_DETAILED"), parseParents(s, parentMap), p.get("Q_EXTERNALDB_ID")));
     }
     return res;
@@ -929,8 +931,9 @@ public class WizardDataAggregator {
   public File getTSV() throws FileNotFoundException, UnsupportedEncodingException {
     String file = ProjectwizardUI.tmpFolder + "tmp_" + getTSVName() + ".tsv";
     PrintWriter writer = new PrintWriter(file, "UTF-8");
-    for (String line : tsvContent.split("\n"))
+    for (String line : tsvContent.split("\n")) {
       writer.println(line);
+    }
     writer.close();
     return new File(file);
   }

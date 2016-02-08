@@ -38,7 +38,6 @@ public class LiferayLogger implements Logger {
   @Override
   public void info(String message) {
     liferayLog.info(message);
-
   }
 
   @Override
