@@ -44,6 +44,16 @@ public class Functions {
     return true;
   }
 
+  public static long getTimer() {
+    return System.currentTimeMillis();
+  }
+  
+  public static void printElapsedTime(long startTime) {
+    long stopTime = System.currentTimeMillis();
+    long elapsedTime = stopTime - startTime;
+    System.out.println(elapsedTime);
+  }
+  
   /**
    * Increments the value of an upper case char. When at "X" restarts with "A".
    * 
