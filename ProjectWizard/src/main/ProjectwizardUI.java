@@ -89,7 +89,7 @@ public class ProjectwizardUI extends UI {
   }
 
   logging.Logger logger = new Log4j2Logger(ProjectwizardUI.class);
-  private String version = "Version 0.986, 11.01.16";
+  private String version = "Version 0.987, 08.02.16";
 
   public static String boxTheme = ValoTheme.COMBOBOX_SMALL;
   public static String fieldTheme = ValoTheme.TEXTFIELD_SMALL;

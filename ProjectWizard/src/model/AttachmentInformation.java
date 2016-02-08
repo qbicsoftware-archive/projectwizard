@@ -17,6 +17,9 @@
  *******************************************************************************/
 package model;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+
 import org.apache.commons.io.FilenameUtils;
 
 public class AttachmentInformation {
@@ -60,7 +63,13 @@ public class AttachmentInformation {
     String res = barcode + "_" + name.replace(ext, "") + "_user_" + user;
     if (secondary_name != null && !secondary_name.isEmpty())
       res += "_secname_" + secondary_name;
-    return res.replace(" ", "_").replace("up_", "") + ext;
+    res = res.replace(" ", "_").replace("up_", "") + ext;
+    try {
+      res = URLEncoder.encode(res, "UTF-8");
+    } catch (UnsupportedEncodingException e) {
+      e.printStackTrace();
+    }
+    return res;
   }
 
 }
