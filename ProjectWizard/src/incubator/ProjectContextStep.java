@@ -1,36 +1,50 @@
 /*******************************************************************************
- * QBiC Project Wizard enables users to create hierarchical experiments including different study
- * conditions using factorial design. Copyright (C) "2016" Andreas Friedrich
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If
- * not, see <http://www.gnu.org/licenses/>.
+ * QBiC Project Wizard enables users to create hierarchical experiments including different study conditions using factorial design.
+ * Copyright (C) "2016"  Andreas Friedrich
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package steps;
+package incubator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
+import main.OpenBisClient;
 import main.ProjectwizardUI;
 import model.ExperimentBean;
 import model.NewSampleModelBean;
 
 import org.vaadin.teemu.wizards.WizardStep;
 
-import componentwrappers.CustomVisibilityComponent;
 import uicomponents.ProjectInformationComponent;
 
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
+import componentwrappers.CustomVisibilityComponent;
+
+import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.util.BeanItemContainer;
+import com.vaadin.data.validator.CompositeValidator;
+import com.vaadin.data.validator.RegexpValidator;
+import com.vaadin.event.FieldEvents.FocusEvent;
+import com.vaadin.event.FieldEvents.FocusListener;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
@@ -44,6 +58,8 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.themes.ValoTheme;
 
+import control.ProjectNameValidator;
+
 /**
  * Wizard Step to set the Context of the new experiment and sample creation
  * 
@@ -53,16 +69,18 @@ import com.vaadin.ui.themes.ValoTheme;
 public class ProjectContextStep implements WizardStep {
 
   private VerticalLayout main;
-
   private ComboBox spaceCode;
   private ProjectInformationComponent projectInfoComponent;
-  // private TextField expName;
 
   List<ExperimentBean> experiments;
 
   private Table experimentTable;
-
   private Table samples;
+
+  private OpenBisClient openbis;
+  private NewAggregator aggregator;
+  private List<String> designExperimentTypes = new ArrayList<String>(Arrays.asList(
+      "Q_EXPERIMENTAL_DESIGN", "Q_SAMPLE_EXTRACTION", "Q_SAMPLE_PREPARATION"));
 
   List<String> contextOptions = new ArrayList<String>(Arrays.asList("Add a new experiment",
       "Add sample extraction to existing sample sources",
@@ -78,7 +96,9 @@ public class ProjectContextStep implements WizardStep {
    * @param openbisSpaces List of Spaces to select from in the openBIS instance
    * @param newProjectCode
    */
-  public ProjectContextStep(List<String> openbisSpaces, ProjectInformationComponent projSelect) {
+  public ProjectContextStep(OpenBisClient openbis, List<String> openbisSpaces,
+      List<String> investigators) {
+    this.openbis = openbis;
     main = new VerticalLayout();
     main.setMargin(true);
     main.setSpacing(true);
@@ -89,7 +109,7 @@ public class ProjectContextStep implements WizardStep {
     spaceCode.setNullSelectionAllowed(false);
     spaceCode.setImmediate(true);
 
-    projectInfoComponent = projSelect;
+    projectInfoComponent = new ProjectInformationComponent(investigators);
     projectInfoComponent.setImmediate(true);
     projectInfoComponent.setVisible(false);
 
@@ -99,8 +119,6 @@ public class ProjectContextStep implements WizardStep {
     disableContextOptions();
 
     experimentTable = new Table("Applicable Experiments");
-    experimentTable.setColumnHeader("experiment_type", "Experimental Step");
-    experimentTable.setColumnHeader("samples", "Samples");
     experimentTable.setStyleName(ValoTheme.TABLE_SMALL);
     experimentTable.setPageLength(1);
     experimentTable.setContainerDataSource(new BeanItemContainer<ExperimentBean>(
@@ -110,26 +128,10 @@ public class ProjectContextStep implements WizardStep {
 
     samples = new Table("Sample Overview");
     samples.setStyleName(ValoTheme.TABLE_SMALL);
-    samples.setColumnHeader("code", "Code");
-    samples.setColumnHeader("secondary_Name", "Secondary Name");
     samples.setVisible(false);
     samples.setPageLength(1);
     samples.setContainerDataSource(new BeanItemContainer<NewSampleModelBean>(
         NewSampleModelBean.class));
-
-    // Label info =
-    // new Label(
-    // "If you want to add to or copy an existing experiment, please select the experiment. "
-    // +
-    // "When copying lower tier samples, they will be attached to existing samples that are higher in the hierarchy."
-    // + " Downloaded TSVs will always contain all attached sample tiers.");
-    // info.setStyleName("info");
-    // info.setWidth("350px");
-
-    // was moved to ProjectSelectionComponent
-    // expName = new StandardTextField("Experiment name");
-    // expName.setVisible(false);
-    // expName.setInputPrompt("Optional short name");
 
     grid = new GridLayout(2, 5);
     grid.setSpacing(true);
@@ -155,21 +157,34 @@ public class ProjectContextStep implements WizardStep {
     initListeners();
   }
 
-  public String getPrincipalInvestigator() {
-    String res = projectInfoComponent.getInvestigator();
-    if (res == null)
-      res = "";
-    return res;
-  }
-
-  public String getContactPerson() {
-    String res = projectInfoComponent.getContactPerson();
-    if (res == null)
-      res = "";
+  private String generateProjectCode() {
+    Random r = new Random();
+    String res = "";
+    while (res.length() < 5 || openbis.getProjectByCode(res) != null) {
+      res = "Q";
+      for (int i = 1; i < 5; i++) {
+        char c = 'Y';
+        while (c == 'Y' || c == 'Z')
+          c = (char) (r.nextInt(26) + 'A');
+        res += c;
+      }
+    }
     return res;
   }
 
   private void initListeners() {
+
+    TextField f = getProjectCodeField();
+    CompositeValidator vd = new CompositeValidator();
+    RegexpValidator p =
+        new RegexpValidator("Q[A-Xa-x0-9]{4}",
+            "Project must have length of 5, start with Q and not contain Y or Z");
+    vd.addValidator(p);
+    vd.addValidator(new ProjectNameValidator(openbis));
+    f.addValidator(vd);
+    f.setImmediate(true);
+    f.setValidationVisible(true);
+
     projectInfoComponent.getCodeButton().addClickListener(new Button.ClickListener() {
 
       /**
@@ -182,6 +197,166 @@ public class ProjectContextStep implements WizardStep {
         makeContextVisible();
       }
     });
+
+
+    /**
+     * Space selection listener
+     */
+    ValueChangeListener spaceSelectListener = new ValueChangeListener() {
+
+      /**
+       * 
+       */
+      private static final long serialVersionUID = -7487587994432604593L;
+
+      @Override
+      public void valueChange(ValueChangeEvent event) {
+        spaceCode.removeStyleName(ValoTheme.LABEL_SUCCESS);
+        resetProjects();
+        if (getSpaceCode() != null) {
+          spaceCode.addStyleName(ValoTheme.LABEL_SUCCESS);
+          List<String> projects = new ArrayList<String>();
+          for (Project p : openbis.getProjectsOfSpace(getSpaceCode())) {
+            projects.add(p.getCode());
+          }
+          setProjectCodes(projects);
+          enableNewContextOption(true);
+        }
+      }
+
+    };
+    spaceCode.addValueChangeListener(spaceSelectListener);
+
+    /**
+     * Project selection listener
+     */
+
+    ValueChangeListener projectSelectListener = new ValueChangeListener() {
+
+      /**
+       * 
+       */
+      private static final long serialVersionUID = -443162343850159312L;
+
+      @Override
+      public void valueChange(ValueChangeEvent event) {
+        tryEnableCustomProject(generateProjectCode());
+        resetExperiments();
+        String project = getProjectCode();
+        boolean hasBioEntities = projectHasBioEntities(getSpaceCode(), project);
+        boolean hasExtracts = projectHasExtracts(getSpaceCode(), project);
+        enableExtractContextOption(hasBioEntities);
+        enableMeasureContextOption(hasExtracts);
+        enableTSVWriteContextOption(hasBioEntities);
+        if (project != null && !project.isEmpty()) {
+          makeContextVisible();
+          List<ExperimentBean> beans = new ArrayList<ExperimentBean>();
+          for (Experiment e : openbis.getExperimentsOfProjectByCode(project)) {
+            if (designExperimentTypes.contains(e.getExperimentTypeCode())) {
+              int numOfSamples = openbis.getSamplesofExperiment(e.getIdentifier()).size();
+              beans.add(new ExperimentBean(e.getIdentifier(), e.getExperimentTypeCode(), Integer
+                  .toString(numOfSamples)));
+            }
+          }
+          setExperiments(beans);
+        }
+      }
+
+    };
+    getProjectBox().addValueChangeListener(projectSelectListener);
+
+    /**
+     * Experiment selection listener
+     */
+
+    ValueChangeListener expSelectListener = new ValueChangeListener() {
+
+      /**
+       * 
+       */
+      private static final long serialVersionUID = 1931780520075315462L;
+
+      @Override
+      public void valueChange(ValueChangeEvent event) {
+        resetSamples();
+        ExperimentBean exp = getExperimentName();
+        if (exp != null) {
+          List<NewSampleModelBean> beans = new ArrayList<NewSampleModelBean>();
+          for (Sample s : openbis.getSamplesofExperiment(exp.getID())) {
+            beans.add(new NewSampleModelBean(s.getCode(),
+                s.getProperties().get("Q_SECONDARY_NAME"), s.getSampleTypeCode()));
+          }
+          setSamples(beans);
+        }
+      }
+
+    };
+    getExperimentTable().addValueChangeListener(expSelectListener);
+
+    FocusListener fListener = new FocusListener() {
+      private static final long serialVersionUID = 8721337946386845992L;
+
+      @Override
+      public void focus(FocusEvent event) {
+        TextField p = projectInfoComponent.getProjectField();
+        if (!p.isValid() || p.isEmpty()) {
+          projectInfoComponent.tryEnableCustomProject(generateProjectCode());
+        }
+        makeContextVisible();
+      }
+    };
+    projectInfoComponent.getProjectField().addFocusListener(fListener);
+
+    Button.ClickListener projCL = new Button.ClickListener() {
+
+      /**
+       * 
+       */
+      private static final long serialVersionUID = -6646294420820222646L;
+
+      @Override
+      public void buttonClick(ClickEvent event) {
+        projectInfoComponent.tryEnableCustomProject(generateProjectCode());
+      }
+    };
+    projectInfoComponent.getProjectReloadButton().addClickListener(projCL);
+  }
+
+  /**
+   * Test if a project has biological entities registered. Used to know availability of context
+   * options
+   * 
+   * @param spaceCode Code of the selected openBIS space
+   * @param code Code of the project
+   * @return
+   */
+  private boolean projectHasBioEntities(String spaceCode, String code) {
+    if (!openbis.projectExists(spaceCode, code))
+      return false;
+    for (Experiment e : openbis.getExperimentsOfProjectByCode(code)) {
+      if (e.getExperimentTypeCode().equals("Q_EXPERIMENTAL_DESIGN"))
+        return openbis.getSamplesofExperiment(e.getIdentifier()).size() > 0;
+    }
+    return false;
+  }
+
+  /**
+   * Test is a project has biological extracts registered. Used to know availability of context
+   * options
+   * 
+   * @param spaceCode Code of the selected openBIS space
+   * @param code Code of the project
+   * @return
+   */
+  private boolean projectHasExtracts(String spaceCode, String code) {
+    if (!openbis.projectExists(spaceCode, code))
+      return false;
+    for (Experiment e : openbis.getExperimentsOfProjectByCode(code)) {
+      if (e.getExperimentTypeCode().equals("Q_SAMPLE_EXTRACTION"))
+        if (openbis.getSamplesofExperiment(e.getIdentifier()).size() > 0)
+          return true;
+    }
+    return false;
   }
 
   public List<ExperimentBean> getExperiments() {
@@ -261,10 +436,6 @@ public class ProjectContextStep implements WizardStep {
     projectContext.setItemEnabled(contextOptions.get(2), enable);
   }
 
-  // public void enableCopyContextOption(boolean enable) {
-  // projectContext.setItemEnabled(contextOptions.get(3), enable);
-  // }
-
   public void enableTSVWriteContextOption(boolean enable) {
     projectContext.setItemEnabled(contextOptions.get(3), enable);
   }
@@ -287,24 +458,36 @@ public class ProjectContextStep implements WizardStep {
     return main;
   }
 
+  private void saveProjectInfo(NewProjectInfo projectInfo) {
+    aggregator.setProjectInfo(projectInfo);
+  }
+
   @Override
   public boolean onAdvance() {
     Notification n;
     if (spaceReady() && projectReady()) {
       if (inherit() || copy() || readOnly())
-        if (expSelected())
+        // inherit, copy or read experiment
+        if (expSelected()) {
+          saveProjectInfo(new NewProjectInfo(getSpaceCode(), getProjectCode()));
           return true;
-        else {
+        } else {
           n = new Notification("Please select an existing experiment.");
         }
       else {
         if (getProjectBox().isEmpty())
-          if (descriptionReady())
+          if (descriptionReady()) {
+            // completely new sub-project
+            saveProjectInfo(new NewProjectInfo(getSpaceCode(), getProjectCode(), getDescription(),
+                getExpSecondaryName(), getPrincipalInvestigator()));
             return true;
-          else
+          } else
             n = new Notification("Please fill in a description.");
-        else
+        else {
+          // new experiment but same sub-project
+          saveProjectInfo(new NewProjectInfo(getSpaceCode(), getProjectCode()));
           return true;
+        }
       }
     } else {
       n = new Notification("Please select a project and subproject or create a new one.");
@@ -313,6 +496,10 @@ public class ProjectContextStep implements WizardStep {
     n.setDelayMsec(-1);
     n.show(UI.getCurrent().getPage());
     return false;
+  }
+
+  private String getPrincipalInvestigator() {
+    return projectInfoComponent.getInvestigator();
   }
 
   private boolean descriptionReady() {
@@ -335,8 +522,6 @@ public class ProjectContextStep implements WizardStep {
 
   private boolean readOnly() {
     return false;
-    // String context = (String) projectContext.getValue();
-    // return contextOptions.get(4).equals(context);
   }
 
   private boolean projectReady() {
@@ -392,11 +577,6 @@ public class ProjectContextStep implements WizardStep {
     return res;
   }
 
-  // public boolean copyModeSet() {
-  // String context = (String) projectContext.getValue();
-  // return contextOptions.get(3).equals(context);
-  // }
-
   public boolean fetchTSVModeSet() {
     String context = (String) projectContext.getValue();
     return contextOptions.get(3).equals(context);
@@ -422,9 +602,5 @@ public class ProjectContextStep implements WizardStep {
   public void makeContextVisible() {
     projectContext.setVisible(true);
   }
-
-  // public void enableExpName(boolean b) {
-  // expName.setVisible(b);
-  // }
 
 }

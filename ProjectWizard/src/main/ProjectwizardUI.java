@@ -1,19 +1,17 @@
 /*******************************************************************************
- * QBiC Project Wizard enables users to create hierarchical experiments including different study conditions using factorial design.
- * Copyright (C) "2016"  Andreas Friedrich
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * QBiC Project Wizard enables users to create hierarchical experiments including different study
+ * conditions using factorial design. Copyright (C) "2016" Andreas Friedrich
+ * 
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with this program. If
+ * not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 package main;
 
@@ -36,6 +34,7 @@ import javax.servlet.annotation.WebServlet;
 
 import logging.Log4j2Logger;
 import model.AttachmentConfig;
+import model.BarcodeConfig;
 
 import org.vaadin.teemu.wizards.Wizard;
 import org.vaadin.teemu.wizards.event.WizardCancelledEvent;
@@ -48,6 +47,7 @@ import views.AdminView;
 import views.StandaloneTSVImport;
 import views.WizardBarcodeView;
 
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.VocabularyTerm;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Role;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SpaceWithProjectsAndRoleAssignments;
 
@@ -159,6 +159,7 @@ public class ProjectwizardUI extends UI {
   private String mysqlPass;
 
   private String barcodeScripts;
+  private String barcodeResultsFolder;
   private String pathVar;
 
   private String attachmentSize;
@@ -191,7 +192,8 @@ public class ProjectwizardUI extends UI {
         isAdmin = true;
       } else {
         success = false;
-        logger.info("User \""+userID+"\" not found. Probably running on Liferay and not logged in.");
+        logger.info("User \"" + userID
+            + "\" not found. Probably running on Liferay and not logged in.");
         layout.addComponent(new Label("User not found. Are you logged in?"));
       }
     }
@@ -201,7 +203,8 @@ public class ProjectwizardUI extends UI {
       this.openbis.login();
     } catch (Exception e) {
       success = false;
-      logger.error("User \""+userID+"\" could not connect to openBIS and has been informed of this.");
+      logger.error("User \"" + userID
+          + "\" could not connect to openBIS and has been informed of this.");
       layout.addComponent(new Label(
           "Data Management System could not be reached. Please try again later or contact us."));
     }
@@ -213,6 +216,8 @@ public class ProjectwizardUI extends UI {
       Map<String, String> cellLinesMap = openbis.getVocabCodesAndLabelsForVocab("Q_CELL_LINES");
       List<String> sampleTypes = openbis.getVocabCodesForVocab("Q_SAMPLE_TYPES");
       List<String> enzymes = openbis.getVocabCodesForVocab("Q_DIGESTION_PROTEASES");
+      Map<String, String> antibodiesWithLabels =
+          openbis.getVocabCodesAndLabelsForVocab("Q_ANTIBODY");
       List<String> msProtocols = openbis.getVocabCodesForVocab("Q_MS_PROTOCOLS");
       List<String> lcmsMethods = openbis.getVocabCodesForVocab("Q_MS_LCMS_METHODS");
       List<String> chromTypes = openbis.getVocabCodesForVocab("Q_CHROMATOGRAPHY_TYPES");
@@ -233,7 +238,7 @@ public class ProjectwizardUI extends UI {
 
       DBVocabularies vocabs =
           new DBVocabularies(taxMap, tissueMap, cellLinesMap, sampleTypes, spaces, map, expTypes,
-              enzymes, deviceMap, msProtocols, lcmsMethods, chromTypes);
+              enzymes, antibodiesWithLabels, deviceMap, msProtocols, lcmsMethods, chromTypes);
       // initialize the View with sample types, spaces and the dictionaries of tissues and species
       initView(dbm, vocabs, userID);
       layout.addComponent(tabs);
@@ -241,7 +246,7 @@ public class ProjectwizardUI extends UI {
     if (LiferayAndVaadinUtils.isLiferayPortlet())
       try {
         for (com.liferay.portal.model.Role r : LiferayAndVaadinUtils.getUser().getRoles())
-          if (r.getName().equals("Administrator")) {
+          if (r.getName().equals("Administrator")) {// TODO what other roles?
             layout.addComponent(new Label(version));
             layout.addComponent(new Label("User: " + userID));
           }
@@ -317,8 +322,11 @@ public class ProjectwizardUI extends UI {
     wLayout.setMargin(true);
 
     tabs.addTab(wLayout, "Create Project").setIcon(FontAwesome.FLASK);
-    final WizardBarcodeView bw = new WizardBarcodeView(vocabularies.getSpaces());
-    bw.initControl(new BarcodeController(openbis, barcodeScripts, pathVar));
+    BarcodeConfig bcConf =
+        new BarcodeConfig(barcodeScripts, tmpFolder, barcodeResultsFolder, pathVar);
+    final WizardBarcodeView bw =
+        new WizardBarcodeView(vocabularies.getSpaces(), barcodeResultsFolder, isAdmin);
+    bw.initControl(new BarcodeController(openbis, bcConf));
     tabs.addTab(bw, "Create Barcodes").setIcon(FontAwesome.BARCODE);
     StandaloneTSVImport tsvImport = new StandaloneTSVImport();
 
@@ -353,6 +361,7 @@ public class ProjectwizardUI extends UI {
     dataSourceURL = c.getDataSourceUrl();
 
     barcodeScripts = c.getBarcodeScriptsFolder();
+    barcodeResultsFolder = c.getBarcodeResultsFolder();
     pathVar = c.getBarcodePathVariable();
 
     mysqlHost = c.getMysqlHost();

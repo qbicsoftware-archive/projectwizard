@@ -45,6 +45,7 @@ public class TechnologiesPanel extends HorizontalLayout {
   Button.ClickListener buttonListener;
   ValueChangeListener poolListener;
   ValueChangeListener proteinListener;
+  ValueChangeListener mhcLigandListener;
   GridLayout buttonGrid;
   Button add;
   Button remove;
@@ -60,7 +61,7 @@ public class TechnologiesPanel extends HorizontalLayout {
    * @param proteinListener
    */
   public TechnologiesPanel(List<String> techOptions, OptionGroup conditionsSet,
-      ValueChangeListener poolListener, ValueChangeListener proteinListener) {
+      ValueChangeListener poolListener, ValueChangeListener proteinListener, ValueChangeListener mhcLigandListener) {
     this.options = techOptions;
 
     this.conditionsSet = conditionsSet;
@@ -72,12 +73,14 @@ public class TechnologiesPanel extends HorizontalLayout {
     initListener();
     this.poolListener = poolListener;
     this.proteinListener = proteinListener;
-
+    this.mhcLigandListener = mhcLigandListener;
+    
     choosers = new ArrayList<TechChooser>();
     TechChooser c = new TechChooser(techOptions);
     c.setImmediate(true);
     c.addPoolListener(poolListener);
     c.addProteinListener(proteinListener);
+    c.addMHCListener(mhcLigandListener);
     choosers.add(c);
     addComponent(c);
     c.showHelpers();
@@ -129,6 +132,7 @@ public class TechnologiesPanel extends HorizontalLayout {
     TechChooser c = new TechChooser(options);
     c.addPoolListener(poolListener);
     c.addProteinListener(proteinListener);
+    c.addMHCListener(mhcLigandListener);
     choosers.add(c);
 
     c.showHelpers();
@@ -146,6 +150,7 @@ public class TechnologiesPanel extends HorizontalLayout {
       choosers.remove(last);
       last.removePoolListener(poolListener);
       last.removeProteinListener(proteinListener);
+      last.removeMHCListener(mhcLigandListener);
       choosers.get(size - 2).showHelpers();
     }
   }

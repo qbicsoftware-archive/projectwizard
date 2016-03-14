@@ -35,6 +35,7 @@ public enum LiferayConfigurationManager implements ConfigurationManager {
 
   public static final String TMP_FOLDER = "tmp.folder";
   public static final String BARCODE_SCRIPTS_FOLDER = "barcode.scripts";
+  public static final String BARCODE_RESULTS = "barcode.results";
   public static final String BARCODE_PATH_VARIABLE = "path.variable";
 
   public static final String ATTACHMENT_URI = "attachment.uri";
@@ -58,6 +59,7 @@ public enum LiferayConfigurationManager implements ConfigurationManager {
   private String tmpFolder;
   private String barcodeScriptsFolder;
   private String barcodePathVariable;
+  private String barcodeResultsFolder;
 
   private String attachmentURI;
   private String attachmentUser;
@@ -90,6 +92,7 @@ public enum LiferayConfigurationManager implements ConfigurationManager {
     tmpFolder = portletConfig.getProperty(TMP_FOLDER);
     barcodeScriptsFolder = portletConfig.getProperty(BARCODE_SCRIPTS_FOLDER);
     barcodePathVariable = portletConfig.getProperty(BARCODE_PATH_VARIABLE);
+    barcodeResultsFolder = portletConfig.getProperty(BARCODE_RESULTS);
 
     attachmentURI = portletConfig.getProperty(ATTACHMENT_URI);
     attachmentUser = portletConfig.getProperty(ATTACHMENT_USER);
@@ -190,6 +193,11 @@ public enum LiferayConfigurationManager implements ConfigurationManager {
   @Override
   public String getVocabularyMSLabeling() {
     return labelingMethods;
+  }
+
+  @Override
+  public String getBarcodeResultsFolder() {
+    return barcodeResultsFolder;
   }
 
 }

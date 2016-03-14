@@ -21,21 +21,16 @@ import io.DBManager;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import logging.Log4j2Logger;
 import main.ProjectwizardUI;
 import main.SampleSummaryBean;
 import model.ISampleBean;
 
-import org.vaadin.teemu.wizards.Wizard;
 import org.vaadin.teemu.wizards.WizardStep;
 
 import views.IRegistrationView;
 
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
-
-import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
@@ -69,7 +64,9 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
   private boolean registrationComplete = false;
   DBManager dbm;
   private int investigatorID;
-  private String projectCode;
+  private int contactID;
+  private String projectIdentifier;
+  private String projectName;
 
   public SummaryRegisterStep(DBManager dbm) {
     this.dbm = dbm;
@@ -86,6 +83,7 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
     summary.addContainerProperty("Type", String.class, null);
     summary.addContainerProperty("Number of Samples", Integer.class, null);
     summary.setStyleName(ValoTheme.TABLE_SMALL);
+    summary.setImmediate(true);
     summary.setPageLength(1);
 
     summaryComponent =
@@ -107,7 +105,7 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
 
     downloadGraph = new Button("Download Graph");
     downloadGraph.setEnabled(false);
-    // main.addComponent(downloadGraph);
+    main.addComponent(downloadGraph);
 
     register = new Button("Register All");
     register.setEnabled(false);
@@ -132,6 +130,7 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
   // }
 
   public void setSummary(ArrayList<SampleSummaryBean> beans) {
+    summary.removeAllItems();
     int i = 0;
     for (SampleSummaryBean b : beans) {
       i++;
@@ -152,7 +151,7 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
             type = "Sample Preparations";
             break;
           default:
-            break;
+            type = sampleType;
         }
       }
       summary.addItem(new Object[] {type, amount}, i);
@@ -213,8 +212,11 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
 
   public void registrationDone() {
     logger.info("Sample registration complete!");
+    int projectID = dbm.addProjectToDB(projectIdentifier, projectName);
     if (investigatorID != -1)
-      tryAddInvestigatorToDB();
+      dbm.addPersonToProject(projectID, investigatorID, "PI");
+    if (contactID != -1)
+      dbm.addPersonToProject(projectID, contactID, "Contact");
     Notification n =
         new Notification("Registration of samples complete. Press 'next' for additional options.");
     n.setStyleName(ValoTheme.NOTIFICATION_CLOSABLE);
@@ -223,13 +225,11 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
     registrationComplete = true;
   }
 
-  public void setInvestigatorAndProject(int id, String projectCode) {
-    this.investigatorID = id;
-    this.projectCode = projectCode;
-  }
-
-  private void tryAddInvestigatorToDB() {
-    dbm.addProjectForPrincipalInvestigator(investigatorID, projectCode);
+  public void setPeopleAndProject(int investigator, int contact, String projectIdentifier, String projectName) {
+    this.investigatorID = investigator;
+    this.contactID = contact;
+    this.projectIdentifier = projectIdentifier;
+    this.projectName = projectName;
   }
 
   public ProgressBar getProgressBar() {

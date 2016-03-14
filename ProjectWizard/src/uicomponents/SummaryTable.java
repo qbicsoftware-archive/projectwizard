@@ -1,19 +1,17 @@
 /*******************************************************************************
- * QBiC Project Wizard enables users to create hierarchical experiments including different study conditions using factorial design.
- * Copyright (C) "2016"  Andreas Friedrich
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * QBiC Project Wizard enables users to create hierarchical experiments including different study
+ * conditions using factorial design. Copyright (C) "2016" Andreas Friedrich
+ * 
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with this program. If
+ * not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 package uicomponents;
 
@@ -24,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 
 import properties.Factor;
-import sun.awt.HorizBagLayout;
 
 import main.ProjectwizardUI;
 import model.AOpenbisSample;
@@ -64,16 +61,26 @@ public class SummaryTable extends VerticalLayout {
     setSpacing(true);
     this.name = name;
     table = new Table(name);
-    Button clear = new Button("Remove Secondary Names");
-    clear.addClickListener(new ClickListener() {
+    Button clearSecondary = new Button("Remove Secondary Names");
+    clearSecondary.addClickListener(new ClickListener() {
 
       @Override
       public void buttonClick(ClickEvent event) {
-        removeSecondaryNames();
+        removeColEntries("Secondary Name");
+      }
+    });
+    Button clearExternal = new Button("Remove External IDs");
+    clearExternal.addClickListener(new ClickListener() {
+
+      @Override
+      public void buttonClick(ClickEvent event) {
+        removeColEntries("External DB ID");
       }
     });
     deleteNames = new HorizontalLayout();
-    deleteNames.addComponent(clear);
+    deleteNames.setSpacing(true);
+    deleteNames.addComponent(clearSecondary);
+    deleteNames.addComponent(clearExternal);
   }
 
   public List<AOpenbisSample> getSamples() {
@@ -81,14 +88,20 @@ public class SummaryTable extends VerticalLayout {
     for (Object id : table.getItemIds()) {
       String key = (String) table.getItem(id).getItemProperty("ID").getValue();
       AOpenbisSample s = map.get(key);
-      String secName = parseSecName(id);
+      String secName = parseTextField("Secondary Name", id);
       s.setQ_SECONDARY_NAME(secName);
       if (secName == null)
         secName = "";
+
+      String extID = parseTextField("External DB ID", id);
+      s.setQ_EXTERNALDB_ID(extID);
+      if (extID == null)
+        extID = "";
+
       if (!secName.equals("DELETED")) {
         if (isotopes) {
           String method = labelingMethod.getName();
-          String value = parseLabel(method, id);
+          String value = parseComboLabel(method, id);
           if (value != null)
             s.addFactor(new Factor(method.toLowerCase(), value));
         }
@@ -98,12 +111,12 @@ public class SummaryTable extends VerticalLayout {
     return res;
   }
 
-  private String parseLabel(String name, Object id) {
+  private String parseComboLabel(String colname, Object id) {
     return (String) ((ComboBox) table.getItem(id).getItemProperty(name).getValue()).getValue();
   }
 
-  private String parseSecName(Object id) {
-    return ((TextField) table.getItem(id).getItemProperty("Secondary Name").getValue()).getValue();
+  private String parseTextField(String colname, Object id) {
+    return ((TextField) table.getItem(id).getItemProperty(colname).getValue()).getValue();
   }
 
   public void setPageLength(int size) {
@@ -122,9 +135,9 @@ public class SummaryTable extends VerticalLayout {
             "Clear Secondary Names"));
   }
 
-  private void removeSecondaryNames() {
+  private void removeColEntries(String colName) {
     for (Object id : table.getItemIds()) {
-      TextField tf = (TextField) table.getItem(id).getItemProperty("Secondary Name").getValue();
+      TextField tf = (TextField) table.getItem(id).getItemProperty(colName).getValue();
       if (!tf.getValue().equals("DELETED"))
         tf.setValue("");
     }
@@ -139,6 +152,8 @@ public class SummaryTable extends VerticalLayout {
     table.addContainerProperty("ID", String.class, null);
     table.setColumnWidth("ID", 35);
     table.addContainerProperty("Secondary Name", TextField.class, null);
+    table.addContainerProperty("External DB ID", TextField.class, null);
+    table.setColumnWidth("External DB ID", 106);
     table.setImmediate(true);
 
     if (isotopes)
@@ -197,16 +212,24 @@ public class SummaryTable extends VerticalLayout {
         public void buttonClick(ClickEvent event) {
           Button b = event.getButton();
           Integer iid = (Integer) b.getData();
-          TextField tf =
+          TextField secNameField =
               (TextField) table.getItem(iid).getItemProperty("Secondary Name").getValue();
-          if (tf.getValue().equals("DELETED")) {
-            tf.setReadOnly(false);
+          TextField extIDField =
+              (TextField) table.getItem(iid).getItemProperty("External DB ID").getValue();
+          if (secNameField.getValue().equals("DELETED")) {
+            secNameField.setReadOnly(false);
+            extIDField.setReadOnly(false);
+
             String id = (String) table.getItem(iid).getItemProperty("ID").getValue();
-            tf.setValue(map.get(id).getQ_SECONDARY_NAME());
+            secNameField.setValue(map.get(id).getQ_SECONDARY_NAME());
+            extIDField.setValue(map.get(id).getQ_EXTERNALDB_ID());
+
             b.setIcon(FontAwesome.TRASH_O);
           } else {
-            tf.setValue("DELETED");
-            tf.setReadOnly(true);
+            secNameField.setValue("DELETED");
+            secNameField.setReadOnly(true);
+            extIDField.setValue("DELETED");
+            extIDField.setReadOnly(true);
             b.setIcon(FontAwesome.UNDO);
           }
         }
@@ -215,10 +238,16 @@ public class SummaryTable extends VerticalLayout {
       // Create the table row.
       List<Object> row = new ArrayList<Object>();
       row.add(id);
-      TextField tf = new StandardTextField();
-      tf.setImmediate(true);
-      tf.setValue(s.getQ_SECONDARY_NAME());
-      row.add(tf);
+      TextField secNameField = new StandardTextField();
+      secNameField.setImmediate(true);
+      secNameField.setValue(s.getQ_SECONDARY_NAME());
+      row.add(secNameField);
+      TextField extIDField = new StandardTextField();
+      extIDField.setWidth("95px");
+      extIDField.setImmediate(true);
+      extIDField.setValue(s.getQ_EXTERNALDB_ID());
+      row.add(extIDField);
+
       if (isotopes) {
         ComboBox cb = new ComboBox();
         cb.setImmediate(true);

@@ -120,4 +120,12 @@ public class TechChooser extends VerticalLayout {
   public boolean poolingSet() {
     return pool.getValue();
   }
+
+  public void addMHCListener(ValueChangeListener mhcLigandListener) {
+    this.chooser.addValueChangeListener(mhcLigandListener);
+  }
+  
+  public void removeMHCListener(ValueChangeListener mhcLigandListener) {
+    this.chooser.removeValueChangeListener(mhcLigandListener);
+  }
 }

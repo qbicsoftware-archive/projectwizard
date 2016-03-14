@@ -1,6 +1,6 @@
 /*******************************************************************************
  * QBiC Project Wizard enables users to create hierarchical experiments including different study
- * conditions using factorial design. Copyright (C) "2016" Andreas Friedrich
+ * conditions using factorial design. Copyright (C) 2016 Andreas Friedrich
  * 
  * This program is free software: you can redistribute it and/or modify it under the terms of the
  * GNU General Public License as published by the Free Software Foundation, either version 3 of the
@@ -11,10 +11,12 @@
  * General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with this program. If
- * not, see <http://www.gnu.org/licenses/>.
+ * not, see http://www.gnu.org/licenses/.
  *******************************************************************************/
-package io;
+package incubator;
 
+
+import io.DBConfig;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -22,19 +24,25 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
 
 import logging.Log4j2Logger;
 import model.Person;
 import model.PersonWithAdress;
 
-public class DBManager {
+public class NewDBManager {
   private DBConfig config;
 
-  logging.Logger logger = new Log4j2Logger(DBManager.class);
+  logging.Logger logger = new Log4j2Logger(NewDBManager.class);
 
-  public DBManager(DBConfig config) {
+  public NewDBManager(DBConfig config) {
     this.config = config;
   }
 
@@ -45,6 +53,13 @@ public class DBManager {
       // TODO Auto-generated catch block
       e.printStackTrace();
     }
+  }
+
+  public static void main(String[] args) {
+    NewDBManager dbm =
+        new NewDBManager(new DBConfig("portal-testing.am10.uni-tuebingen.de", "3306",
+            "project_investigator_db", "mariadbuser", "dZAmDa9-Ysq_Zv1AGygQ"));
+    dbm.printPeople();
   }
 
   private Connection login() {
@@ -62,6 +77,66 @@ public class DBManager {
       e.printStackTrace();
     }
     return conn;
+  }
+
+  //TODO
+  List<String> listAffiliationNames() {
+    List<String> res = new ArrayList<String>();
+    // get every known project
+    String query = "SELECT group_name from affiliation";
+    Connection conn = login();
+    try (PreparedStatement statement = conn.prepareStatement(query)) {
+      ResultSet rs = statement.executeQuery();
+      while (rs.next()) {
+        String name = rs.getString("group_name");
+        res.add(name);
+      }
+      statement.close();
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+    logout(conn);
+    return res;
+  }
+
+  // TODO
+  List<ProjectInformation> listCompleteProjectInformation(List<Project> projects) {
+    Set<String> openbisIDs = new HashSet<String>(projects.size());
+    for (Project p : projects)
+      openbisIDs.add(p.getIdentifier());
+    List<ProjectInformation> res = new ArrayList<ProjectInformation>();
+    // get every known project
+    String query =
+        "SELECT project.*, person.* FROM project LEFT JOIN project_person AS junction "
+            + "ON junction.project_id = project.project_id LEFT JOIN person "
+            + "ON junction.person_id = person.person_id " + "WHERE person.role = INVESTIGATOR";// might
+                                                                                               // be
+                                                                                               // useful
+                                                                                               // later:
+                                                                                               // OR
+                                                                                               // person.role
+                                                                                               // =
+                                                                                               // CONTACT_PERSON";
+    Connection conn = login();
+    try (PreparedStatement statement = conn.prepareStatement(query)) {
+      ResultSet rs = statement.executeQuery();
+      while (rs.next()) {
+        String project_id = rs.getString("project_id");
+        String project_label = rs.getString("label");
+        String project_description = rs.getString("description");
+        String title = rs.getString("title");
+        String first = rs.getString("first_name");
+        String last = rs.getString("last_name");
+        // String role = rs.getString("role");
+        res.add(new ProjectInformation(project_id, title + " " + first + " " + last, project_label,
+            project_description));
+      }
+      statement.close();
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+    logout(conn);
+    return res;
   }
 
   public void addOrChangeSecondaryNameForProject(String projectCode, String secondaryName) {
@@ -82,37 +157,13 @@ public class DBManager {
     logout(conn);
   }
 
-  public int addProjectToDB(String projectIdentifier, String projectName) {
-    logger.info("Trying to add project " + projectIdentifier + " to the person DB");
-    String sql = "INSERT INTO projects (openbis_project_identifier, short_title) VALUES(?, ?)";
+  public void addProjectForPrincipalInvestigator(int pi_id, String projectCode) {
+    logger.info("Trying to add project " + projectCode + " to the principal investigator DB");
+    String sql = "INSERT INTO projects (pi_id, project_code) VALUES(?, ?)";
     Connection conn = login();
     try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-      statement.setString(1, projectIdentifier);
-      statement.setString(2, projectName);
-      statement.execute();
-      ResultSet rs = statement.getGeneratedKeys();
-      if (rs.next()) {
-        logout(conn);
-        logger.info("Successful.");
-        return rs.getInt(1);
-      }
-    } catch (SQLException e) {
-      logger.error("SQL operation unsuccessful: " + e.getMessage());
-      e.printStackTrace();
-    }
-    logout(conn);
-    return -1;
-  }
-
-  public void addPersonToProject(int projectID, int personID, String role) {
-    logger.info("Trying to add person with role " + role + " to a project.");
-    String sql =
-        "INSERT INTO projects_persons (project_id, person_id, project_role) VALUES(?, ?, ?)";
-    Connection conn = login();
-    try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-      statement.setInt(1, projectID);
-      statement.setInt(2, personID);
-      statement.setString(3, role);
+      statement.setInt(1, pi_id);
+      statement.setString(2, projectCode);
       statement.execute();
       logger.info("Successful.");
     } catch (SQLException e) {
@@ -253,15 +304,15 @@ public class DBManager {
    * @return
    */
   public Map<String, Integer> getPrincipalInvestigatorsWithIDs() {
-    String sql = "SELECT id, first_name, family_name FROM persons WHERE active = 1";
+    String sql = "SELECT pi_id, first_name, last_name FROM project_investigators WHERE active = 1";
     Map<String, Integer> res = new HashMap<String, Integer>();
     Connection conn = login();
     try (PreparedStatement statement = conn.prepareStatement(sql)) {
       ResultSet rs = statement.executeQuery();
       while (rs.next()) {
-        int pi_id = rs.getInt("id");
+        int pi_id = rs.getInt("pi_id");
         String first = rs.getString("first_name");
-        String last = rs.getString("family_name");
+        String last = rs.getString("last_name");
         res.put(first + " " + last, pi_id);
       }
       statement.close();

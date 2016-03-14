@@ -18,15 +18,9 @@
 package uicomponents;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import processes.AttachmentMover;
-import processes.MoveUploadsReadyRunnable;
-import processes.RegisteredSamplesReadyRunnable;
-import steps.ProjectContextStep;
 
 import logging.Log4j2Logger;
 import main.ProjectwizardUI;
@@ -35,7 +29,6 @@ import model.AttachmentInformation;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.server.FontAwesome;
-import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -45,22 +38,17 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.Upload.FinishedEvent;
 import com.vaadin.ui.Upload.FinishedListener;
 import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Upload;
 import com.vaadin.ui.VerticalLayout;
 
 import componentwrappers.StandardTextField;
-import control.Uploader;
-import control.WizardController.Steps;
-import de.uni_tuebingen.qbic.main.LiferayAndVaadinUtils;
-
-public class UploadsPanel extends VerticalLayout {
+public class WizardUploadsPanel extends VerticalLayout {
 
   /**
    * 
    */
   private static final long serialVersionUID = 6971325287434528738L;
 
-  private logging.Logger logger = new Log4j2Logger(UploadsPanel.class);
+  private logging.Logger logger = new Log4j2Logger(WizardUploadsPanel.class);
 
   private File current;
   private Map<Object, AttachmentInformation> attachments;
@@ -79,7 +67,8 @@ public class UploadsPanel extends VerticalLayout {
 
   private String userID;
 
-  public UploadsPanel(String project, List<String> expOptions, String userID, int uploadSize) {
+  public WizardUploadsPanel(String project, List<String> expOptions, String userID, int uploadSize) {
+    setCaption("Upload Planning Files");
     this.userID = userID;
     this.project = project;
     attachments = new HashMap<Object, AttachmentInformation>();
@@ -146,6 +135,7 @@ public class UploadsPanel extends VerticalLayout {
 
     add.addClickListener(new ClickListener() {
 
+      @SuppressWarnings("unchecked")
       @Override
       public void buttonClick(ClickEvent event) {
         Button delete = new Button();
@@ -157,7 +147,7 @@ public class UploadsPanel extends VerticalLayout {
         String secondary = fileInfo.getValue();
         String cntxt = (String) context.getValue();
         attachments.put(itemId, new AttachmentInformation(current.getName(), secondary, userID,
-            getBarcode(cntxt)));
+            getBarcode(cntxt), cntxt, cntxt));
 
         delete.addClickListener(new Button.ClickListener() {
           /**

@@ -17,7 +17,6 @@
  *******************************************************************************/
 package uicomponents;
 
-import incubator.EnzymeChooser;
 import io.DBVocabularies;
 
 import java.util.ArrayList;

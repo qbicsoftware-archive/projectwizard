@@ -26,20 +26,20 @@ public class NewSampleModelBean {
 
   String Code;
   String Secondary_Name;
-  String Type;
+//  String Type;
   
   public NewSampleModelBean(String code, String secondaryName, String type) {
     this.Code = code;
     this.Secondary_Name = secondaryName;
-    this.Type = type;
+//    this.Type = type;
   }
 
-  public String getType() {
-    return Type;
-  }
+//  public String getType() {
+//    return Type;
+//  }//TODO needed?
   
   public void setType(String type) {
-    this.Type = type;
+//    this.Type = type;
   }
   
   public String getCode() {

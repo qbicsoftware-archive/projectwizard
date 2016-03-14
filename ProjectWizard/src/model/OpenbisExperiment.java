@@ -17,6 +17,8 @@
  *******************************************************************************/
 package model;
 
+import java.util.Map;
+
 /**
  * Class representing an experiment with some metadata
  * @author Andreas Friedrich
@@ -28,7 +30,20 @@ public class OpenbisExperiment {
   ExperimentType type;
   String Q_SECONDARY_NAME;
   String Q_ADDITIONAL_NOTES;
+  Map<String, Object> properties;
 
+  /**
+   * Creates a new Openbis Experiment
+   * @param name Name of the experiment
+   * @param type Experiment type
+   * @param props Map with experimental properties
+   */
+  public OpenbisExperiment(String name, ExperimentType type, Map<String, Object> props) {
+    this.properties = props;
+    this.openbisName = name;
+    this.type = type;
+  }
+  
   /**
    * Creates a new Openbis Experiment
    * @param name Name of the experiment
@@ -59,6 +74,10 @@ public class OpenbisExperiment {
 
   public ExperimentType getType() {
     return type;
+  }
+  
+  public Map<String, Object> getMetadata() {
+    return properties;
   }
 
   public String getQ_SECONDARY_NAME() {

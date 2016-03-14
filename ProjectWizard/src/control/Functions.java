@@ -1,25 +1,29 @@
 /*******************************************************************************
- * QBiC Project Wizard enables users to create hierarchical experiments including different study conditions using factorial design.
- * Copyright (C) "2016"  Andreas Friedrich
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * QBiC Project Wizard enables users to create hierarchical experiments including different study
+ * conditions using factorial design. Copyright (C) "2016" Andreas Friedrich
+ * 
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with this program. If
+ * not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 package control;
 
 
 import java.util.ArrayList;
 import java.util.List;
+
+import com.vaadin.ui.Notification;
+import com.vaadin.ui.themes.ValoTheme;
+import com.vaadin.server.FontAwesome;
+import com.vaadin.server.Page;
+import com.vaadin.shared.Position;
 
 /**
  * Helper functions used for sample creation
@@ -28,6 +32,32 @@ import java.util.List;
  * 
  */
 public class Functions {
+
+  public enum NotificationType {
+    ERROR, SUCCESS, DEFAULT
+  }
+
+  public static void notification(String title, String description, NotificationType type) {
+    Notification notify = new Notification(title, description);
+    notify.setPosition(Position.TOP_CENTER);
+    switch (type) {
+      case ERROR:
+        notify.setDelayMsec(16000);
+        notify.setIcon(FontAwesome.FROWN_O);
+        notify.setStyleName(ValoTheme.NOTIFICATION_ERROR + " " + ValoTheme.NOTIFICATION_CLOSABLE);
+        break;
+      case SUCCESS:
+        notify.setDelayMsec(8000);
+        notify.setIcon(FontAwesome.SMILE_O);
+        notify.setStyleName(ValoTheme.NOTIFICATION_SUCCESS + " " + ValoTheme.NOTIFICATION_CLOSABLE);
+      default:
+        notify.setDelayMsec(8000);
+        notify.setIcon(FontAwesome.MEH_O);
+        notify.setStyleName(ValoTheme.NOTIFICATION_TRAY + " " + ValoTheme.NOTIFICATION_CLOSABLE);
+        break;
+    }
+    notify.show(Page.getCurrent());
+  }
 
   /**
    * Checks if a String can be parsed to an Integer
@@ -47,13 +77,13 @@ public class Functions {
   public static long getTimer() {
     return System.currentTimeMillis();
   }
-  
+
   public static void printElapsedTime(long startTime) {
     long stopTime = System.currentTimeMillis();
     long elapsedTime = stopTime - startTime;
     System.out.println(elapsedTime);
   }
-  
+
   /**
    * Increments the value of an upper case char. When at "X" restarts with "A".
    * 
@@ -101,8 +131,8 @@ public class Functions {
       num = "001" + incrementUppercase(letter);
     } else
       num = createCountString(newNum, 3) + letter;
-    String res = code.substring(0, 5)+num;
-    return res+checksum(res);
+    String res = code.substring(0, 5) + num;
+    return res + checksum(res);
   }
 
   /**
@@ -156,7 +186,7 @@ public class Functions {
     }
     return mapToChar(sum % 34);
   }
-  
+
   public static void main(String[] args) {
     String test = "QMELA005A";
     System.out.println(checksum(test));

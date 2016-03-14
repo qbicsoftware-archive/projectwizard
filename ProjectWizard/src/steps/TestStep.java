@@ -1,19 +1,17 @@
 /*******************************************************************************
- * QBiC Project Wizard enables users to create hierarchical experiments including different study conditions using factorial design.
- * Copyright (C) "2016"  Andreas Friedrich
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * QBiC Project Wizard enables users to create hierarchical experiments including different study
+ * conditions using factorial design. Copyright (C) "2016" Andreas Friedrich
+ * 
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with this program. If
+ * not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 package steps;
 
@@ -23,10 +21,13 @@ import java.util.List;
 import java.util.Map;
 
 import main.ProjectwizardUI;
+import model.AOpenbisSample;
+import model.MHCLigandExtractionProtocol;
 import model.TestSampleInformation;
 
 import org.vaadin.teemu.wizards.WizardStep;
 
+import uicomponents.LigandExtractPanel;
 import uicomponents.MSPanel;
 import uicomponents.TechnologiesPanel;
 
@@ -53,9 +54,11 @@ public class TestStep implements WizardStep {
   private VerticalLayout main;
   private TechnologiesPanel techPanel;
   private MSPanel msPanel;
+  private LigandExtractPanel mhcLigandPanel;
   private CheckBox noMeasure;
   DBVocabularies vocabs;
   private boolean containsProteins = false;
+  private boolean containsMHCLigands = false;
 
   /**
    * Create a new Sample Preparation step for the wizard
@@ -117,7 +120,7 @@ public class TestStep implements WizardStep {
   @Override
   public boolean onAdvance() {
     if (techPanel.isValid() || noMeasure.getValue()) {
-      if (containsProteins) {
+      if (containsProteins) {// TODO mhc ligands
         if (msPanel.isValid())
           return true;
         else
@@ -155,7 +158,6 @@ public class TestStep implements WizardStep {
     return techPanel.poolingSet();
   }
 
-
   public void initTestStep(ValueChangeListener testPoolListener) {
     ValueChangeListener proteinListener = new ValueChangeListener() {
 
@@ -170,22 +172,54 @@ public class TestStep implements WizardStep {
         for (TestSampleInformation i : getSampleTypes()) {
           containsProteins |= i.getTechnology().equals("PROTEINS");
         }
-        // msPanelComponent.setVisible(containsProteins);
         msPanel.setVisible(containsProteins);
+      }
+    };
+
+    ValueChangeListener mhcLigandListener = new ValueChangeListener() {
+
+      /**
+         * 
+         */
+      private static final long serialVersionUID = -2883346670741817840L;
+
+      @Override
+      public void valueChange(ValueChangeEvent event) {
+        containsMHCLigands = false;
+        for (TestSampleInformation i : getSampleTypes()) {
+          containsMHCLigands |= i.getTechnology().equals("CELL_LYSATE");
+        }
+        mhcLigandPanel.setVisible(containsMHCLigands);
       }
     };
     techPanel =
         new TechnologiesPanel(vocabs.getMeasureTypes(), new OptionGroup(""), testPoolListener,
-            proteinListener);
+            proteinListener, mhcLigandListener);
     main.addComponent(techPanel);
     msPanel = new MSPanel(vocabs, new OptionGroup(""));
     msPanel.setVisible(false);
-    // msPanelComponent =
-    // new CustomVisibilityComponent(new MSPanel(vocabs.getEnzymes(),
-    // new OptionGroup("")));
-    // msPanelComponent.setVisible(false);
 
     main.addComponent(msPanel);
+
+    mhcLigandPanel = new LigandExtractPanel(vocabs, new OptionGroup(""));
+    mhcLigandPanel.setVisible(false);
+
+    main.addComponent(mhcLigandPanel);
+  }
+
+  public void setTissueExtracts(List<AOpenbisSample> extracts) {
+    mhcLigandPanel.setTissueSamples(extracts);
+  }
+
+  public Map<String, MHCLigandExtractionProtocol> getAntibodyInfos() {
+    return mhcLigandPanel.getAntibodyInfos();
+  }
+
+  public Map<String, Map<String, Object>> getMHCLigandExtractProperties() {
+    if (containsMHCLigands)
+      return mhcLigandPanel.getExperimentalProperties();
+    else
+      return null;
   }
 
   public Map<String, Object> getMSExperimentProperties() {
@@ -193,5 +227,9 @@ public class TestStep implements WizardStep {
       return msPanel.getExperimentalProperties();
     else
       return null;
+  }
+
+  public boolean hasMHCLigands() {
+    return containsMHCLigands;
   }
 }

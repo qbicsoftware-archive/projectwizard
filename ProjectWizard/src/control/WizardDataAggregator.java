@@ -28,6 +28,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.bind.JAXBException;
 
@@ -37,9 +39,11 @@ import main.ProjectwizardUI;
 import model.AOpenbisSample;
 import model.ExperimentBean;
 import model.ExperimentType;
+import model.MHCLigandExtractionProtocol;
 import model.OpenbisBiologicalEntity;
 import model.OpenbisBiologicalSample;
 import model.OpenbisExperiment;
+import model.OpenbisMHCExtractSample;
 import model.OpenbisTestSample;
 import model.TestSampleInformation;
 import parser.XMLParser;
@@ -47,6 +51,8 @@ import properties.Factor;
 
 import org.apache.commons.lang.StringUtils;
 import org.vaadin.teemu.wizards.WizardStep;
+
+import com.vaadin.sass.internal.parser.function.TypeOfFunctionGenerator;
 
 import control.WizardController.Steps;
 
@@ -112,9 +118,12 @@ public class WizardDataAggregator {
   private List<AOpenbisSample> tests;
   private List<AOpenbisSample> extractPools;
   private List<AOpenbisSample> testPools;
+  private List<AOpenbisSample> mhcExtracts;
   private Map<String, Character> classChars;
   logging.Logger logger = new Log4j2Logger(WizardDataAggregator.class);
   private ArrayList<Sample> samples;
+
+  private Map<String, Map<String, Object>> mhcExperimentProtocols;
 
   /**
    * Creates a new WizardDataAggregator
@@ -257,9 +266,9 @@ public class WizardDataAggregator {
     }
     return extracts;
   }
-  
 
-  //TODO move this to openbisclient and remove from here and barcodecontroller
+
+  // TODO move this to openbisclient and remove from here and barcodecontroller
   protected Map<Sample, List<String>> getParentMap(List<Sample> samples) {
     List<String> codes = new ArrayList<String>();
     for (Sample s : samples) {
@@ -318,6 +327,74 @@ public class WizardDataAggregator {
         techSortedTests.remove(i);
     }
     return techSortedTests;
+  }
+
+  /**
+   * Creates the list of MHC ligand extract samples prepared for ms from the input information
+   * collected in the aggregator fields and wizard steps and fetches or creates the associated
+   * context. These are between the test sample and ms sample layer and carry a standard barcode!
+   * 
+   * @return
+   */
+  public List<AOpenbisSample> prepareMHCExtractSamples() {
+    mhcExperimentProtocols = s8.getMHCLigandExtractProperties();
+    Map<String, MHCLigandExtractionProtocol> antibodyInfos = s8.getAntibodyInfos();
+
+    mhcExtracts = new ArrayList<AOpenbisSample>();
+
+    for (String derivedFrom : mhcExperimentProtocols.keySet()) {
+      String expCode = buildExperimentName();
+      Map<String, Object> currentProtocol = mhcExperimentProtocols.get(derivedFrom);
+      currentProtocol.put("Code", expCode);
+      experiments.add(new OpenbisExperiment(expCode, ExperimentType.Q_MHC_LIGAND_EXTRACTION,
+          currentProtocol));
+
+      List<AOpenbisSample> extracts =
+          buildMHCExtractSamples(tests, classChars, derivedFrom, antibodyInfos.get(derivedFrom));
+      mhcExtracts.addAll(extracts);
+    }
+
+    return mhcExtracts;
+  }
+
+  public Map<String, Map<String, Object>> getMHCLigandExtractProperties() {
+    return mhcExperimentProtocols;
+  }
+
+  /**
+   * Build and return a list of all possible MHC ligand extracts, using existing test samples and
+   * the number of antibody columns used in the experiment.
+   * 
+   * @param tests prepared ligands (test samples) these MHC ligand extracts will be prepared from
+   *        (and attached to)
+   * @param classChars Filled map of different class letters used for the tests
+   * @return List of lists of AOpenbisSamples containing MHC ligand extract samples
+   */
+  private List<AOpenbisSample> buildMHCExtractSamples(List<AOpenbisSample> tests,
+      Map<String, Character> classChars, String tissueCode, MHCLigandExtractionProtocol protocol) {
+    List<AOpenbisSample> mhcExtracts = new ArrayList<AOpenbisSample>();
+    int expNum = experiments.size() - 1;
+    for (AOpenbisSample s : tests) {
+      if (s.getParent().equals(tissueCode)) {
+        String secondaryName = s.getQ_SECONDARY_NAME();
+        for (String antibody : protocol.getAntibodies()) {
+          String[] mhcClasses = protocol.getMHCClass(antibody);
+          for (String mhcClass : mhcClasses) {
+            if (classChars.containsKey(secondaryName)) { // TODO see other sample creation
+              classChar = classChars.get(secondaryName);
+            } else {
+              classChar = Functions.incrementUppercase(classChar);
+              classChars.put(secondaryName, classChar);
+            }
+            incrementOrCreateBarcode();
+            mhcExtracts.add(new OpenbisMHCExtractSample(nextBarcode, spaceCode, experiments.get(
+                expNum).getOpenbisName(), secondaryName, "", s.getFactors(), antibody, mhcClass, s
+                .getCode(), s.getQ_EXTERNALDB_ID()));
+          }
+        }
+      }
+    }
+    return mhcExtracts;
   }
 
   /**
@@ -519,7 +596,7 @@ public class WizardDataAggregator {
           incrementOrCreateBarcode();
           extracts.add(new OpenbisBiologicalSample(nextBarcode, spaceCode, experiments.get(expNum)
               .getOpenbisName(), secondaryName, "", curFactors, tissueCode, cellLine, e.getCode(),
-              "")); // TODO
+              e.getQ_EXTERNALDB_ID())); // TODO
           // ext
           // db
           // id
@@ -601,10 +678,11 @@ public class WizardDataAggregator {
           }
           incrementOrCreateBarcode();
           techTests.add(new OpenbisTestSample(nextBarcode, spaceCode, experiments.get(expNum)
-              .getOpenbisName(), secondaryName, "", s.getFactors(), sampleType, s.getCode(), ""));// TODO
-                                                                                                  // ext
-                                                                                                  // db
-                                                                                                  // id
+              .getOpenbisName(), secondaryName, "", s.getFactors(), sampleType, s.getCode(), s
+              .getQ_EXTERNALDB_ID()));// TODO
+          // ext
+          // db
+          // id
         }
       }
       tests.add(techTests);
@@ -732,17 +810,17 @@ public class WizardDataAggregator {
    * @return
    */
   private String parseParents(Sample sample, Map<Sample, List<String>> childParentsMap) {
-//    StringBuilder builder = new StringBuilder();
-//    List<Sample> parentSamples = new ArrayList<Sample>();
-//    if (childParentsMap == null)
-//      parentSamples = openbis.getParents(sample.getCode());
-//    else
-//      parentSamples = (List<Sample>) childParentsMap.get(sample);
-//    
-//    for (Sample p : parentSamples)
-//      builder.append(' ').append(p.getCode());
-//    return builder.toString().trim();
-    
+    // StringBuilder builder = new StringBuilder();
+    // List<Sample> parentSamples = new ArrayList<Sample>();
+    // if (childParentsMap == null)
+    // parentSamples = openbis.getParents(sample.getCode());
+    // else
+    // parentSamples = (List<Sample>) childParentsMap.get(sample);
+    //
+    // for (Sample p : parentSamples)
+    // builder.append(' ').append(p.getCode());
+    // return builder.toString().trim();
+
     return StringUtils.join(childParentsMap.get(sample), " ");
   }
 
@@ -897,6 +975,8 @@ public class WizardDataAggregator {
     samples.addAll(entities);
     samples.addAll(extracts);
     samples.addAll(tests);
+    if (mhcExtracts != null)
+      samples.addAll(mhcExtracts);
     List<String> rows = new ArrayList<String>();
 
     List<String> header =
@@ -915,10 +995,30 @@ public class WizardDataAggregator {
     }
     String description = s1.getDescription();
     String secondaryName = s1.getExpSecondaryName();
+    String investigator = s1.getPrincipalInvestigator();
+    String contact = s1.getContactPerson();
+    Map<String, Object> msProps = s8.getMSExperimentProperties();
+
+    String result = "";
+    // description = description.replace("\n", "\n#"); TODO needed?
+    // secondaryName = secondaryName.replace("\n", "\n#");
+    result += "#PROJECT_DESCRIPTION=" + description + "\n";
+    result += "#ALTERNATIVE_NAME=" + secondaryName + "\n";
+    result += "#INVESTIGATOR=" + investigator + "\n";
+    result += "#CONTACT=" + contact + "\n";
+    if (msProps != null)
+      result += addExperimentInfoLine(msProps, "Q_MS_MEASUREMENT") + "\n";
+    if (mhcExperimentProtocols != null) {
+      header.add("Q_ANTIBODY");
+      header.add("Q_MHC_CLASS");
+      for (Map<String, Object> prop : mhcExperimentProtocols.values())
+        result += addExperimentInfoLine(prop, "Q_MHC_LIGAND_EXTRACTION") + "\n";
+    }
 
     String headerLine = "Identifier";
     for (String col : header)
       headerLine += "\t" + col;
+
     for (Factor f : a.getFactors()) {
       String label = f.getLabel();
       headerLine += "\tCondition: " + label;
@@ -945,17 +1045,23 @@ public class WizardDataAggregator {
         rows.add(row);
       }
     }
-    String result = "";
-    description = description.replace("\n", "\n#");
-    secondaryName = secondaryName.replace("\n", "\n#");
-    result += "#PROJECT_DESCRIPTION=" + description + "\n";
-    result += "#ALTERNATIVE_NAME=" + secondaryName + "\n";
     result += headerLine + "\n";
     for (String line : rows) {
       result += line + "\n";
     }
     this.tsvContent = result;
     return result;
+  }
+
+  private String addExperimentInfoLine(Map<String, Object> props, String type) {
+    String properties = props.toString();
+    Pattern p = Pattern.compile("\\[(.*?)\\]");
+    Matcher m = p.matcher(props.toString());
+    while (m.find()) {
+      String replaced = m.group(1).replace(",", ";");
+      properties = properties.replace(m.group(1), replaced);
+    }
+    return "#EXP:" + type + ":" + properties;
   }
 
   private static boolean isEntity(String code) {

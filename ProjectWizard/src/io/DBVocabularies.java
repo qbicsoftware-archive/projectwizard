@@ -1,19 +1,17 @@
 /*******************************************************************************
- * QBiC Project Wizard enables users to create hierarchical experiments including different study conditions using factorial design.
- * Copyright (C) "2016"  Andreas Friedrich
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * QBiC Project Wizard enables users to create hierarchical experiments including different study
+ * conditions using factorial design. Copyright (C) "2016" Andreas Friedrich
+ * 
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with this program. If
+ * not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 package io;
 
@@ -32,6 +30,7 @@ public class DBVocabularies {
   private Map<String, Integer> investigators;
   private List<String> experimentTypes;
   private List<String> enzymes;
+  private Map<String, String> antibodies;
   private List<String> msProtocols;
   private List<String> lcmsMethods;
   private List<String> chromTypes;
@@ -39,8 +38,8 @@ public class DBVocabularies {
   public DBVocabularies(Map<String, String> taxMap, Map<String, String> tissueMap,
       Map<String, String> cellLinesMap, List<String> measureTypes, List<String> spaces,
       Map<String, Integer> piMap, List<String> experimentTypes, List<String> enzymes,
-      Map<String, String> deviceMap, List<String> msProtocols, List<String> lcmsMethods,
-      List<String> chromTypes) {
+      Map<String, String> antibodiesWithDescriptions, Map<String, String> deviceMap, List<String> msProtocols,
+      List<String> lcmsMethods, List<String> chromTypes) {
     this.taxMap = taxMap;
     this.tissueMap = tissueMap;
     this.cellLinesMap = cellLinesMap;
@@ -50,6 +49,7 @@ public class DBVocabularies {
     this.investigators = piMap;
     this.experimentTypes = experimentTypes;
     this.enzymes = enzymes;
+    this.antibodies = antibodiesWithDescriptions;
     this.msProtocols = msProtocols;
     this.lcmsMethods = lcmsMethods;
     this.chromTypes = chromTypes;
@@ -79,7 +79,7 @@ public class DBVocabularies {
     return spaces;
   }
 
-  public Map<String, Integer> getInvestigators() {
+  public Map<String, Integer> getPeople() {
     return investigators;
   }
 
@@ -101,6 +101,10 @@ public class DBVocabularies {
 
   public List<String> getChromTypes() {
     return chromTypes;
+  }
+
+  public Map<String, String> getAntibodies() {
+    return antibodies;
   }
 
 }

@@ -66,18 +66,18 @@ public class SheetOptionComponent extends VerticalLayout {
     secondOption.setNullSelectionAllowed(false);
     secondOption.setStyleName(ProjectwizardUI.boxTheme);
     secondOption.setValue("Parent Samples (Source)");
-    sortby = new OptionGroup("Sort Sheet By");
-    sortby.addItems(SortBy.values());
-    sortby.setValue(SortBy.BARCODE_ID);
+//    sortby = new OptionGroup("Sort Sheet By");
+//    sortby.addItems(SortBy.values()); TODO old version
+//    sortby.setValue(SortBy.BARCODE_ID);
 
     addComponent(firstOption);
     addComponent(secondOption);
-    addComponent(sortby);
+//    addComponent(sortby);
   }
 
-  public SortBy getSorter() {
-    return (SortBy) sortby.getValue();
-  }
+//  public SortBy getSorter() {
+//    return (SortBy) sortby.getValue();
+//  }
 
   public String getInfo1(Sample s, String parents) {
     return translator.buildInfo(firstOption, s, parents, false);

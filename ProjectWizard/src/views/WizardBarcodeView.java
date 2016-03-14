@@ -1,22 +1,21 @@
 /*******************************************************************************
- * QBiC Project Wizard enables users to create hierarchical experiments including different study conditions using factorial design.
- * Copyright (C) "2016"  Andreas Friedrich
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * QBiC Project Wizard enables users to create hierarchical experiments including different study
+ * conditions using factorial design. Copyright (C) "2016" Andreas Friedrich
+ * 
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with this program. If
+ * not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 package views;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -39,6 +38,7 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
@@ -63,6 +63,8 @@ public class WizardBarcodeView extends VerticalLayout {
   private ComboBox spaceBox;
   private ComboBox projectBox;
   private Table experimentTable;
+  private OptionGroup sortby;
+
   private Component tabsTab;
   private TabSheet tabs;
 
@@ -70,17 +72,24 @@ public class WizardBarcodeView extends VerticalLayout {
 
   private SheetOptionComponent sheetPreview;
   private Button prepareBarcodes;
+  private Button printTubeCodes;
 
   private ProgressBar bar;
   private Label info;
   private Button download;
 
+  private String barcodeResultsFolder;
+  private boolean admin;
+
   /**
    * Creates a new component view for barcode creation
    * 
    * @param spaces List of available openBIS spaces
+   * @param isAdmin
    */
-  public WizardBarcodeView(List<String> spaces) {
+  public WizardBarcodeView(List<String> spaces, String barcodeResultsFolder, boolean isAdmin) {
+    this.admin = isAdmin;
+    this.barcodeResultsFolder = barcodeResultsFolder;
     SampleToBarcodeFieldTranslator translator = new SampleToBarcodeFieldTranslator();
     setSpacing(true);
     setMargin(true);
@@ -113,6 +122,11 @@ public class WizardBarcodeView extends VerticalLayout {
             + " for which barcodes can be printed. You can select one or multiple rows.",
         "Sample Overview"));
 
+    sortby = new OptionGroup("Sort Barcodes By");
+    sortby.addItems(SortBy.values());
+    sortby.setValue(SortBy.BARCODE_ID);
+    addComponent(sortby);
+
     sheetPreview = new SheetOptionComponent(translator);
     tubePreview = new BarcodePreviewComponent(translator);
 
@@ -134,6 +148,10 @@ public class WizardBarcodeView extends VerticalLayout {
     prepareBarcodes = new Button("Prepare Barcodes");
     prepareBarcodes.setEnabled(false);
     addComponent(prepareBarcodes);
+
+    printTubeCodes = new Button("Print Barcodes");
+    printTubeCodes.setEnabled(false);
+    addComponent(printTubeCodes);
 
     download = new Button("Download");
     download.setEnabled(false);
@@ -175,9 +193,9 @@ public class WizardBarcodeView extends VerticalLayout {
     addComponent(bar);
   }
 
-  public boolean getOverwrite() {
-    return tubePreview.overwrite();
-  }
+  // public boolean getOverwrite() {
+  // return tubePreview.overwrite();
+  // }
 
   public void enableExperiments(boolean enable) {
     experimentTable.setEnabled(enable);
@@ -250,7 +268,7 @@ public class WizardBarcodeView extends VerticalLayout {
   }
 
   public List<Button> getButtons() {
-    return new ArrayList<Button>(Arrays.asList(this.prepareBarcodes));
+    return new ArrayList<Button>(Arrays.asList(this.prepareBarcodes, this.printTubeCodes));
   }
 
   public ProgressBar getProgressBar() {
@@ -267,12 +285,22 @@ public class WizardBarcodeView extends VerticalLayout {
   }
 
   public SortBy getSorter() {
-    return sheetPreview.getSorter();
+    return (SortBy) sortby.getValue();
   }
 
   public void creationDone() {
     enableExperiments(true);
     bar.setVisible(false);
+  }
+
+  public void tubeCreationDone(int tubeCodes) {
+    creationDone();
+    setAvailableTubes(tubeCodes);
+  }
+  
+  public void setAvailableTubes(int n) {
+    printTubeCodes.setEnabled(n > 0);
+    printTubeCodes.setCaption("Print Barcodes (" + n + ")");
   }
 
   public void sheetReady() {

@@ -19,6 +19,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -32,9 +33,11 @@ import processes.TubeBarcodesReadyRunnable;
 import logging.Log4j2Logger;
 import main.BarcodeCreator;
 import main.OpenBisClient;
+import model.BarcodeConfig;
 import model.ExperimentBarcodeSummaryBean;
 import model.IBarcodeBean;
 import model.NewModelBarcodeBean;
+import model.SortBy;
 
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
@@ -51,6 +54,10 @@ import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.TabSheet.SelectedTabChangeEvent;
 import com.vaadin.ui.TabSheet.SelectedTabChangeListener;
 
+import sorters.SampleCodeComparator;
+import sorters.SampleExtIDComparator;
+import sorters.SampleSecondaryNameComparator;
+import sorters.SampleTypeComparator;
 import uicomponents.BarcodePreviewComponent;
 import views.WizardBarcodeView;
 
@@ -71,13 +78,16 @@ public class BarcodeController {
 
   logging.Logger logger = new Log4j2Logger(BarcodeController.class);
 
-  private List<String> barcodeExperiments = new ArrayList<String>(Arrays.asList(
-      "Q_SAMPLE_EXTRACTION", "Q_SAMPLE_PREPARATION", "Q_NGS_MEASUREMENT"));
-  private Map<String, String> barcodeSamplesWithTypes = new HashMap<String, String>() {
+  private List<String> barcodeExperiments = new ArrayList<String>(
+      Arrays.asList("Q_SAMPLE_EXTRACTION", "Q_SAMPLE_PREPARATION", "Q_NGS_MEASUREMENT",
+          "Q_MHC_LIGAND_EXTRACTION"));
+  // mapping between sample type and interesting property of that sample type has to be added here
+  private Map<String, String> sampleTypeToBioTypeField = new HashMap<String, String>() {
     {
       put("Q_BIOLOGICAL_SAMPLE", "Q_PRIMARY_TISSUE");
       put("Q_TEST_SAMPLE", "Q_SAMPLE_TYPE");
       put("Q_NGS_SINGLE_SAMPLE_RUN", "");
+      put("Q_MHC_LIGAND_EXTRACT", "Q_MHC_CLASS");
     }
   };
 
@@ -87,16 +97,37 @@ public class BarcodeController {
    * @param barcodeScripts Path to different barcode creation scripts
    * @param pathVar Path variable so python scripts can work when called from the JVM
    */
-  public BarcodeController(WizardBarcodeView bw, OpenBisClient openbis, String barcodeScripts,
-      String pathVar) {
+  public BarcodeController(WizardBarcodeView bw, OpenBisClient openbis, BarcodeConfig bcConf) {
     // view = bw;
     this.openbis = openbis;
-    creator = new BarcodeCreator(barcodeScripts, pathVar);
+    creator = new BarcodeCreator(bcConf);
   }
 
-  public BarcodeController(OpenBisClient openbis, String barcodeScripts, String pathVar) {
+  public BarcodeController(OpenBisClient openbis, BarcodeConfig bcConf) {
     this.openbis = openbis;
-    creator = new BarcodeCreator(barcodeScripts, pathVar);
+    creator = new BarcodeCreator(bcConf);
+  }
+
+  private void sortBeans(List<IBarcodeBean> barcodeBeans) {
+    SortBy sorter = view.getSorter();
+    switch (sorter) {
+      case BARCODE_ID:
+        Collections.sort(barcodeBeans, SampleCodeComparator.getInstance());
+        break;
+      case EXT_ID:
+        Collections.sort(barcodeBeans, SampleExtIDComparator.getInstance());
+        break;
+      case SAMPLE_TYPE:
+        Collections.sort(barcodeBeans, SampleTypeComparator.getInstance());
+        break;
+      case SECONDARY_NAME:
+        Collections.sort(barcodeBeans, SampleSecondaryNameComparator.getInstance());
+        break;
+      default:
+        logger
+            .warn("Unknown Barcode Bean sorter or no sorter selected. Barcodes will not be sorted.");
+        break;
+    }
   }
 
   /**
@@ -113,20 +144,26 @@ public class BarcodeController {
       @Override
       public void buttonClick(ClickEvent event) {
         String src = event.getButton().getCaption();
+        if (src.startsWith("Print Barcodes")) {
+          String project = view.getProjectCode();
+          logger.info("Sending print command for project " + project + " barcodes");
+          creator.printBarcodeFolderForProject(project);
+        }
         if (src.equals("Prepare Barcodes")) {
           view.creationPressed();
           Iterator<Extension> it = view.getDownloadButton().getExtensions().iterator();
           if (it.hasNext())
             view.getDownloadButton().removeExtension(it.next());
           barcodeBeans = getSamplesFromExperimentSummaries(view.getExperiments());
-          boolean overwrite = view.getOverwrite();
+          // boolean overwrite = view.getOverwrite();
           String project = view.getProjectCode();
           ProgressBar bar = view.getProgressBar();
           bar.setVisible(true);
+          sortBeans(barcodeBeans);
           if (view.getTabs().getSelectedTab() instanceof BarcodePreviewComponent) {
             logger.info("Preparing barcodes (tubes) for project " + project);
             creator.findOrCreateTubeBarcodesWithProgress(barcodeBeans, bar, view.getProgressInfo(),
-                new TubeBarcodesReadyRunnable(view, creator, barcodeBeans), overwrite);
+                new TubeBarcodesReadyRunnable(view, creator, barcodeBeans));
           } else {
             logger.info("Preparing barcodes (sheet) for project " + project);
             creator
@@ -172,6 +209,7 @@ public class BarcodeController {
       public void valueChange(ValueChangeEvent event) {
         view.resetExperiments();
         String project = view.getProjectCode();
+        view.setAvailableTubes(0);
         if (project != null) {
           reactToProjectSelection(project);
         }
@@ -230,7 +268,7 @@ public class BarcodeController {
         int i = 0;
         if (type.equals(barcodeExperiments.get(0))) {
           while (bioType == null) {
-            bioType = samples.get(i).getProperties().get("Q_PRIMARY_TISSUE");
+            bioType = "Tissue Extracts";
             i++;
           }
         }
@@ -242,6 +280,9 @@ public class BarcodeController {
         }
         if (type.equals(barcodeExperiments.get(2))) {
           bioType = e.getProperties().get("Q_SEQUENCING_TYPE");
+        }
+        if (type.equals(barcodeExperiments.get(3))) {
+          bioType = "MHC Ligands";
         }
         beans.add(new ExperimentBarcodeSummaryBean(bioType, Integer.toString(numOfSamples), expID));
       }
@@ -280,16 +321,16 @@ public class BarcodeController {
     for (Sample s : openbisSamples) {
       String type = s.getSampleTypeCode();
       String bioType = "unknown";
-      if (barcodeSamplesWithTypes.containsKey(type)) {
-        if (barcodeSamplesWithTypes.get(type).isEmpty())
+      if (sampleTypeToBioTypeField.containsKey(type)) {
+        if (sampleTypeToBioTypeField.get(type).isEmpty())
           bioType = "NGS RUN";
         else
-          bioType = s.getProperties().get(barcodeSamplesWithTypes.get(type));
-        samples.add(new NewModelBarcodeBean(s.getCode(), view.getCodedString(s), view.getInfo1(s,
-            StringUtils.join(parentMap.get(s), " ")), view.getInfo2(s,
-            StringUtils.join(parentMap.get(s), " ")), bioType, parentMap.get(s), s.getProperties()
-            .get("Q_SECONDARY_NAME"), s.getProperties().get("Q_EXTERNALDB_ID")));
+          bioType = s.getProperties().get(sampleTypeToBioTypeField.get(type));
       }
+      samples.add(new NewModelBarcodeBean(s.getCode(), view.getCodedString(s), view.getInfo1(s,
+          StringUtils.join(parentMap.get(s), " ")), view.getInfo2(s,
+          StringUtils.join(parentMap.get(s), " ")), bioType, parentMap.get(s), s.getProperties()
+          .get("Q_SECONDARY_NAME"), s.getProperties().get("Q_EXTERNALDB_ID")));
     }
     return samples;
   }

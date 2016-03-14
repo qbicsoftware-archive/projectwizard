@@ -1,26 +1,24 @@
 /*******************************************************************************
- * QBiC Project Wizard enables users to create hierarchical experiments including different study conditions using factorial design.
- * Copyright (C) "2016"  Andreas Friedrich
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * QBiC Project Wizard enables users to create hierarchical experiments including different study
+ * conditions using factorial design. Copyright (C) "2016" Andreas Friedrich
+ * 
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with this program. If
+ * not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 package control;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Observable;
-import java.util.Observer;
+import java.util.List;
+import java.util.Map;
 
 import processes.RegisteredSamplesReadyRunnable;
 
@@ -43,6 +41,8 @@ public class ExperimentImportController {
   private StandaloneTSVImport view;
   private OpenbisCreationController openbisCreator;
   private ProjectInfo projectInfo;
+  private List<Map<String, Object>> msProperties;
+  private Map<String, Map<String, Object>> mhcProperties;
 
   logging.Logger logger = new Log4j2Logger(ExperimentImportController.class);
 
@@ -88,6 +88,8 @@ public class ExperimentImportController {
                 view.setProcessed(prep.getProcessed());
                 view.setRegEnabled(true);
                 projectInfo = prep.getProjectInfo();
+                msProperties = prep.getMSExperimentOrNull();
+                mhcProperties = prep.getMHCExperimentsOrNull();
               } else {
                 logger.error("Error parsing tsv: " + prep.getError());
                 view.setError(prep.getError());
@@ -122,13 +124,17 @@ public class ExperimentImportController {
         String src = event.getButton().getCaption();
         if (src.equals("Register All")) {
           view.getRegisterButton().setEnabled(false);
+          //TODO multiple ms experiments
+          Map<String, Object> msProps = null;
+          if(msProperties!=null)
+            msProps = msProperties.get(0);
           openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(view.getSamples(),
-              projectInfo.getDescription(), projectInfo.getSecondaryName(), null, view.getProgressBar(),
-              view.getProgressLabel(), new RegisteredSamplesReadyRunnable(view), user);
+              projectInfo.getDescription(), projectInfo.getSecondaryName(), msProps, mhcProperties, view
+                  .getProgressBar(), view.getProgressLabel(), new RegisteredSamplesReadyRunnable(
+                  view), user);
         }
       }
     };
     view.getRegisterButton().addClickListener(cl);
   }
-
 }

@@ -22,7 +22,7 @@ import io.DBVocabularies;
 import java.util.List;
 
 import main.ProjectwizardUI;
-import model.TestSampleInformation;
+import model.AntibodyProtocolInformation;
 
 import org.vaadin.teemu.wizards.WizardStep;
 
@@ -140,7 +140,7 @@ public class TestStep implements WizardStep {
     return msPanel.getEnzymes();
   }
 
-  public List<TestSampleInformation> getSampleTypes() {
+  public List<AntibodyProtocolInformation> getSampleTypes() {
     return techPanel.getTechInfo();
   }
 
@@ -149,7 +149,7 @@ public class TestStep implements WizardStep {
   }
 
   public boolean hasPools() {
-    for (TestSampleInformation info : techPanel.getTechInfo())
+    for (AntibodyProtocolInformation info : techPanel.getTechInfo())
       if (info.isPooled())
         return true;
     return false;
@@ -166,7 +166,7 @@ public class TestStep implements WizardStep {
       @Override
       public void valueChange(ValueChangeEvent event) {
         containsProteins = false;
-        for (TestSampleInformation i : getSampleTypes()) {
+        for (AntibodyProtocolInformation i : getSampleTypes()) {
           containsProteins |= i.getTechnology().equals("PROTEINS");
         }
         // msPanelComponent.setVisible(containsProteins);

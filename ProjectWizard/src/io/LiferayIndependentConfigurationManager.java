@@ -1,19 +1,17 @@
 /*******************************************************************************
- * QBiC Project Wizard enables users to create hierarchical experiments including different study conditions using factorial design.
- * Copyright (C) "2016"  Andreas Friedrich
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * QBiC Project Wizard enables users to create hierarchical experiments including different study
+ * conditions using factorial design. Copyright (C) "2016" Andreas Friedrich
+ * 
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with this program. If
+ * not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 package io;
 
@@ -45,6 +43,7 @@ public enum LiferayIndependentConfigurationManager implements ConfigurationManag
 
   public static final String TMP_FOLDER = "tmp.folder";
   public static final String SCRIPTS_FOLDER = "barcode.scripts";
+  public static final String BARCODE_RESULTS = "barcode.results";
   public static final String PATH_VARIABLE = "path.variable";
 
   public static final String PATH_TO_GUSE_WORKFLOWS = "path_to_guse_workflows";
@@ -66,7 +65,7 @@ public enum LiferayIndependentConfigurationManager implements ConfigurationManag
   public static final String MSQL_USER = "mysql.user";
   public static final String MSQL_PORT = "mysql.port";
   public static final String MSQL_PASS = "mysql.pass";
-  
+
   private String LABELING_METHODS = "vocabulary.ms.labeling";
 
   private String configurationFileName;
@@ -77,6 +76,7 @@ public enum LiferayIndependentConfigurationManager implements ConfigurationManag
   private String tmpFolder;
   private String scriptsFolder;
   private String pathVariable;
+  private String barcodeResultsFolder;
 
   private String attachmentURI;
   private String attachmentUser;
@@ -88,10 +88,10 @@ public enum LiferayIndependentConfigurationManager implements ConfigurationManag
   private String msqlUser;
   private String msqlPort;
   private String msqlPass;
-  
+
   private String labelingMethods;
 
-//  private String portletPropertiesFileName = "portlet.properties";
+  // private String portletPropertiesFileName = "portlet.properties";
 
   private boolean initialized = false;
 
@@ -100,21 +100,22 @@ public enum LiferayIndependentConfigurationManager implements ConfigurationManag
     return initialized;
   }
 
-//  /**
-//   * init the portlet with the following properties file.
-//   * 
-//   * @param portletPropertiesFileName
-//   */
-//  public void init(String portletPropertiesFileName) {
-//    this.portletPropertiesFileName = portletPropertiesFileName;
-//    init();
-//  }
+  // /**
+  // * init the portlet with the following properties file.
+  // *
+  // * @param portletPropertiesFileName
+  // */
+  // public void init(String portletPropertiesFileName) {
+  // this.portletPropertiesFileName = portletPropertiesFileName;
+  // init();
+  // }
 
   public void init() {
     Properties portletConfig = new Properties();
     try {
       List<String> configs =
-          new ArrayList<String>(Arrays.asList("/Users/frieda/Desktop/testing/portlet.properties",
+          new ArrayList<String>(Arrays.asList(
+              "/Users/frieda/Desktop/dev software/liferay-portal-6.2-ce-ga4/qbic-ext.properties",
               "/home/luser/liferay-portal-6.2-ce-ga4/portlets.properties",
               "/usr/local/share/guse/portlets.properties",
               "/home/tomcat-liferay/liferay_production/portlets.properties"));
@@ -129,19 +130,21 @@ public enum LiferayIndependentConfigurationManager implements ConfigurationManag
 
       tmpFolder = portletConfig.getProperty(TMP_FOLDER);
       scriptsFolder = portletConfig.getProperty(SCRIPTS_FOLDER);
+      barcodeResultsFolder = portletConfig.getProperty(BARCODE_RESULTS);
+
       pathVariable = portletConfig.getProperty(PATH_VARIABLE);
 
       attachmentURI = portletConfig.getProperty(ATTACHMENT_URI);
       attachmentUser = portletConfig.getProperty(ATTACHMENT_USER);
       attachmentPass = portletConfig.getProperty(ATTACHMENT_PASS);
       attachmentMaxSize = portletConfig.getProperty(ATTACHMENT_MAX_SIZE);
-      
+
       msqlHost = portletConfig.getProperty(MSQL_HOST);
       msqlDB = portletConfig.getProperty(MSQL_DB);
       msqlPort = portletConfig.getProperty(MSQL_PORT);
       msqlUser = portletConfig.getProperty(MSQL_USER);
       msqlPass = portletConfig.getProperty(MSQL_PASS);
-      
+
       labelingMethods = portletConfig.getProperty(LABELING_METHODS);
 
     } catch (IOException ex) {
@@ -233,5 +236,10 @@ public enum LiferayIndependentConfigurationManager implements ConfigurationManag
   @Override
   public String getVocabularyMSLabeling() {
     return labelingMethods;
+  }
+
+  @Override
+  public String getBarcodeResultsFolder() {
+    return barcodeResultsFolder;
   }
 }

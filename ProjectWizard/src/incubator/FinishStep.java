@@ -15,22 +15,34 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package steps;
+package incubator;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.bind.JAXBException;
+
 import logging.Log4j2Logger;
 import main.OpenBisClient;
 import main.ProjectwizardUI;
 import model.AttachmentConfig;
+import model.AttachmentInformation;
+import model.ISampleBean;
+
 import org.vaadin.teemu.wizards.Wizard;
 import org.vaadin.teemu.wizards.WizardStep;
 
+import parser.XMLParser;
+import processes.AttachmentMover;
+import processes.MoveUploadsReadyRunnable;
 import processes.TSVReadyRunnable;
+import properties.Factor;
 
 import main.UploadsPanel;
 
@@ -45,12 +57,15 @@ import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
-import com.vaadin.ui.Panel;
 import com.vaadin.ui.ProgressBar;
+import com.vaadin.ui.Table;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.themes.ValoTheme;
 
 import concurrency.UpdateProgressBar;
@@ -99,10 +114,8 @@ public class FinishStep implements WizardStep {
             "Last Step"));
     summary = new Label();
     summary.setContentMode(ContentMode.PREFORMATTED);
-    Panel summaryPane = new Panel();
-    summaryPane.setContent(summary);
-    summaryPane.setWidth("550px");
-    main.addComponent(summaryPane);
+    summary.setWidth("300px");
+    main.addComponent(summary);
 
     downloads = new VerticalLayout();
     downloads.setCaption("Download Spreadsheets:");

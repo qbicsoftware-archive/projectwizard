@@ -1,19 +1,17 @@
 /*******************************************************************************
- * QBiC Project Wizard enables users to create hierarchical experiments including different study conditions using factorial design.
- * Copyright (C) "2016"  Andreas Friedrich
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * QBiC Project Wizard enables users to create hierarchical experiments including different study
+ * conditions using factorial design. Copyright (C) "2016" Andreas Friedrich
+ * 
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with this program. If
+ * not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 package uicomponents;
 
@@ -47,7 +45,10 @@ public class ProjectInformationComponent extends VerticalLayout {
   TextField project;
   Button reload;
   TextField expName;
-  CustomVisibilityComponent investigatorBox;
+  CustomVisibilityComponent personBox;
+  ComboBox piBox;
+  ComboBox contactBox;
+  
   TextArea description;
 
   ValueChangeListener projectSelectListener;
@@ -88,17 +89,23 @@ public class ProjectInformationComponent extends VerticalLayout {
     expName.setInputPrompt("Optional short name");
     addComponent(expName);
 
-    ComboBox piBox = new ComboBox("Principal Investigator", set);
+    VerticalLayout persBox = new VerticalLayout();
+
+    piBox = new ComboBox("Principal Investigator", set);
+    contactBox = new ComboBox("Contact Person", set);
     piBox.setStyleName(ProjectwizardUI.boxTheme);
-    investigatorBox = new CustomVisibilityComponent(piBox);
-    investigatorBox.setStyleName(ProjectwizardUI.boxTheme);
-    investigatorBox.setImmediate(true);
-    investigatorBox.setVisible(false);
+    contactBox.setStyleName(ProjectwizardUI.boxTheme);
+    persBox.addComponent(piBox);
+    persBox.addComponent(contactBox);
+
+    piBox.setStyleName(ProjectwizardUI.boxTheme);
+    personBox = new CustomVisibilityComponent(persBox);
+    personBox.setVisible(false);
     addComponent(ProjectwizardUI
         .questionize(
-            investigatorBox,
-            "The principal investigator of this project. Please contact us if additional people need to be added.",
-            "Investigator"));
+            personBox,
+            "Investigator and contact person of this project. Please contact us if additional people need to be added.",
+            "Contacts"));
 
     description = new TextArea("Description");
     description.setRequired(true);
@@ -126,7 +133,7 @@ public class ProjectInformationComponent extends VerticalLayout {
     project.setEnabled(choseNewProject);
     expName.setVisible(choseNewProject);
     description.setVisible(choseNewProject);
-    investigatorBox.setVisible(choseNewProject);
+    personBox.setVisible(choseNewProject);
   }
 
   private boolean selectionNull() {
@@ -162,11 +169,7 @@ public class ProjectInformationComponent extends VerticalLayout {
   public String getProjectDescription() {
     return description.getValue();
   }
-
-  public String getInvestigator() {
-    return investigatorBox.getValue();
-  }
-
+  
   public String getSecondaryName() {
     return expName.getValue();
   }
@@ -187,6 +190,14 @@ public class ProjectInformationComponent extends VerticalLayout {
 
   public TextField getExpNameField() {
     return expName;
+  }
+  
+  public String getInvestigator() {
+    return (String) piBox.getValue();
+  }
+
+  public String getContactPerson() {
+    return (String) contactBox.getValue();
   }
 
 }

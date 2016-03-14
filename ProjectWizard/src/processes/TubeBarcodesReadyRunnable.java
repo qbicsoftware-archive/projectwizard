@@ -56,7 +56,7 @@ public class TubeBarcodesReadyRunnable implements Runnable {
   @Override
   public void run() {
     attachDownloadToButton();
-    view.creationDone();
+    view.tubeCreationDone(creator.getNumberOfAvailableBarcodes());
     view.tubesReady();
   }
 }

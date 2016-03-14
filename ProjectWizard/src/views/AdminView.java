@@ -1,22 +1,22 @@
 /*******************************************************************************
- * QBiC Project Wizard enables users to create hierarchical experiments including different study conditions using factorial design.
- * Copyright (C) "2016"  Andreas Friedrich
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * QBiC Project Wizard enables users to create hierarchical experiments including different study
+ * conditions using factorial design. Copyright (C) "2016" Andreas Friedrich
+ * 
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with this program. If
+ * not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 package views;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +26,7 @@ import logging.Log4j2Logger;
 import main.OpenBisClient;
 import main.OpenbisCreationController;
 import main.ProjectwizardUI;
+import model.OpenbisSpaceUserRole;
 
 import adminviews.MCCView;
 
@@ -62,6 +63,7 @@ public class AdminView extends VerticalLayout {
   private TabSheet tabs;
   // space
   private TextField space;
+  private TextArea users;
   private Button createSpace;
   // projects TODO add
   private Button createProject;
@@ -93,11 +95,15 @@ public class AdminView extends VerticalLayout {
     spaceView.setSpacing(true);
     spaceView.setMargin(true);
     space = new TextField("Space");
+    users = new TextArea("Users");
+    users.setWidth("80px");
+    users.setHeight("80px");
     createSpace = new Button("Create Space");
     spaceView.addComponent(space);
+    spaceView.addComponent(users);
     spaceView.addComponent(createSpace);
     tabs.addTab(spaceView, "Create Space");
-    tabs.getTab(spaceView).setEnabled(false);
+    // tabs.getTab(spaceView).setEnabled(false);
 
     // ADD PROJECT
     VerticalLayout projectView = new VerticalLayout();
@@ -162,6 +168,25 @@ public class AdminView extends VerticalLayout {
   }
 
   private void initButtons() {
+    createSpace.addClickListener(new Button.ClickListener() {
+
+      /**
+       * 
+       */
+      private static final long serialVersionUID = -6870391592753359641L;
+
+      @Override
+      public void buttonClick(ClickEvent event) {
+        if (!openbis.spaceExists(getSpace())) {
+          HashMap<OpenbisSpaceUserRole, ArrayList<String>> roleInfos =
+              new HashMap<OpenbisSpaceUserRole, ArrayList<String>>();
+          if (getUsers().size() > 0)
+            roleInfos.put(OpenbisSpaceUserRole.USER, getUsers());
+          registrator.registerSpace(getSpace(), roleInfos, user);
+        }
+      }
+    });
+
     createProject.addClickListener(new Button.ClickListener() {
 
       /**
@@ -233,6 +258,10 @@ public class AdminView extends VerticalLayout {
 
   public String getSpace() {
     return space.getValue();
+  }
+
+  public ArrayList<String> getUsers() {
+    return new ArrayList<String>(Arrays.asList(users.getValue().split("\n")));
   }
 
   public Button getCreateSpace() {
