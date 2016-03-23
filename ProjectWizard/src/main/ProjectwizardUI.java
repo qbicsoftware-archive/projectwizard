@@ -89,7 +89,7 @@ public class ProjectwizardUI extends UI {
   }
 
   logging.Logger logger = new Log4j2Logger(ProjectwizardUI.class);
-  private String version = "Version 0.987, 08.02.16";
+  private String version = "Version 0.99, 21.03.16";
 
   public static String boxTheme = ValoTheme.COMBOBOX_SMALL;
   public static String fieldTheme = ValoTheme.TEXTFIELD_SMALL;
@@ -235,7 +235,6 @@ public class ProjectwizardUI extends UI {
       List<String> expTypes =
           new ArrayList<String>(Arrays.asList("Q_EXPERIMENTAL_DESIGN", "Q_SAMPLE_EXTRACTION",
               "Q_SAMPLE_PREPARATION"));
-
       DBVocabularies vocabs =
           new DBVocabularies(taxMap, tissueMap, cellLinesMap, sampleTypes, spaces, map, expTypes,
               enzymes, antibodiesWithLabels, deviceMap, msProtocols, lcmsMethods, chromTypes);
@@ -325,7 +324,7 @@ public class ProjectwizardUI extends UI {
     BarcodeConfig bcConf =
         new BarcodeConfig(barcodeScripts, tmpFolder, barcodeResultsFolder, pathVar);
     final WizardBarcodeView bw =
-        new WizardBarcodeView(vocabularies.getSpaces(), barcodeResultsFolder, isAdmin);
+        new WizardBarcodeView(vocabularies.getSpaces(), isAdmin);
     bw.initControl(new BarcodeController(openbis, bcConf));
     tabs.addTab(bw, "Create Barcodes").setIcon(FontAwesome.BARCODE);
     StandaloneTSVImport tsvImport = new StandaloneTSVImport();
@@ -336,7 +335,7 @@ public class ProjectwizardUI extends UI {
     uc.init(user);
     tabs.addTab(tsvImport, "Import Project").setIcon(FontAwesome.FILE);
     if (isAdmin) {
-      logger.info("User is " + user + " and can see admin panel.");
+      logger.info("User is " + user + " and can see admin panel and print barcodes.");
       VerticalLayout padding = new VerticalLayout();
       padding.setMargin(true);
       padding.addComponent(new AdminView(openbis, vocabularies.getSpaces(), creationController,
