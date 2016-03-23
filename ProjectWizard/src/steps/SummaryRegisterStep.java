@@ -105,7 +105,7 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
 
     downloadGraph = new Button("Download Graph");
     downloadGraph.setEnabled(false);
-    main.addComponent(downloadGraph);
+//    main.addComponent(downloadGraph);
 
     register = new Button("Register All");
     register.setEnabled(false);

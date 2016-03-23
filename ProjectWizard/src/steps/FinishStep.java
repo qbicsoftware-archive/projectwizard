@@ -1,19 +1,17 @@
 /*******************************************************************************
- * QBiC Project Wizard enables users to create hierarchical experiments including different study conditions using factorial design.
- * Copyright (C) "2016"  Andreas Friedrich
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * QBiC Project Wizard enables users to create hierarchical experiments including different study
+ * conditions using factorial design. Copyright (C) "2016" Andreas Friedrich
+ * 
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with this program. If
+ * not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 package steps;
 
@@ -95,7 +93,7 @@ public class FinishStep implements WizardStep {
             header,
             "Here you can download spreadsheets of the samples in your experiment "
                 + "and upload informative files belonging to your project, e.g. treatment information. "
-                + "It might take a few seconds for your files to show up in our project browser.",
+                + "It might take a few minutes for your files to show up in our project browser.",
             "Last Step"));
     summary = new Label();
     summary.setContentMode(ContentMode.PREFORMATTED);
@@ -124,7 +122,7 @@ public class FinishStep implements WizardStep {
     main.addComponent(info);
     main.addComponent(downloads);
     attach = new CheckBox("Upload Additional Files");
-    attach.setVisible(false);
+    // attach.setVisible(false);
     attach.addValueChangeListener(new ValueChangeListener() {
 
       @Override
@@ -133,7 +131,9 @@ public class FinishStep implements WizardStep {
         w.getFinishButton().setVisible(!attach.getValue());
       }
     });
-    main.addComponent(attach);
+    main.addComponent(ProjectwizardUI.questionize(attach,
+        "Upload one or more small files pertaining to the experimental design of this project.",
+        "Upload Attachments"));
   }
 
   public void fileCommitDone() {
@@ -270,6 +270,7 @@ public class FinishStep implements WizardStep {
     this.uploads =
         new UploadsPanel(ProjectwizardUI.tmpFolder, space, project, new ArrayList<String>(
             Arrays.asList("Experimental Design")), userID, attachConfig, openbis);
+    this.uploads.setVisible(false);
     main.addComponent(uploads);
   }
 
