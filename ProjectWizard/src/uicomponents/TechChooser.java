@@ -52,7 +52,7 @@ public class TechChooser extends VerticalLayout {
   public TechChooser(List<String> options) {
     chooser = new ComboBox("Analyte", options);
     chooser.setStyleName(ProjectwizardUI.boxTheme);
-    replicates = new OpenbisInfoTextField("Techn. Replicates", "", "50px", "1");
+    replicates = new OpenbisInfoTextField("Replicates", "", "50px", "1");
     pool = new CheckBox("Pool/Multiplex Samples");
     setSpacing(true);
     helpers = new ArrayList<HorizontalLayout>();
@@ -62,7 +62,7 @@ public class TechChooser extends VerticalLayout {
     addComponent(help1);
     HorizontalLayout help2 =
         ProjectwizardUI.questionize(replicates.getInnerComponent(),
-            "Number of technical replicates (1 means no replicates)", "Replicates");
+            "Number of prepared replicates (1 means no replicates) of this analyte", "Replicates");
     addComponent(help2);
     HorizontalLayout help3 =
         ProjectwizardUI.questionize(pool, "Select if multiple samples are pooled into a single "

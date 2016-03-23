@@ -169,20 +169,21 @@ public class MSPanel extends VerticalLayout {
   }
 
   public boolean isValid() {
-    Set<String> uniques = new HashSet<String>();
-    boolean nonEmpty = false;
-    for (EnzymeChooser c : choosers) {
-      uniques.add(c.getEnzyme());
-      nonEmpty |= (!(c.getEnzyme() == null) && !c.getEnzyme().isEmpty());
-    }
-    if (uniques.size() < choosers.size() || !nonEmpty) {
-      Notification n =
-          new Notification("Please input at least one enzyme and the same enzyme only once.");
-      n.setStyleName(ValoTheme.NOTIFICATION_CLOSABLE);
-      n.setDelayMsec(-1);
-      n.show(UI.getCurrent().getPage());
-      return false;
-    } else
+    //TODO restrictions?
+//    Set<String> uniques = new HashSet<String>();
+//    boolean nonEmpty = false;
+//    for (EnzymeChooser c : choosers) {
+//      uniques.add(c.getEnzyme());
+//      nonEmpty |= (!(c.getEnzyme() == null) && !c.getEnzyme().isEmpty());
+//    }
+//    if (uniques.size() < choosers.size() || !nonEmpty) {
+//      Notification n =
+//          new Notification("Please input at least one enzyme and the same enzyme only once.");
+//      n.setStyleName(ValoTheme.NOTIFICATION_CLOSABLE);
+//      n.setDelayMsec(-1);
+//      n.show(UI.getCurrent().getPage());
+//      return false;
+//    } else
       return true;
   }
 

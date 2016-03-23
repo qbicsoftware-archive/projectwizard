@@ -196,6 +196,7 @@ public class TestStep implements WizardStep {
         new TechnologiesPanel(vocabs.getMeasureTypes(), new OptionGroup(""), testPoolListener,
             proteinListener, mhcLigandListener);
     main.addComponent(techPanel);
+    main.addComponent(new Label("<hr />", Label.CONTENT_XHTML));//test - clear separation between tech type and meta info
     msPanel = new MSPanel(vocabs, new OptionGroup(""));
     msPanel.setVisible(false);
 
