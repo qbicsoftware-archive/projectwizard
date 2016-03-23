@@ -65,7 +65,6 @@ public class AdminView extends VerticalLayout {
   private TextField space;
   private TextArea users;
   private Button createSpace;
-  // projects TODO add
   private Button createProject;
   private Button reloadProject;
   private ComboBox spaceBox;
@@ -261,7 +260,10 @@ public class AdminView extends VerticalLayout {
   }
 
   public ArrayList<String> getUsers() {
-    return new ArrayList<String>(Arrays.asList(users.getValue().split("\n")));
+    if (!users.getValue().trim().equals(""))
+      return new ArrayList<String>(Arrays.asList(users.getValue().split("\n")));
+    else
+      return new ArrayList<String>();
   }
 
   public Button getCreateSpace() {
