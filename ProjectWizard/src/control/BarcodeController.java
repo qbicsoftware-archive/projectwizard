@@ -54,6 +54,8 @@ import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.TabSheet.SelectedTabChangeEvent;
 import com.vaadin.ui.TabSheet.SelectedTabChangeListener;
 
+import control.Functions.NotificationType;
+
 import sorters.SampleCodeComparator;
 import sorters.SampleExtIDComparator;
 import sorters.SampleSecondaryNameComparator;
@@ -145,9 +147,12 @@ public class BarcodeController {
       public void buttonClick(ClickEvent event) {
         String src = event.getButton().getCaption();
         if (src.startsWith("Print Barcodes")) {
+          view.enablePrint(false);
           String project = view.getProjectCode();
           logger.info("Sending print command for project " + project + " barcodes");
-          creator.printBarcodeFolderForProject(project);
+          creator.printBarcodeFolderForProject(project, new PrintReadyRunnable(view));
+//          Functions.notification("Barcodes printing", "Barcodes have been sent to the printer.",
+//              NotificationType.DEFAULT);
         }
         if (src.equals("Prepare Barcodes")) {
           view.creationPressed();
@@ -284,7 +289,9 @@ public class BarcodeController {
         if (type.equals(barcodeExperiments.get(3))) {
           bioType = "MHC Ligands";
         }
-        beans.add(new ExperimentBarcodeSummaryBean(bioType, Integer.toString(numOfSamples), expID));
+        if (numOfSamples > 0)
+          beans
+              .add(new ExperimentBarcodeSummaryBean(bioType, Integer.toString(numOfSamples), expID));
       }
     }
     view.setExperiments(beans);

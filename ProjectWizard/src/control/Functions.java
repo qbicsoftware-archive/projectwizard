@@ -50,9 +50,10 @@ public class Functions {
         notify.setDelayMsec(8000);
         notify.setIcon(FontAwesome.SMILE_O);
         notify.setStyleName(ValoTheme.NOTIFICATION_SUCCESS + " " + ValoTheme.NOTIFICATION_CLOSABLE);
+        break;
       default:
         notify.setDelayMsec(8000);
-        notify.setIcon(FontAwesome.MEH_O);
+        notify.setIcon(FontAwesome.COMMENT);
         notify.setStyleName(ValoTheme.NOTIFICATION_TRAY + " " + ValoTheme.NOTIFICATION_CLOSABLE);
         break;
     }

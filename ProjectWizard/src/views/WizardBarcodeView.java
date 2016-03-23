@@ -15,7 +15,6 @@
  *******************************************************************************/
 package views;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -46,6 +45,9 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import componentwrappers.CustomVisibilityComponent;
 import control.BarcodeController;
+import control.Functions;
+import control.Functions.NotificationType;
+import control.PrintReadyRunnable;
 
 /**
  * View class for the Sample Sheet and Barcode pdf creation
@@ -78,18 +80,13 @@ public class WizardBarcodeView extends VerticalLayout {
   private Label info;
   private Button download;
 
-  private String barcodeResultsFolder;
-  private boolean admin;
-
   /**
    * Creates a new component view for barcode creation
    * 
    * @param spaces List of available openBIS spaces
    * @param isAdmin
    */
-  public WizardBarcodeView(List<String> spaces, String barcodeResultsFolder, boolean isAdmin) {
-    this.admin = isAdmin;
-    this.barcodeResultsFolder = barcodeResultsFolder;
+  public WizardBarcodeView(List<String> spaces, boolean isAdmin) {
     SampleToBarcodeFieldTranslator translator = new SampleToBarcodeFieldTranslator();
     setSpacing(true);
     setMargin(true);
@@ -150,6 +147,7 @@ public class WizardBarcodeView extends VerticalLayout {
     addComponent(prepareBarcodes);
 
     printTubeCodes = new Button("Print Barcodes");
+    printTubeCodes.setVisible(isAdmin);
     printTubeCodes.setEnabled(false);
     addComponent(printTubeCodes);
 
@@ -297,7 +295,7 @@ public class WizardBarcodeView extends VerticalLayout {
     creationDone();
     setAvailableTubes(tubeCodes);
   }
-  
+
   public void setAvailableTubes(int n) {
     printTubeCodes.setEnabled(n > 0);
     printTubeCodes.setCaption("Print Barcodes (" + n + ")");
@@ -359,5 +357,18 @@ public class WizardBarcodeView extends VerticalLayout {
 
   public void initControl(BarcodeController barcodeController) {
     barcodeController.init(this);
+  }
+
+  public void enablePrint(boolean b) {
+    this.printTubeCodes.setEnabled(b);
+  }
+
+  public void printCommandsDone(PrintReadyRunnable done) {
+    if (done.wasSuccess())
+      Functions.notification("Printing successful",
+          "Your barcodes can be found in the printer room.", NotificationType.SUCCESS);
+    else
+      Functions.notification("Printing error", "There was a problem with contacting the printer.",
+          NotificationType.ERROR);
   }
 }
