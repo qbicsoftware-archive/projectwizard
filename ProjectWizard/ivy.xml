@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <!DOCTYPE ivy-module [
-	<!ENTITY vaadin.version "7.4.3">
+	<!ENTITY vaadin.version "7.5.9">
 ]>
 <ivy-module version="2.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:noNamespaceSchemaLocation="http://ant.apache.org/ivy/schemas/ivy.xsd">
 	<info organisation="com.example" module="v7proj" />
-	<configurations>
+	<configurations defaultconf="default" defaultconfmapping="default->default">
 		<!-- The default configuration, which should be deployed to the server -->
 		<conf name="default" />
 		<!-- A configuration only needed when compiling the widget set. Should 
