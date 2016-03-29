@@ -52,8 +52,6 @@ import properties.Factor;
 import org.apache.commons.lang.StringUtils;
 import org.vaadin.teemu.wizards.WizardStep;
 
-import com.vaadin.sass.internal.parser.function.TypeOfFunctionGenerator;
-
 import control.WizardController.Steps;
 
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
@@ -1000,8 +998,8 @@ public class WizardDataAggregator {
     Map<String, Object> msProps = s8.getMSExperimentProperties();
 
     String result = "";
-    // description = description.replace("\n", "\n#"); TODO needed?
-    // secondaryName = secondaryName.replace("\n", "\n#");
+    description = description.replace("\n", "\n#");
+    secondaryName = secondaryName.replace("\n", " - ");
     result += "#PROJECT_DESCRIPTION=" + description + "\n";
     result += "#ALTERNATIVE_NAME=" + secondaryName + "\n";
     result += "#INVESTIGATOR=" + investigator + "\n";

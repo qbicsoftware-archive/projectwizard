@@ -24,7 +24,6 @@ import logging.Log4j2Logger;
 import main.SampleSummaryBean;
 import model.ISampleBean;
 
-import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Label;

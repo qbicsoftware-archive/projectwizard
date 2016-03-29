@@ -83,7 +83,7 @@ public class MetadataUploadView extends VerticalLayout {
     // addComponent(dlTemplate);
     upload =
         new UploadComponent("Upload Metadata CSV", "Upload", ProjectwizardUI.tmpFolder, "meta_",
-            1000);
+            10000);
     upload.setVisible(false);
     addComponent(upload);
     send = new Button("Send to Openbis");
