@@ -83,6 +83,8 @@ public class BarcodePreviewComponent extends VerticalLayout {
 
     code.addStyleName(ValoTheme.TEXTFIELD_BORDERLESS);
     code.setWidth("200px");
+    code.addStyleName("barcode-large");
+
     styleInfoField(info1);
     styleInfoField(info2);
     styleInfoField(qbicInfo);

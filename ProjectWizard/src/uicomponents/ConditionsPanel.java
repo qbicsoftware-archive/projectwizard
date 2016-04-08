@@ -20,7 +20,6 @@ package uicomponents;
 import java.util.ArrayList;
 import java.util.List;
 
-import logging.SysOutLogger;
 import main.ProjectwizardUI;
 
 import com.vaadin.data.Property.ValueChangeEvent;
@@ -28,7 +27,6 @@ import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.themes.ValoTheme;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.HorizontalLayout;

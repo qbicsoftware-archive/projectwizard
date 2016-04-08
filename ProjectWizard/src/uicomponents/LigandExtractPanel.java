@@ -56,15 +56,9 @@ public class LigandExtractPanel extends VerticalLayout {
   private static final long serialVersionUID = -5539202326542301786L;
 
   private Map<String, String> antiBodies;
-  // private TextField sampleMass;
 
   private List<LigandExtractAntibodyChooser> choosers;
-  // private Button.ClickListener buttonListener;
-  // private HorizontalLayout antibodyPane;
-  // private GridLayout buttonGrid;
-  // private Button add;
-  // private Button remove;
-  // private DBVocabularies vocabs;
+
   private Map<Integer, String> tableIdToBarcode;
 
   private Table extractionExperiments;
@@ -78,33 +72,6 @@ public class LigandExtractPanel extends VerticalLayout {
 
     this.conditionsSet = conditionsSet;
     this.conditionsSet.addItem("set");
-    // add = new Button();
-    // remove = new Button();
-    // ProjectwizardUI.iconButton(add, FontAwesome.PLUS_SQUARE);
-    // ProjectwizardUI.iconButton(remove, FontAwesome.MINUS_SQUARE);
-    // initListener();
-
-    // choosers = new ArrayList<LigandExtractAntibodyChooser>();
-    // LigandExtractAntibodyChooser c = new LigandExtractAntibodyChooser(antiBodies);
-    // choosers.add(c);
-    // sampleMass = new TextField("Sample Mass [mg]");
-    // sampleMass.setStyleName(ProjectwizardUI.fieldTheme);
-    // sampleMass.setWidth("60px");
-    // addComponent(ProjectwizardUI.questionize(sampleMass,
-    // "Mass of the input sample in milligrams.",
-    // "Sample Mass"));
-
-    // antibodyPane = new HorizontalLayout();
-    // antibodyPane.setCaption("Antibody columns");
-    // antibodyPane.addComponent(c);
-    // antibodyPane.setSpacing(true);
-    // addComponent(antibodyPane);
-    //
-    // buttonGrid = new GridLayout(2, 1);
-    // buttonGrid.setSpacing(true);
-    // buttonGrid.addComponent(add);
-    // buttonGrid.addComponent(remove);
-    // addComponent(buttonGrid);
     setSpacing(true);
 
     extractionExperiments = new Table("Ligand Extractions");
@@ -120,7 +87,7 @@ public class LigandExtractPanel extends VerticalLayout {
     extractionExperiments.addContainerProperty("Mass 3 [mg]", TextField.class, null);
 
     extractionExperiments.setColumnWidth("Mass [mg]", 79);
-    extractionExperiments.setColumnWidth("Date", 105);
+    extractionExperiments.setColumnWidth("Date", 115);
     extractionExperiments.setColumnWidth("Antibody 1", 108);
     extractionExperiments.setColumnWidth("Antibody 2", 108);
     extractionExperiments.setColumnWidth("Antibody 3", 108);
@@ -138,34 +105,12 @@ public class LigandExtractPanel extends VerticalLayout {
     addComponent(extractionExperiments);
   }
 
-  // private void initListener() {
-  // buttonListener = new Button.ClickListener() {
-  //
-  // private static final long serialVersionUID = 2240224129259577437L;
-  //
-  // @Override
-  // public void buttonClick(ClickEvent event) {
-  // if (event.getButton().equals(add))
-  // add();
-  // else
-  // remove();
-  // }
-  // };
-  // add.addClickListener(buttonListener);
-  // remove.addClickListener(buttonListener);
-  // }
-
   public Map<String, Map<String, Object>> getExperimentalProperties() {
     Map<String, Map<String, Object>> res = new HashMap<String, Map<String, Object>>();
     Map<String, MHCLigandExtractionProtocol> infos = getAntibodyInfos();
     for (String key : infos.keySet())
       res.put(key, translateToProperties(infos.get(key)));
     return res;
-  }
-
-  public static void main(String[] args) {
-    SimpleDateFormat dateformat = new SimpleDateFormat("dd-MM-yyyy");
-    String date = dateformat.format("");
   }
 
   private Map<String, Object> translateToProperties(MHCLigandExtractionProtocol prot) {
@@ -232,7 +177,8 @@ public class LigandExtractPanel extends VerticalLayout {
       row.add(s.getQ_SECONDARY_NAME());
       row.add(generateTableIntegerInput());
       DateField date = new DateField();
-      date.setWidth("100px");
+      date.setDateFormat("dd.MM.yy");
+      date.setWidth("110px");
       date.setStyleName(ProjectwizardUI.fieldTheme);
       row.add(date);
       row.add(generateTableAntibodyBox());
@@ -290,30 +236,6 @@ public class LigandExtractPanel extends VerticalLayout {
     }
     return res;
   }
-
-  // private void add() {
-  // if (choosers.size() < 3) {
-  // choosers.get(choosers.size() - 1).hideHelpers();
-  // LigandExtractAntibodyChooser c = new LigandExtractAntibodyChooser(antiBodies);
-  // choosers.add(c);
-  //
-  // c.showHelpers();
-  // removeComponent(buttonGrid);
-  // antibodyPane.addComponent(c);
-  // addComponent(buttonGrid);
-  // }
-  // }
-  //
-  // private void remove() {
-  // int size = choosers.size();
-  // if (size > 1) {
-  // LigandExtractAntibodyChooser last = choosers.get(size - 1);
-  // last.reset();
-  // antibodyPane.removeComponent(last);
-  // choosers.remove(last);
-  // choosers.get(size - 2).showHelpers();
-  // }
-  // }
 
   public boolean isValid() {
     boolean res = true;
@@ -384,11 +306,5 @@ public class LigandExtractPanel extends VerticalLayout {
     } else
       return true;
   }
-
-  // public void resetInputs() {
-  // for (LigandExtractAntibodyChooser c : choosers) {
-  // c.reset();
-  // }
-  // }
 
 }
