@@ -95,6 +95,9 @@ public class ProjectwizardUI extends UI {
   public static String fieldTheme = ValoTheme.TEXTFIELD_SMALL;
   public static String areaTheme = ValoTheme.TEXTAREA_SMALL;
   public static String tableTheme = ValoTheme.TABLE_SMALL;
+  // hardcoded stuff (experiment types mainly used in the wizard)
+  List<String> expTypes = new ArrayList<String>(Arrays.asList("Q_EXPERIMENTAL_DESIGN",
+      "Q_SAMPLE_EXTRACTION", "Q_SAMPLE_PREPARATION"));
 
   public static void iconButton(Button b, Resource icon) {
     b.setStyleName(ValoTheme.BUTTON_BORDERLESS);
@@ -203,10 +206,14 @@ public class ProjectwizardUI extends UI {
       this.openbis.login();
     } catch (Exception e) {
       success = false;
-      logger.error("User \"" + userID
-          + "\" could not connect to openBIS and has been informed of this.");
-      layout.addComponent(new Label(
-          "Data Management System could not be reached. Please try again later or contact us."));
+      if (isDevelopment()) {
+        logger.error("No connection to openBIS. Here a dummy version for testing could be implemented.");
+      } else {
+        logger.error("User \"" + userID
+            + "\" could not connect to openBIS and has been informed of this.");
+        layout.addComponent(new Label(
+            "Data Management System could not be reached. Please try again later or contact us."));
+      }
     }
     if (success) {
       // stuff from openbis
@@ -231,10 +238,6 @@ public class ProjectwizardUI extends UI {
       } catch (NullPointerException e) {
         map.put("No Connection", -1);
       }
-      // hardcoded stuff (experiment types mainly used in the wizard)
-      List<String> expTypes =
-          new ArrayList<String>(Arrays.asList("Q_EXPERIMENTAL_DESIGN", "Q_SAMPLE_EXTRACTION",
-              "Q_SAMPLE_PREPARATION"));
       DBVocabularies vocabs =
           new DBVocabularies(taxMap, tissueMap, cellLinesMap, sampleTypes, spaces, map, expTypes,
               enzymes, antibodiesWithLabels, deviceMap, msProtocols, lcmsMethods, chromTypes);
@@ -281,7 +284,8 @@ public class ProjectwizardUI extends UI {
       // in which case user is granted admin rights. Change so it works for you.
       // Be careful that this is never true on production or better yet that logged out users can
       // not see the portlet page.
-      devEnv = new File(".").getCanonicalPath().contains("eclipse");
+      String path = new File(".").getCanonicalPath();
+      devEnv = path.toLowerCase().contains("eclipse");
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -323,8 +327,7 @@ public class ProjectwizardUI extends UI {
     tabs.addTab(wLayout, "Create Project").setIcon(FontAwesome.FLASK);
     BarcodeConfig bcConf =
         new BarcodeConfig(barcodeScripts, tmpFolder, barcodeResultsFolder, pathVar);
-    final WizardBarcodeView bw =
-        new WizardBarcodeView(vocabularies.getSpaces(), isAdmin);
+    final WizardBarcodeView bw = new WizardBarcodeView(vocabularies.getSpaces(), isAdmin);
     bw.initControl(new BarcodeController(openbis, bcConf));
     tabs.addTab(bw, "Create Barcodes").setIcon(FontAwesome.BARCODE);
     StandaloneTSVImport tsvImport = new StandaloneTSVImport();
