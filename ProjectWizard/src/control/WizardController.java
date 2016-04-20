@@ -182,10 +182,8 @@ public class WizardController {
   }
 
   private void resetNextSteps() {
-    Notification n =
-        new Notification(
-            "Steps updated",
-            "One of your choices has added or removed steps from the wizard. You can see your progress at the top.");
+    Notification n = new Notification("Steps updated",
+        "One of your choices has added or removed steps from the wizard. You can see your progress at the top.");
     n.setStyleName(ValoTheme.NOTIFICATION_CLOSABLE);
     n.setDelayMsec(-1);
     // n.show(UI.getCurrent().getPage()); TODO ability to select not to show them - addon notifique?
@@ -215,8 +213,10 @@ public class WizardController {
     if (!openbis.projectExists(spaceCode, code))
       return false;
     for (Experiment e : openbis.getExperimentsOfProjectByCode(code)) {
-      if (e.getExperimentTypeCode().equals("Q_EXPERIMENTAL_DESIGN"))
-        return openbis.getSamplesofExperiment(e.getIdentifier()).size() > 0;
+      if (e.getExperimentTypeCode().equals("Q_EXPERIMENTAL_DESIGN")) {
+        if(openbis.getSamplesofExperiment(e.getIdentifier()).size() > 0)
+          return true;
+      }
     }
     return false;
   }
@@ -282,9 +282,8 @@ public class WizardController {
     final TailoringStep tailoringStep1 = new TailoringStep("Sample Sources", false);
     final ExtractionStep extrStep =
         new ExtractionStep(vocabularies.getTissueMap(), vocabularies.getCellLinesMap());
-    final ConditionInstanceStep extrCondInstStep =
-        new ConditionInstanceStep(vocabularies.getTissueMap().keySet(), "Tissues",
-            "Extr. Variables");
+    final ConditionInstanceStep extrCondInstStep = new ConditionInstanceStep(
+        vocabularies.getTissueMap().keySet(), "Tissues", "Extr. Variables");
     final TailoringStep tailoringStep2 = new TailoringStep("Sample Extracts", true);
     final TestStep techStep = new TestStep(vocabularies);
     final SummaryRegisterStep regStep = new SummaryRegisterStep(dbm);
@@ -306,9 +305,8 @@ public class WizardController {
     steps.put(Steps.Registration, regStep);
     steps.put(Steps.Finish, finishStep);
 
-    this.dataAggregator =
-        new WizardDataAggregator(steps, openbis, vocabularies.getTaxMap(),
-            vocabularies.getTissueMap());
+    this.dataAggregator = new WizardDataAggregator(steps, openbis, vocabularies.getTaxMap(),
+        vocabularies.getTissueMap());
     w.addStep(contextStep);
 
     FocusListener fListener = new FocusListener() {
@@ -428,8 +426,8 @@ public class WizardController {
           for (Experiment e : openbis.getExperimentsOfProjectByCode(project)) {
             if (designExperimentTypes.contains(e.getExperimentTypeCode())) {
               int numOfSamples = openbis.getSamplesofExperiment(e.getIdentifier()).size();
-              beans.add(new ExperimentBean(e.getIdentifier(), e.getExperimentTypeCode(), Integer
-                  .toString(numOfSamples)));
+              beans.add(new ExperimentBean(e.getIdentifier(), e.getExperimentTypeCode(),
+                  Integer.toString(numOfSamples)));
             }
           }
           contextStep.setExperiments(beans);
@@ -457,8 +455,8 @@ public class WizardController {
         if (exp != null) {
           List<NewSampleModelBean> beans = new ArrayList<NewSampleModelBean>();
           for (Sample s : openbis.getSamplesofExperiment(exp.getID())) {
-            beans.add(new NewSampleModelBean(s.getCode(),
-                s.getProperties().get("Q_SECONDARY_NAME"), s.getSampleTypeCode()));
+            beans.add(new NewSampleModelBean(s.getCode(), s.getProperties().get("Q_SECONDARY_NAME"),
+                s.getSampleTypeCode()));
           }
           contextStep.setSamples(beans);
         }
@@ -635,9 +633,8 @@ public class WizardController {
 
     TextField f = contextStep.getProjectCodeField();
     CompositeValidator vd = new CompositeValidator();
-    RegexpValidator p =
-        new RegexpValidator("Q[A-Xa-x0-9]{4}",
-            "Project must have length of 5, start with Q and not contain Y or Z");
+    RegexpValidator p = new RegexpValidator("Q[A-Xa-x0-9]{4}",
+        "Project must have length of 5, start with Q and not contain Y or Z");
     vd.addValidator(p);
     vd.addValidator(new ProjectNameValidator(openbis));
     f.addValidator(vd);
@@ -671,8 +668,8 @@ public class WizardController {
         }
         // Entity Condition Instances Step
         if (event.getActivatedStep().equals(entCondInstStep)) {
-          reloadConditionsPreviewTable(entCondInstStep,
-              Integer.toString(entStep.getBioRepAmount()), new ArrayList<AOpenbisSample>());
+          reloadConditionsPreviewTable(entCondInstStep, Integer.toString(entStep.getBioRepAmount()),
+              new ArrayList<AOpenbisSample>());
           if (!bioFactorInstancesSet) {
             if (entStep.speciesIsFactor())
               entCondInstStep.initOptionsFactorField(entStep.getSpeciesAmount());
@@ -775,8 +772,9 @@ public class WizardController {
               investigator = vocabularies.getPeople().get(contextStep.getPrincipalInvestigator());
             if (!contextStep.getContactPerson().equals(""))
               contact = vocabularies.getPeople().get(contextStep.getContactPerson());
-            regStep.setPeopleAndProject(investigator, contact, "/" + contextStep.getSpaceCode()
-                + "/" + contextStep.getProjectCode(), contextStep.getExpSecondaryName());
+            regStep.setPeopleAndProject(investigator, contact,
+                "/" + contextStep.getSpaceCode() + "/" + contextStep.getProjectCode(),
+                contextStep.getExpSecondaryName());
             regStep.setProcessed(prep.getProcessed());
           }
           if (regStep.summaryIsSet()) {
