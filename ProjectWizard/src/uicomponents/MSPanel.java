@@ -21,22 +21,18 @@ import io.DBVocabularies;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import main.ProjectwizardUI;
 
 import com.vaadin.server.FontAwesome;
+import com.vaadin.shared.ui.combobox.FilteringMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.themes.ValoTheme;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.GridLayout;
-import com.vaadin.ui.Notification;
 import com.vaadin.ui.OptionGroup;
-import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 
 public class MSPanel extends VerticalLayout {
@@ -61,6 +57,7 @@ public class MSPanel extends VerticalLayout {
   OptionGroup conditionsSet;
 
   public MSPanel(DBVocabularies vocabs, OptionGroup conditionsSet) {
+    this.setCaption("Mass Spectrometry");
     this.vocabs = vocabs;
     this.enzymes = vocabs.getEnzymes();
 
@@ -80,12 +77,15 @@ public class MSPanel extends VerticalLayout {
     // msProtocol.setNullSelectionAllowed(false);
 //    msProtocol.setStyleName(ProjectwizardUI.boxTheme);
     device = new ComboBox("MS Device", vocabs.getDeviceMap().keySet());
+    device.setFilteringMode(FilteringMode.CONTAINS);
     // device.setNullSelectionAllowed(false);
     device.setStyleName(ProjectwizardUI.boxTheme);
     chromType = new ComboBox("MS Chromatography Type", vocabs.getChromTypes());
+    chromType.setFilteringMode(FilteringMode.CONTAINS);
     // chromType.setNullSelectionAllowed(false);
     chromType.setStyleName(ProjectwizardUI.boxTheme);
     lcmsMethod = new ComboBox("MS LCMS Method", vocabs.getLcmsMethods());
+    lcmsMethod.setFilteringMode(FilteringMode.CONTAINS);
     // lcmsMethod.setNullSelectionAllowed(false);
     lcmsMethod.setStyleName(ProjectwizardUI.boxTheme);
 //    addComponent(ProjectwizardUI.questionize(msProtocol,

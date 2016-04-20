@@ -24,6 +24,7 @@ import main.ProjectwizardUI;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.validator.StringLengthValidator;
 import com.vaadin.server.FontAwesome;
+import com.vaadin.shared.ui.combobox.FilteringMode;
 import com.vaadin.ui.AbstractSelect;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
@@ -92,7 +93,9 @@ public class ProjectInformationComponent extends VerticalLayout {
     VerticalLayout persBox = new VerticalLayout();
 
     piBox = new ComboBox("Principal Investigator", set);
+    piBox.setFilteringMode(FilteringMode.CONTAINS);
     contactBox = new ComboBox("Contact Person", set);
+    contactBox.setFilteringMode(FilteringMode.CONTAINS);
     piBox.setStyleName(ProjectwizardUI.boxTheme);
     contactBox.setStyleName(ProjectwizardUI.boxTheme);
     persBox.addComponent(piBox);

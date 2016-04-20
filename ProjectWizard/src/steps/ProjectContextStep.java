@@ -31,6 +31,7 @@ import componentwrappers.CustomVisibilityComponent;
 import uicomponents.ProjectInformationComponent;
 
 import com.vaadin.data.util.BeanItemContainer;
+import com.vaadin.shared.ui.combobox.FilteringMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
@@ -88,6 +89,7 @@ public class ProjectContextStep implements WizardStep {
     spaceCode.setStyleName(ProjectwizardUI.boxTheme);
     spaceCode.setNullSelectionAllowed(false);
     spaceCode.setImmediate(true);
+    spaceCode.setFilteringMode(FilteringMode.CONTAINS);
 
     projectInfoComponent = projSelect;
     projectInfoComponent.setImmediate(true);

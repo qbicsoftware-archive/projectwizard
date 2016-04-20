@@ -21,6 +21,7 @@ import java.util.List;
 
 import main.ProjectwizardUI;
 
+import com.vaadin.shared.ui.combobox.FilteringMode;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.VerticalLayout;
 
@@ -38,6 +39,7 @@ public class EnzymeChooser extends VerticalLayout {
   public EnzymeChooser(List<String> options) {
     chooser = new ComboBox();
     chooser.addItems(options);
+    chooser.setFilteringMode(FilteringMode.CONTAINS);
     chooser.setNullSelectionAllowed(false);
     chooser.setStyleName(ProjectwizardUI.boxTheme);
     addComponent(chooser);
