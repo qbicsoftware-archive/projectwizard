@@ -28,6 +28,8 @@ import model.NewSampleModelBean;
 import org.vaadin.teemu.wizards.WizardStep;
 
 import componentwrappers.CustomVisibilityComponent;
+import control.Functions;
+import control.Functions.NotificationType;
 import uicomponents.ProjectInformationComponent;
 
 import com.vaadin.data.util.BeanItemContainer;
@@ -65,10 +67,10 @@ public class ProjectContextStep implements WizardStep {
 
   private Table samples;
 
-  List<String> contextOptions = new ArrayList<String>(Arrays.asList("Add a new experiment",
-      "Add sample extraction to existing sample sources",
-      "Measure existing extracted samples again", // "Copy parts of a project",
-      "Download existing sample spreadsheet"));
+  List<String> contextOptions = new ArrayList<String>(
+      Arrays.asList("Add new experiment", "Add sample extraction to existing sample sources",
+          "Measure existing extracted samples again", "Create empty sub-project",
+          "Download existing sample spreadsheet"));
   private CustomVisibilityComponent projectContext;
 
   private GridLayout grid;
@@ -85,7 +87,7 @@ public class ProjectContextStep implements WizardStep {
     main.setSpacing(true);
     main.setSizeUndefined();
     Collections.sort(openbisSpaces);
-    spaceCode = new ComboBox("Project Name", openbisSpaces);
+    spaceCode = new ComboBox("Project", openbisSpaces);
     spaceCode.setStyleName(ProjectwizardUI.boxTheme);
     spaceCode.setNullSelectionAllowed(false);
     spaceCode.setImmediate(true);
@@ -105,8 +107,8 @@ public class ProjectContextStep implements WizardStep {
     experimentTable.setColumnHeader("samples", "Samples");
     experimentTable.setStyleName(ValoTheme.TABLE_SMALL);
     experimentTable.setPageLength(1);
-    experimentTable.setContainerDataSource(new BeanItemContainer<ExperimentBean>(
-        ExperimentBean.class));
+    experimentTable
+        .setContainerDataSource(new BeanItemContainer<ExperimentBean>(ExperimentBean.class));
     experimentTable.setSelectable(true);
     experimentTable.setVisible(false);
 
@@ -116,38 +118,22 @@ public class ProjectContextStep implements WizardStep {
     samples.setColumnHeader("secondary_Name", "Secondary Name");
     samples.setVisible(false);
     samples.setPageLength(1);
-    samples.setContainerDataSource(new BeanItemContainer<NewSampleModelBean>(
-        NewSampleModelBean.class));
-
-    // Label info =
-    // new Label(
-    // "If you want to add to or copy an existing experiment, please select the experiment. "
-    // +
-    // "When copying lower tier samples, they will be attached to existing samples that are higher in the hierarchy."
-    // + " Downloaded TSVs will always contain all attached sample tiers.");
-    // info.setStyleName("info");
-    // info.setWidth("350px");
-
-    // was moved to ProjectSelectionComponent
-    // expName = new StandardTextField("Experiment name");
-    // expName.setVisible(false);
-    // expName.setInputPrompt("Optional short name");
+    samples.setContainerDataSource(
+        new BeanItemContainer<NewSampleModelBean>(NewSampleModelBean.class));
 
     grid = new GridLayout(2, 5);
     grid.setSpacing(true);
     grid.setMargin(true);
-    grid.addComponent(
-        ProjectwizardUI.questionize(spaceCode, "Name of the project", "Project Name"), 0, 0);
+    grid.addComponent(ProjectwizardUI.questionize(spaceCode, "Name of the project", "Project Name"),
+        0, 0);
     grid.addComponent(projectInfoComponent, 0, 1);
-    Component context =
-        ProjectwizardUI
-            .questionize(
-                projectContext,
-                "If this experiment's organisms or "
-                    + "tissue extracts are already registered at QBiC from an earlier experiment, you can chose the second "
-                    + "option (new tissue extracts from old organism) or the third (new measurements from old tissue extracts). "
-                    + "You can also download existing sample information by choosing the last option.",
-                "Project Context");
+    Component context = ProjectwizardUI.questionize(projectContext,
+        "If this experiment's organisms or "
+            + "tissue extracts are already registered at QBiC from an earlier experiment, you can chose the second "
+            + "option (new tissue extracts from old organism) or the third (new measurements from old tissue extracts). "
+            + "You can also create a preliminary sub-project and add samples later or "
+            + "download existing sample information by choosing the last option.",
+        "Project Context");
     grid.addComponent(context, 0, 2);
     grid.addComponent(experimentTable, 0, 3);
     grid.addComponent(samples, 1, 2, 1, 3);
@@ -203,7 +189,6 @@ public class ProjectContextStep implements WizardStep {
 
   public void resetProjects() {
     projectInfoComponent.resetProjects();
-    disableContextOptions();
     resetExperiments();
   }
 
@@ -263,12 +248,16 @@ public class ProjectContextStep implements WizardStep {
     projectContext.setItemEnabled(contextOptions.get(2), enable);
   }
 
+  public void enableEmptyProjectContextOption(boolean enable) {
+    projectContext.setItemEnabled(contextOptions.get(3), enable);
+  }
+
   // public void enableCopyContextOption(boolean enable) {
   // projectContext.setItemEnabled(contextOptions.get(3), enable);
   // }
 
   public void enableTSVWriteContextOption(boolean enable) {
-    projectContext.setItemEnabled(contextOptions.get(3), enable);
+    projectContext.setItemEnabled(contextOptions.get(4), enable);
   }
 
   public List<String> getContextOptions() {
@@ -291,29 +280,26 @@ public class ProjectContextStep implements WizardStep {
 
   @Override
   public boolean onAdvance() {
-    Notification n;
     if (spaceReady() && projectReady()) {
       if (inherit() || copy() || readOnly())
         if (expSelected())
           return true;
-        else {
-          n = new Notification("Please select an existing experiment.");
-        }
+        else
+          Functions.notification("No experiment selected", "Please select an existing experiment.",
+              NotificationType.ERROR);
       else {
         if (getProjectBox().isEmpty())
           if (descriptionReady())
             return true;
           else
-            n = new Notification("Please fill in a description.");
+            Functions.notification("No description", "Please fill in an experiment description.",
+                NotificationType.ERROR);
         else
           return true;
       }
-    } else {
-      n = new Notification("Please select a project and subproject or create a new one.");
-    }
-    n.setStyleName(ValoTheme.NOTIFICATION_CLOSABLE);
-    n.setDelayMsec(-1);
-    n.show(UI.getCurrent().getPage());
+    } else
+      Functions.notification("No sub-project selected",
+          "Please select a project and subproject or create a new one.", NotificationType.ERROR);
     return false;
   }
 
@@ -332,7 +318,7 @@ public class ProjectContextStep implements WizardStep {
 
   private boolean copy() {
     String context = (String) projectContext.getValue();
-    return contextOptions.get(3).equals(context);
+    return contextOptions.get(4).equals(context);
   }
 
   private boolean readOnly() {
@@ -401,9 +387,14 @@ public class ProjectContextStep implements WizardStep {
 
   public boolean fetchTSVModeSet() {
     String context = (String) projectContext.getValue();
-    return contextOptions.get(3).equals(context);
+    return contextOptions.get(4).equals(context);
   }
 
+  public boolean emptyProjectModeSet() {
+    String context = (String) projectContext.getValue();
+    return contextOptions.get(3).equals(context);
+  }
+  
   public boolean expSecondaryNameSet() {
     TextField expName = projectInfoComponent.getExpNameField();
     return expName != null && !expName.isEmpty();
