@@ -31,7 +31,6 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
@@ -51,7 +50,7 @@ public class SummaryTable extends VerticalLayout {
    */
   private static final long serialVersionUID = 3220178619365365177L;
   private Table table;
-  private Map<String, AOpenbisSample> map;
+  // private Map<String, AOpenbisSample> map;
   private String name;
   private boolean isotopes = false;
   private LabelingMethod labelingMethod;
@@ -86,8 +85,9 @@ public class SummaryTable extends VerticalLayout {
   public List<AOpenbisSample> getSamples() {
     List<AOpenbisSample> res = new ArrayList<AOpenbisSample>();
     for (Object id : table.getItemIds()) {
-      String key = (String) table.getItem(id).getItemProperty("ID").getValue();
-      AOpenbisSample s = map.get(key);
+      // String key = (String) ((TextField) table.getItem(id).getItemProperty("Secondary
+      // Name").getValue()).getData();
+      AOpenbisSample s = (AOpenbisSample) id;
       String secName = parseTextField("Secondary Name", id);
       s.setQ_SECONDARY_NAME(secName);
       if (secName == null)
@@ -112,7 +112,7 @@ public class SummaryTable extends VerticalLayout {
   }
 
   private String parseComboLabel(String colname, Object id) {
-    return (String) ((ComboBox) table.getItem(id).getItemProperty(name).getValue()).getValue();
+    return (String) ((ComboBox) table.getItem(id).getItemProperty(colname).getValue()).getValue();
   }
 
   private String parseTextField(String colname, Object id) {
@@ -125,14 +125,12 @@ public class SummaryTable extends VerticalLayout {
 
   public void removeAllItems() {
     removeAllComponents();
-    map = new HashMap<String, AOpenbisSample>();
+    // map = new HashMap<String, AOpenbisSample>();
     table = new Table(name);
     addComponent(table);
-    addComponent(ProjectwizardUI
-        .questionize(
-            deleteNames,
-            "If you don't want to keep any of the proposed secondary names you can use this button to delete all of them.",
-            "Clear Secondary Names"));
+    addComponent(ProjectwizardUI.questionize(deleteNames,
+        "If you don't want to keep any of the proposed secondary names you can use this button to delete all of them.",
+        "Clear Secondary Names"));
   }
 
   private void removeColEntries(String colName) {
@@ -149,8 +147,8 @@ public class SummaryTable extends VerticalLayout {
       isotopes = true;
     }
     table.setStyleName(ProjectwizardUI.tableTheme);
-    table.addContainerProperty("ID", String.class, null);
-    table.setColumnWidth("ID", 35);
+    // table.addContainerProperty("ID", String.class, null);
+    // table.setColumnWidth("ID", 35);
     table.addContainerProperty("Secondary Name", TextField.class, null);
     table.addContainerProperty("External DB ID", TextField.class, null);
     table.setColumnWidth("External DB ID", 106);
@@ -188,20 +186,22 @@ public class SummaryTable extends VerticalLayout {
     List<String> reagents = null;
     if (isotopes)
       reagents = labelingMethod.getReagents();
-    for (int i = 0; i < samples.size(); i++) {
-      AOpenbisSample s = samples.get(i);
-      String id = Integer.toString(i);
-      map.put(id, s);
+    int i = -1;
+    for (AOpenbisSample s : samples) {
+      i++;
+      // AOpenbisSample s = samples.get(i);
+      // Obje id = Integer.toString(i);
+      // map.put(id, s);
 
       // The Table item identifier for the row.
-      Integer itemId = new Integer(i);
+      // Integer itemId = new Integer(i);
 
       // Create a button and handle its click.
       Button delete = new Button();
       ProjectwizardUI.iconButton(delete, FontAwesome.TRASH_O);
       // delete.setWidth("15px");
       // delete.setHeight("30px");
-      delete.setData(itemId);
+      delete.setData(s);
       delete.addClickListener(new Button.ClickListener() {
         /**
          * 
@@ -211,7 +211,7 @@ public class SummaryTable extends VerticalLayout {
         @Override
         public void buttonClick(ClickEvent event) {
           Button b = event.getButton();
-          Integer iid = (Integer) b.getData();
+          Object iid = b.getData();
           TextField secNameField =
               (TextField) table.getItem(iid).getItemProperty("Secondary Name").getValue();
           TextField extIDField =
@@ -220,9 +220,9 @@ public class SummaryTable extends VerticalLayout {
             secNameField.setReadOnly(false);
             extIDField.setReadOnly(false);
 
-            String id = (String) table.getItem(iid).getItemProperty("ID").getValue();
-            secNameField.setValue(map.get(id).getQ_SECONDARY_NAME());
-            extIDField.setValue(map.get(id).getQ_EXTERNALDB_ID());
+            // String id = (String) table.getItem(iid).getItemProperty("ID").getValue();
+            secNameField.setValue(s.getQ_SECONDARY_NAME());
+            extIDField.setValue(s.getQ_EXTERNALDB_ID());
 
             b.setIcon(FontAwesome.TRASH_O);
           } else {
@@ -237,8 +237,9 @@ public class SummaryTable extends VerticalLayout {
 
       // Create the table row.
       List<Object> row = new ArrayList<Object>();
-      row.add(id);
+      // row.add(id);
       TextField secNameField = new StandardTextField();
+      // secNameField.setData(id);
       secNameField.setImmediate(true);
       secNameField.setValue(s.getQ_SECONDARY_NAME());
       row.add(secNameField);
@@ -265,7 +266,7 @@ public class SummaryTable extends VerticalLayout {
       for (int j = 0; j < missing; j++)
         row.add("");
       row.add(delete);
-      table.addItem(row.toArray(new Object[row.size()]), itemId);
+      table.addItem(row.toArray(new Object[row.size()]), s);
     }
   }
 }
