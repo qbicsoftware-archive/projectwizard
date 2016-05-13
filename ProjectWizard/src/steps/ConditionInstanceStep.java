@@ -1,19 +1,17 @@
 /*******************************************************************************
- * QBiC Project Wizard enables users to create hierarchical experiments including different study conditions using factorial design.
- * Copyright (C) "2016"  Andreas Friedrich
+ * QBiC Project Wizard enables users to create hierarchical experiments including different study
+ * conditions using factorial design. Copyright (C) "2016" Andreas Friedrich
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with this program. If
+ * not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 package steps;
 
@@ -30,6 +28,8 @@ import properties.Factor;
 import uicomponents.ConditionPropertyPanel;
 import componentwrappers.CustomVisibilityComponent;
 import componentwrappers.StandardTextField;
+import control.Functions;
+import control.Functions.NotificationType;
 
 import org.vaadin.teemu.wizards.WizardStep;
 
@@ -37,12 +37,9 @@ import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Notification;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
-import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
@@ -92,13 +89,11 @@ public class ConditionInstanceStep implements WizardStep {
     previewFrame = new CustomVisibilityComponent(frame);
     previewFrame.setVisible(false);
 
-    main.addComponent(ProjectwizardUI
-        .questionize(
-            previewFrame,
-            "This table shows a preview of the number and type of samples "
-                + "that will be created in the next step. You can change the number of samples for each "
-                + "group of samples. For example, if one variable combination is not in the experiment at all, set it to 0.",
-            "Preview"));
+    main.addComponent(ProjectwizardUI.questionize(previewFrame,
+        "This table shows a preview of the number and type of samples "
+            + "that will be created in the next step. You can change the number of samples for each "
+            + "group of samples. For example, if one variable combination is not in the experiment at all, set it to 0.",
+        "Preview"));
 
     this.options = options;
     this.optionName = optionName;
@@ -155,9 +150,8 @@ public class ConditionInstanceStep implements WizardStep {
       optionInstances.add(b);
       optionBox.addComponent(b);
     }
-    HorizontalLayout helpBox =
-        ProjectwizardUI.questionize(optionBox, "To continue, fill in the different " + optionName
-            + " in this experiment.", optionName);
+    HorizontalLayout helpBox = ProjectwizardUI.questionize(optionBox,
+        "To continue, fill in the different " + optionName + " in this experiment.", optionName);
     helpBox.setMargin(true);
     instances.addTab(helpBox, optionName);
   }
@@ -171,10 +165,8 @@ public class ConditionInstanceStep implements WizardStep {
   public boolean onAdvance() {
     boolean valid = validInput();
     if (!valid) {
-      Notification n = new Notification("Please fill in all cases of experimental variables.");
-      n.setStyleName(ValoTheme.NOTIFICATION_CLOSABLE);
-      n.setDelayMsec(-1);
-      n.show(UI.getCurrent().getPage());
+      Functions.notification("Missing levels",
+          "Please fill in all cases of experimental variables.", NotificationType.ERROR);
     }
     return skip || valid;
   }

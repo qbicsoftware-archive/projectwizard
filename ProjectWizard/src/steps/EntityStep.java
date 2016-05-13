@@ -1,19 +1,17 @@
 /*******************************************************************************
- * QBiC Project Wizard enables users to create hierarchical experiments including different study conditions using factorial design.
- * Copyright (C) "2016"  Andreas Friedrich
+ * QBiC Project Wizard enables users to create hierarchical experiments including different study
+ * conditions using factorial design. Copyright (C) "2016" Andreas Friedrich
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with this program. If
+ * not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 package steps;
 
@@ -41,6 +39,8 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import componentwrappers.OpenbisInfoComboBox;
 import componentwrappers.OpenbisInfoTextField;
+import control.Functions;
+import control.Functions.NotificationType;
 
 /**
  * Wizard Step to model the biological entities of an experiment
@@ -87,38 +87,33 @@ public class EntityStep implements WizardStep {
     main.setMargin(true);
     main.setSpacing(true);
     Label header = new Label("Sample Sources");
-    main.addComponent(ProjectwizardUI
-        .questionize(
-            header,
-            "Sample sources are individual patients, animals or plants that are used in the experiment. "
-                + "You can input (optional) experimental variables, e.g. genotypes, that differ between different experimental groups.",
-            "Sample Sources"));
+    main.addComponent(ProjectwizardUI.questionize(header,
+        "Sample sources are individual patients, animals or plants that are used in the experiment. "
+            + "You can input (optional) experimental variables, e.g. genotypes, that differ between different experimental groups.",
+        "Sample Sources"));
     this.speciesMap = speciesMap;
     ArrayList<String> openbisSpecies = new ArrayList<String>();
     openbisSpecies.addAll(speciesMap.keySet());
     Collections.sort(openbisSpecies);
-    species =
-        new OpenbisInfoComboBox("Species",
-            "If there are samples of different species, leave this empty", openbisSpecies);
+    species = new OpenbisInfoComboBox("Species",
+        "If there are samples of different species, leave this empty", openbisSpecies);
     species.getInnerComponent().setRequired(true);
-    speciesNum =
-        new OpenbisInfoTextField("How many different species are there in this project?", "",
-            "50px", "2");
+    speciesNum = new OpenbisInfoTextField("How many different species are there in this project?",
+        "", "50px", "2");
     speciesNum.getInnerComponent().setVisible(false);
     speciesNum.getInnerComponent().setEnabled(false);
-    c =
-        new ConditionsPanel(suggestions, emptyFactor, "Species",
-            (ComboBox) species.getInnerComponent(), true, conditionsSet,
-            (TextField) speciesNum.getInnerComponent());
+    c = new ConditionsPanel(suggestions, emptyFactor, "Species",
+        (ComboBox) species.getInnerComponent(), true, conditionsSet,
+        (TextField) speciesNum.getInnerComponent());
     main.addComponent(c);
     main.addComponent(speciesNum.getInnerComponent());
     main.addComponent(species.getInnerComponent());
 
-    bioReps =
-        new OpenbisInfoTextField(
-            "How many identical biological replicates (e.g. animals) per group are there?",
-            "Number of (biological) replicates for each group."
-                + "Technical replicates are added later!", "50px", "1");
+    bioReps = new OpenbisInfoTextField(
+        "How many identical biological replicates (e.g. animals) per group are there?",
+        "Number of (biological) replicates for each group."
+            + "Technical replicates are added later!",
+        "50px", "1");
     main.addComponent(bioReps.getInnerComponent());
   }
 
@@ -137,10 +132,8 @@ public class EntityStep implements WizardStep {
     if (skip || speciesReady() && replicatesReady() && c.isValid())
       return true;
     else {
-      Notification n = new Notification("Please fill in the required fields.");
-      n.setStyleName(ValoTheme.NOTIFICATION_CLOSABLE);
-      n.setDelayMsec(-1);
-      n.show(UI.getCurrent().getPage());
+      Functions.notification("Missing information", "Please fill in the required fields.",
+          NotificationType.ERROR);
       return false;
     }
   }
@@ -196,6 +189,11 @@ public class EntityStep implements WizardStep {
 
   public boolean isSkipped() {
     return skip;
+  }
+
+  public String getPerson() {
+    // TODO Auto-generated method stub
+    return null;
   }
 
 }
