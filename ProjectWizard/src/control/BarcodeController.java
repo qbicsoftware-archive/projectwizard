@@ -16,10 +16,12 @@
 package control;
 
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -34,12 +36,12 @@ import logging.Log4j2Logger;
 import main.BarcodeCreator;
 import main.OpenBisClient;
 import model.BarcodeConfig;
+import model.ExperimentBarcodeSummary;
 import model.ExperimentBarcodeSummaryBean;
 import model.IBarcodeBean;
 import model.NewModelBarcodeBean;
 import model.SortBy;
 
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
 import ch.systemsx.cisd.openbis.plugin.query.shared.api.v1.dto.QueryTableModel;
@@ -80,9 +82,11 @@ public class BarcodeController {
 
   logging.Logger logger = new Log4j2Logger(BarcodeController.class);
 
-  private List<String> barcodeExperiments = new ArrayList<String>(
-      Arrays.asList("Q_SAMPLE_EXTRACTION", "Q_SAMPLE_PREPARATION", "Q_NGS_MEASUREMENT",
-          "Q_MHC_LIGAND_EXTRACTION"));
+  private List<String> barcodeExperiments =
+      new ArrayList<String>(Arrays.asList("Q_SAMPLE_EXTRACTION", "Q_SAMPLE_PREPARATION",
+          "Q_NGS_MEASUREMENT", "Q_MHC_LIGAND_EXTRACTION"));
+  private List<String> barcodeSamples = new ArrayList<String>(Arrays.asList("Q_BIOLOGICAL_SAMPLE",
+      "Q_TEST_SAMPLE", "Q_NGS_SINGLE_SAMPLE_RUN", "Q_MHC_LIGAND_EXTRACT"));
   // mapping between sample type and interesting property of that sample type has to be added here
   private Map<String, String> sampleTypeToBioTypeField = new HashMap<String, String>() {
     {
@@ -126,8 +130,8 @@ public class BarcodeController {
         Collections.sort(barcodeBeans, SampleSecondaryNameComparator.getInstance());
         break;
       default:
-        logger
-            .warn("Unknown Barcode Bean sorter or no sorter selected. Barcodes will not be sorted.");
+        logger.warn(
+            "Unknown Barcode Bean sorter or no sorter selected. Barcodes will not be sorted.");
         break;
     }
   }
@@ -151,8 +155,8 @@ public class BarcodeController {
           String project = view.getProjectCode();
           logger.info("Sending print command for project " + project + " barcodes");
           creator.printBarcodeFolderForProject(project, new PrintReadyRunnable(view));
-//          Functions.notification("Barcodes printing", "Barcodes have been sent to the printer.",
-//              NotificationType.DEFAULT);
+          // Functions.notification("Barcodes printing", "Barcodes have been sent to the printer.",
+          // NotificationType.DEFAULT);
         }
         if (src.equals("Prepare Barcodes")) {
           view.creationPressed();
@@ -171,9 +175,8 @@ public class BarcodeController {
                 new TubeBarcodesReadyRunnable(view, creator, barcodeBeans));
           } else {
             logger.info("Preparing barcodes (sheet) for project " + project);
-            creator
-                .findOrCreateSheetBarcodesWithProgress(barcodeBeans, bar, view.getProgressInfo(),
-                    new SheetBarcodesReadyRunnable(view, creator, barcodeBeans));
+            creator.findOrCreateSheetBarcodesWithProgress(barcodeBeans, bar, view.getProgressInfo(),
+                new SheetBarcodesReadyRunnable(view, creator, barcodeBeans));
           }
         }
       }
@@ -216,7 +219,7 @@ public class BarcodeController {
         String project = view.getProjectCode();
         view.setAvailableTubes(0);
         if (project != null) {
-          reactToProjectSelection(project);
+          reactToProjectSelectionNew(project);
         }
       }
 
@@ -256,50 +259,88 @@ public class BarcodeController {
     view.getTabs().addSelectedTabChangeListener(tabListener);
   }
 
-  public void reactToProjectSelection(String project) {
-    List<ExperimentBarcodeSummaryBean> beans = new ArrayList<ExperimentBarcodeSummaryBean>();
-    for (Experiment e : openbis.getExperimentsOfProjectByCode(project)) {
-      String type = e.getExperimentTypeCode();
-      List<Sample> samples = openbis.getSamplesofExperiment(e.getIdentifier());
-      if (barcodeExperiments.contains(type) && samples.size() > 0) {
-        String expID = e.getIdentifier();
-        List<String> ids = new ArrayList<String>();
-        for (Sample s : samples) {
-          if (Functions.isQbicBarcode(s.getCode()))
-            ids.add(s.getCode());
-        }
-        int numOfSamples = ids.size();
-        String bioType = null;
-        int i = 0;
-        if (type.equals(barcodeExperiments.get(0))) {
-          while (bioType == null) {
+  // table selection is sorted by sample registration date
+  public void reactToProjectSelectionNew(String project) {
+    Map<Tuple, ExperimentBarcodeSummary> experiments =
+        new HashMap<Tuple, ExperimentBarcodeSummary>();
+    for (Sample s : openbis.getSamplesWithParentsAndChildrenOfProjectBySearchService(
+        "/" + view.getSpaceCode() + "/" + project)) {
+      String type = s.getSampleTypeCode();
+      if (barcodeSamples.contains(type) && Functions.isQbicBarcode(s.getCode())) {
+
+        Date date = s.getRegistrationDetails().getRegistrationDate();
+        SimpleDateFormat dt1 = new SimpleDateFormat("yy-MM-dd");
+        String dt = dt1.format(date);
+        String expID = s.getExperimentIdentifierOrNull();
+        Tuple tpl = new Tuple(dt, expID);
+        if (experiments.containsKey(tpl)) {
+          ExperimentBarcodeSummary exp = experiments.get(tpl);
+          exp.increment();
+          exp.addSample(s);
+        } else {
+          String bioType = null;
+          if (type.equals(barcodeSamples.get(0)))
             bioType = "Tissue Extracts";
-            i++;
-          }
+          else if (type.equals(barcodeSamples.get(1)))
+            bioType = s.getProperties().get("Q_SAMPLE_TYPE");
+          else if (type.equals(barcodeSamples.get(2)))
+            bioType =
+                openbis.getExperimentById2(expID).get(0).getProperties().get("Q_SEQUENCING_TYPE");
+          else if (type.equals(barcodeSamples.get(3)))
+            bioType = "MHC Ligands";
+          ExperimentBarcodeSummary b = new ExperimentBarcodeSummary(bioType, "1", expID, dt);
+          b.addSample(s);
+          experiments.put(tpl, b);
         }
-        if (type.equals(barcodeExperiments.get(1))) {
-          while (bioType == null) {
-            bioType = samples.get(i).getProperties().get("Q_SAMPLE_TYPE");
-            i++;
-          }
-        }
-        if (type.equals(barcodeExperiments.get(2))) {
-          bioType = e.getProperties().get("Q_SEQUENCING_TYPE");
-        }
-        if (type.equals(barcodeExperiments.get(3))) {
-          bioType = "MHC Ligands";
-        }
-        if (numOfSamples > 0)
-          beans
-              .add(new ExperimentBarcodeSummaryBean(bioType, Integer.toString(numOfSamples), expID));
       }
     }
-    view.setExperiments(beans);
+    // beans.addAll(experiments.values());
+    view.setExperiments(experiments.values());
   }
 
+  // public void reactToProjectSelection(String project) {
+  // List<ExperimentBarcodeSummaryBean> beans = new ArrayList<ExperimentBarcodeSummaryBean>();
+  // for (Experiment e : openbis.getExperimentsOfProjectByCode(project)) {
+  // String type = e.getExperimentTypeCode();
+  // List<Sample> samples = openbis.getSamplesofExperiment(e.getIdentifier());
+  // if (barcodeExperiments.contains(type) && samples.size() > 0) {
+  // String expID = e.getIdentifier();
+  // List<String> ids = new ArrayList<String>();
+  // for (Sample s : samples) {
+  // if (Functions.isQbicBarcode(s.getCode()))
+  // ids.add(s.getCode());
+  // }
+  // int numOfSamples = ids.size();
+  // String bioType = null;
+  // int i = 0;
+  // if (type.equals(barcodeExperiments.get(0))) {
+  // while (bioType == null) {
+  // bioType = "Tissue Extracts";
+  // i++;
+  // }
+  // }
+  // if (type.equals(barcodeExperiments.get(1))) {
+  // while (bioType == null) {
+  // bioType = samples.get(i).getProperties().get("Q_SAMPLE_TYPE");
+  // i++;
+  // }
+  // }
+  // if (type.equals(barcodeExperiments.get(2))) {
+  // bioType = e.getProperties().get("Q_SEQUENCING_TYPE");
+  // }
+  // if (type.equals(barcodeExperiments.get(3))) {
+  // bioType = "MHC Ligands";
+  // }
+  // if (numOfSamples > 0)
+  // beans.add(
+  // new ExperimentBarcodeSummaryBean(bioType, Integer.toString(numOfSamples), expID));
+  // }
+  // }
+  // view.setExperiments(beans);
+  // }
+
   private Sample getUsefulSampleFromExperiment() {
-    List<Sample> samples =
-        openbis.getSamplesofExperiment(view.getExperiments().iterator().next().fetchExperimentID());
+    List<Sample> samples = view.getExperiments().iterator().next().getSamples();
     int i = 0;
     String code = samples.get(i).getCode();
     while (!Functions.isQbicBarcode(code)) {
@@ -318,13 +359,13 @@ public class BarcodeController {
   }
 
   protected List<IBarcodeBean> getSamplesFromExperimentSummaries(
-      Collection<ExperimentBarcodeSummaryBean> experiments) {
+      Collection<ExperimentBarcodeSummary> experiments) {
     List<IBarcodeBean> samples = new ArrayList<IBarcodeBean>();
     List<Sample> openbisSamples = new ArrayList<Sample>();
-    for (ExperimentBarcodeSummaryBean b : experiments) {
-      openbisSamples.addAll(openbis.getSamplesofExperiment(b.fetchExperimentID()));
+    for (ExperimentBarcodeSummary b : experiments) {
+      openbisSamples.addAll(b.getSamples());
     }
-    Map<Sample, List<String>> parentMap = getParentMap(openbisSamples);
+    // Map<Sample, List<String>> parentMap = getParentMap(openbisSamples);
     for (Sample s : openbisSamples) {
       String type = s.getSampleTypeCode();
       String bioType = "unknown";
@@ -334,13 +375,47 @@ public class BarcodeController {
         else
           bioType = s.getProperties().get(sampleTypeToBioTypeField.get(type));
       }
-      samples.add(new NewModelBarcodeBean(s.getCode(), view.getCodedString(s), view.getInfo1(s,
-          StringUtils.join(parentMap.get(s), " ")), view.getInfo2(s,
-          StringUtils.join(parentMap.get(s), " ")), bioType, parentMap.get(s), s.getProperties()
-          .get("Q_SECONDARY_NAME"), s.getProperties().get("Q_EXTERNALDB_ID")));
+      List<String> parents = parentsToStringList(s.getParents());
+      String parentString = StringUtils.join(parents, " ");
+      samples.add(new NewModelBarcodeBean(s.getCode(), view.getCodedString(s),
+          view.getInfo1(s, parentString), view.getInfo2(s, parentString), bioType, parents,
+          s.getProperties().get("Q_SECONDARY_NAME"), s.getProperties().get("Q_EXTERNALDB_ID")));
     }
     return samples;
   }
+
+  private List<String> parentsToStringList(List<Sample> samples) {
+    List<String> res = new ArrayList<String>();
+    for (Sample s : samples) {
+      res.add(s.getCode());
+    }
+    return res;
+  }
+  //
+  // protected List<IBarcodeBean> getSamplesFromExperimentSummaries(
+  // Collection<ExperimentBarcodeSummaryBean> experiments) {
+  // List<IBarcodeBean> samples = new ArrayList<IBarcodeBean>();
+  // List<Sample> openbisSamples = new ArrayList<Sample>();
+  // for (ExperimentBarcodeSummaryBean b : experiments) {
+  // openbisSamples.addAll(openbis.getSamplesofExperiment(b.fetchExperimentID()));
+  // }
+  // Map<Sample, List<String>> parentMap = getParentMap(openbisSamples);
+  // for (Sample s : openbisSamples) {
+  // String type = s.getSampleTypeCode();
+  // String bioType = "unknown";
+  // if (sampleTypeToBioTypeField.containsKey(type)) {
+  // if (sampleTypeToBioTypeField.get(type).isEmpty())
+  // bioType = "NGS RUN";
+  // else
+  // bioType = s.getProperties().get(sampleTypeToBioTypeField.get(type));
+  // }
+  // samples.add(new NewModelBarcodeBean(s.getCode(), view.getCodedString(s),
+  // view.getInfo1(s, StringUtils.join(parentMap.get(s), " ")),
+  // view.getInfo2(s, StringUtils.join(parentMap.get(s), " ")), bioType, parentMap.get(s),
+  // s.getProperties().get("Q_SECONDARY_NAME"), s.getProperties().get("Q_EXTERNALDB_ID")));
+  // }
+  // return samples;
+  // }
 
   protected Map<Sample, List<String>> getParentMap(List<Sample> samples) {
     List<String> codes = new ArrayList<String>();

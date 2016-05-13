@@ -18,21 +18,25 @@ package views;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import uicomponents.BarcodePreviewComponent;
 import uicomponents.SheetOptionComponent;
 
 import logging.Log4j2Logger;
 import main.ProjectwizardUI;
+import model.ExperimentBarcodeSummary;
 import model.ExperimentBarcodeSummaryBean;
 import model.ExperimentBean;
 import model.SampleToBarcodeFieldTranslator;
 import model.SortBy;
-
+import properties.Factor;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
 
 import com.vaadin.data.util.BeanItemContainer;
+import com.vaadin.shared.ui.combobox.FilteringMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
@@ -41,9 +45,11 @@ import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
+import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import componentwrappers.CustomVisibilityComponent;
+import componentwrappers.StandardTextField;
 import control.BarcodeController;
 import control.Functions;
 import control.Functions.NotificationType;
@@ -66,6 +72,7 @@ public class WizardBarcodeView extends VerticalLayout {
   private ComboBox projectBox;
   private Table experimentTable;
   private OptionGroup sortby;
+  private Map<Object, ExperimentBarcodeSummary> experiments;
 
   private Component tabsTab;
   private TabSheet tabs;
@@ -93,6 +100,7 @@ public class WizardBarcodeView extends VerticalLayout {
 
     spaceBox = new ComboBox("Project", spaces);
     spaceBox.setStyleName(ProjectwizardUI.boxTheme);
+    spaceBox.setFilteringMode(FilteringMode.CONTAINS);
     spaceBox.setNullSelectionAllowed(false);
     spaceBox.setImmediate(true);
 
@@ -103,17 +111,22 @@ public class WizardBarcodeView extends VerticalLayout {
     projectBox.setNullSelectionAllowed(false);
 
     addComponent(ProjectwizardUI.questionize(spaceBox, "Name of the project", "Project Name"));
-    addComponent(ProjectwizardUI.questionize(projectBox, "QBiC 5 letter project code",
-        "Sub-Project"));
+    addComponent(
+        ProjectwizardUI.questionize(projectBox, "QBiC 5 letter project code", "Sub-Project"));
 
-    experimentTable = new Table("Sample Overview");
+    experimentTable = new Table("Experiments");
     experimentTable.setStyleName(ValoTheme.TABLE_SMALL);
     experimentTable.setPageLength(1);
-    experimentTable.setContainerDataSource(new BeanItemContainer<ExperimentBarcodeSummaryBean>(
-        ExperimentBarcodeSummaryBean.class));
+    // experimentTable
+    // .setContainerDataSource(new BeanItemContainer<ExperimentBean>(ExperimentBean.class));
     experimentTable.setSelectable(true);
     experimentTable.setMultiSelect(true);
-    mapCols();
+    // mapCols();
+    experimentTable.addContainerProperty("Samples", String.class, null);
+    experimentTable.addContainerProperty("Type", String.class, null);
+    experimentTable.addContainerProperty("Date", String.class, null);
+    experimentTable.addContainerProperty("Experiment", String.class, null);
+    // experimentTable.setColumnWidth("External DB ID", 106);
     addComponent(ProjectwizardUI.questionize(experimentTable,
         "This table gives an overview of tissue samples and extracted materials"
             + " for which barcodes can be printed. You can select one or multiple rows.",
@@ -160,6 +173,7 @@ public class WizardBarcodeView extends VerticalLayout {
     experimentTable.setColumnHeader("amount", "Samples");
     experimentTable.setColumnHeader("bio_Type", "Type");
     experimentTable.setColumnHeader("experiment", "Experiment");
+    experimentTable.setColumnHeader("date", "Date");
   }
 
   public WizardBarcodeView() {
@@ -171,11 +185,16 @@ public class WizardBarcodeView extends VerticalLayout {
     experimentTable = new Table("Experiments");
     experimentTable.setStyleName(ValoTheme.TABLE_SMALL);
     experimentTable.setPageLength(1);
-    experimentTable.setContainerDataSource(new BeanItemContainer<ExperimentBean>(
-        ExperimentBean.class));
+    // experimentTable
+    // .setContainerDataSource(new BeanItemContainer<ExperimentBean>(ExperimentBean.class));
     experimentTable.setSelectable(true);
     experimentTable.setMultiSelect(true);
-    mapCols();
+    // mapCols();
+    experimentTable.addContainerProperty("Samples", String.class, null);
+    experimentTable.addContainerProperty("Type", String.class, null);
+    experimentTable.addContainerProperty("Date", String.class, null);
+    experimentTable.addContainerProperty("Experiment", String.class, null);
+    // experimentTable.setColumnWidth("External DB ID", 106);
     addComponent(experimentTable);
 
     tubePreview = new BarcodePreviewComponent(translator);
@@ -190,10 +209,6 @@ public class WizardBarcodeView extends VerticalLayout {
     addComponent(info);
     addComponent(bar);
   }
-
-  // public boolean getOverwrite() {
-  // return tubePreview.overwrite();
-  // }
 
   public void enableExperiments(boolean enable) {
     experimentTable.setEnabled(enable);
@@ -250,19 +265,46 @@ public class WizardBarcodeView extends VerticalLayout {
     projectBox.setEnabled(true);
   }
 
-  public void setExperiments(List<ExperimentBarcodeSummaryBean> beans) {
-    BeanItemContainer<ExperimentBarcodeSummaryBean> c =
-        new BeanItemContainer<ExperimentBarcodeSummaryBean>(ExperimentBarcodeSummaryBean.class);
-    c.addAll(beans);
-    experimentTable.setContainerDataSource(c);
-    experimentTable.setPageLength(beans.size());
-    if (c.size() == 1)
-      experimentTable.select(c.getIdByIndex(0));
+  public void setExperiments(Collection<ExperimentBarcodeSummary> collection) {
+    experiments = new HashMap<Object, ExperimentBarcodeSummary>();
+    int i = 0;
+    for (ExperimentBarcodeSummary s : collection) {
+      i++;
+      List<Object> row = new ArrayList<Object>();
+      row.add(s.getAmount());
+      row.add(s.getBio_Type());
+      row.add(s.getDate());
+      row.add(s.getExperiment());
+      experiments.put(i, s);
+      experimentTable.addItem(row.toArray(new Object[row.size()]), i);
+    }
+
+    // BeanItemContainer<ExperimentBarcodeSummaryBean> c =
+    // new BeanItemContainer<ExperimentBarcodeSummaryBean>(ExperimentBarcodeSummaryBean.class);
+    // c.addAll(beans);
+    // experimentTable.setContainerDataSource(c);
+    experimentTable.setPageLength(collection.size());
+    // if (exps.size() == 1)
+    // experimentTable.select(.getIdByIndex(0));
   }
 
+  // public void setExperiments(List<ExperimentBarcodeSummaryBean> beans) {
+  // BeanItemContainer<ExperimentBarcodeSummaryBean> c =
+  // new BeanItemContainer<ExperimentBarcodeSummaryBean>(ExperimentBarcodeSummaryBean.class);
+  // c.addAll(beans);
+  // experimentTable.setContainerDataSource(c);
+  // experimentTable.setPageLength(beans.size());
+  // if (c.size() == 1)
+  // experimentTable.select(c.getIdByIndex(0));
+  // }
+
   @SuppressWarnings("unchecked")
-  public Collection<ExperimentBarcodeSummaryBean> getExperiments() {
-    return (Collection<ExperimentBarcodeSummaryBean>) experimentTable.getValue();
+  public Collection<ExperimentBarcodeSummary> getExperiments() {
+    List<ExperimentBarcodeSummary> res = new ArrayList<ExperimentBarcodeSummary>();
+    for (Object id : (Collection<Object>) experimentTable.getValue()) {
+      res.add(experiments.get(id));
+    }
+    return res;
   }
 
   public List<Button> getButtons() {
