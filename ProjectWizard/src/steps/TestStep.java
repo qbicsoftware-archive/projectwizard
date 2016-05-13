@@ -42,6 +42,9 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
+import control.Functions;
+import control.Functions.NotificationType;
+
 /**
  * Wizard Step to put in information about the Sample Preparation that leads to a list of Test
  * Samples
@@ -72,12 +75,10 @@ public class TestStep implements WizardStep {
     main.setSpacing(true);
     main.setSizeUndefined();
     Label header = new Label("Analysis Method");
-    main.addComponent(ProjectwizardUI
-        .questionize(
-            header,
-            "Here you can specify what kind of material is extracted from the samples for measurement, how many measurements (techn. replicates) are taken per sample "
-                + "and if there is pooling for some or all of the technologies used.",
-            "Analysis Method"));
+    main.addComponent(ProjectwizardUI.questionize(header,
+        "Here you can specify what kind of material is extracted from the samples for measurement, how many measurements (techn. replicates) are taken per sample "
+            + "and if there is pooling for some or all of the technologies used.",
+        "Analysis Method"));
     noMeasure = new CheckBox("No further preparation of samples?");
     main.addComponent(ProjectwizardUI.questionize(noMeasure,
         "Check if no DNA etc. is extracted and measured, for example in tissue imaging.",
@@ -128,11 +129,9 @@ public class TestStep implements WizardStep {
       } else
         return true;
     } else {
-      Notification n =
-          new Notification("Please input at least one analyte and the number of replicates.");
-      n.setStyleName(ValoTheme.NOTIFICATION_CLOSABLE);
-      n.setDelayMsec(-1);
-      n.show(UI.getCurrent().getPage());
+      Functions.notification("Missing information",
+          "Please input at least one analyte and the number of replicates.",
+          NotificationType.ERROR);
       return false;
     }
   }
@@ -146,7 +145,7 @@ public class TestStep implements WizardStep {
     return msPanel.getEnzymes();
   }
 
-  public List<TestSampleInformation> getSampleTypes() {
+  public List<TestSampleInformation> getAnalyteInformation() {
     return techPanel.getTechInfo();
   }
 
@@ -169,8 +168,10 @@ public class TestStep implements WizardStep {
       @Override
       public void valueChange(ValueChangeEvent event) {
         containsProteins = false;
-        for (TestSampleInformation i : getSampleTypes()) {
-          containsProteins |= i.getTechnology().equals("PROTEINS");
+        for (TestSampleInformation i : getAnalyteInformation()) {
+          String tech = i.getTechnology();
+          containsProteins |=
+              tech.equals("PROTEINS") || tech.equals("PEPTIDES") || tech.equals("PHOSPHOPEPTIDES");
         }
         msPanel.setVisible(containsProteins);
       }
@@ -186,17 +187,17 @@ public class TestStep implements WizardStep {
       @Override
       public void valueChange(ValueChangeEvent event) {
         containsMHCLigands = false;
-        for (TestSampleInformation i : getSampleTypes()) {
+        for (TestSampleInformation i : getAnalyteInformation()) {
           containsMHCLigands |= i.getTechnology().equals("CELL_LYSATE");
         }
         mhcLigandPanel.setVisible(containsMHCLigands);
       }
     };
-    techPanel =
-        new TechnologiesPanel(vocabs.getMeasureTypes(), new OptionGroup(""), testPoolListener,
-            proteinListener, mhcLigandListener);
+    techPanel = new TechnologiesPanel(vocabs.getMeasureTypes(), vocabs.getPeople().keySet(),
+        new OptionGroup(""), testPoolListener, proteinListener, mhcLigandListener);
     main.addComponent(techPanel);
-    main.addComponent(new Label("<hr />", Label.CONTENT_XHTML));//test - clear separation between tech type and meta info
+    main.addComponent(new Label("<hr />", Label.CONTENT_XHTML));// test - clear separation between
+                                                                // tech type and meta info
     msPanel = new MSPanel(vocabs, new OptionGroup(""));
     msPanel.setVisible(false);
 

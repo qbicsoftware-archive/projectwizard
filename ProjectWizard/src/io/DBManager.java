@@ -46,9 +46,8 @@ public class DBManager {
   }
 
   private Connection login() {
-    String DB_URL =
-        "jdbc:mariadb://" + config.getHostname() + ":" + config.getPort() + "/"
-            + config.getSql_database();
+    String DB_URL = "jdbc:mariadb://" + config.getHostname() + ":" + config.getPort() + "/"
+        + config.getSql_database();
 
     Connection conn = null;
 
@@ -80,17 +79,17 @@ public class DBManager {
     logout(conn);
   }
 
-  public boolean isProjectInDB(String projectIdentifier) {
+  public int isProjectInDB(String projectIdentifier) {
     logger.info("Looking for project " + projectIdentifier + " in the DB");
     String sql = "SELECT * from projects WHERE openbis_project_identifier = ?";
-    boolean res = false;
+    int res = -1;
     Connection conn = login();
     try {
       PreparedStatement statement = conn.prepareStatement(sql);
       statement.setString(1, projectIdentifier);
       ResultSet rs = statement.executeQuery();
       if (rs.next()) {
-        res = true;
+        res = rs.getInt("id");
         logger.info("project found!");
       }
     } catch (SQLException e) {
@@ -102,7 +101,8 @@ public class DBManager {
   }
 
   public int addProjectToDB(String projectIdentifier, String projectName) {
-    if (!isProjectInDB(projectIdentifier)) {
+    int exists = isProjectInDB(projectIdentifier);
+    if (exists < 0) {
       logger.info("Trying to add project " + projectIdentifier + " to the person DB");
       String sql = "INSERT INTO projects (openbis_project_identifier, short_title) VALUES(?, ?)";
       Connection conn = login();
@@ -124,7 +124,7 @@ public class DBManager {
       logout(conn);
       return -1;
     }
-    return -1;
+    return exists;
   }
 
   public boolean hasPersonRoleInProject(int personID, int projectID, String role) {
@@ -192,6 +192,101 @@ public class DBManager {
       }
       statement.close();
     } catch (SQLException e) {
+      e.printStackTrace();
+    }
+    logout(conn);
+    return res;
+  }
+
+  public int addExperimentToDB(String id) {
+    int exists = isExpInDB(id);
+    if (exists < 0) {
+      logger.info("Trying to add experiment " + id + " to the person DB");
+      String sql = "INSERT INTO experiments (openbis_experiment_identifier) VALUES(?)";
+      Connection conn = login();
+      try (PreparedStatement statement =
+          conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        statement.setString(1, id);
+        statement.execute();
+        ResultSet rs = statement.getGeneratedKeys();
+        if (rs.next()) {
+          logout(conn);
+          logger.info("Successful.");
+          return rs.getInt(1);
+        }
+      } catch (SQLException e) {
+        logger.error("SQL operation unsuccessful: " + e.getMessage());
+        e.printStackTrace();
+      }
+      logout(conn);
+      return -1;
+    }
+    return exists;
+  }
+
+  private int isExpInDB(String id) {
+    logger.info("Looking for experiment " + id + " in the DB");
+    String sql = "SELECT * from experiments WHERE openbis_experiment_identifier = ?";
+    int res = -1;
+    Connection conn = login();
+    try {
+      PreparedStatement statement = conn.prepareStatement(sql);
+      statement.setString(1, id);
+      ResultSet rs = statement.executeQuery();
+      if (rs.next()) {
+        logger.info("project found!");
+        res = rs.getInt("id");
+      }
+    } catch (SQLException e) {
+      logger.error("SQL operation unsuccessful: " + e.getMessage());
+      e.printStackTrace();
+    }
+    logout(conn);
+    return res;
+  }
+
+  public void addPersonToExperiment(int expID, int personID, String role) {
+    logger.debug("exp id: " + expID);
+    logger.debug("person id: " + personID);
+
+    if (!hasPersonRoleInExperiment(personID, expID, role)) {
+      logger.info("Trying to add person with role " + role + " to an experiment.");
+      String sql =
+          "INSERT INTO experiments_persons (experiment_id, person_id, experiment_role) VALUES(?, ?, ?)";
+      Connection conn = login();
+      try (PreparedStatement statement =
+          conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        statement.setInt(1, expID);
+        statement.setInt(2, personID);
+        statement.setString(3, role);
+        statement.execute();
+        logger.info("Successful.");
+      } catch (SQLException e) {
+        logger.error("SQL operation unsuccessful: " + e.getMessage());
+        e.printStackTrace();
+      }
+      logout(conn);
+    }
+  }
+
+  private boolean hasPersonRoleInExperiment(int personID, int expID, String role) {
+    logger.info("Checking if person already has this role in the experiment.");
+    String sql =
+        "SELECT * from experiments_persons WHERE person_id = ? AND experiment_id = ? and experiment_role = ?";
+    boolean res = false;
+    Connection conn = login();
+    try {
+      PreparedStatement statement = conn.prepareStatement(sql);
+      statement.setInt(1, personID);
+      statement.setInt(2, expID);
+      statement.setString(3, role);
+      ResultSet rs = statement.executeQuery();
+      if (rs.next()) {
+        res = true;
+        logger.info("person already has this role!");
+      }
+    } catch (SQLException e) {
+      logger.error("SQL operation unsuccessful: " + e.getMessage());
       e.printStackTrace();
     }
     logout(conn);
@@ -269,7 +364,8 @@ public class DBManager {
   // */
   // public int addNewPersonWithInstituteID(Person p) {
   // String sql =
-  // "insert into project_investigators (zdvID, first_name, last_name, email, phone, institute_id, active) "
+  // "insert into project_investigators (zdvID, first_name, last_name, email, phone, institute_id,
+  // active) "
   // + "VALUES(?, ?, ?, ?, ?, ?, ?)";
   // Connection conn = login();
   // try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS))
@@ -297,7 +393,8 @@ public class DBManager {
 
   // public int addNewPerson(PersonWithAdress p) {
   // String sql =
-  // "insert into project_investigators (zdvID, first_name, last_name, email, street, zip_code, city, phone, institute, active) "
+  // "insert into project_investigators (zdvID, first_name, last_name, email, street, zip_code,
+  // city, phone, institute, active) "
   // + "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
   // Connection conn = login();
   // try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS))

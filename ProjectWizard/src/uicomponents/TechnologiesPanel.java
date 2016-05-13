@@ -19,6 +19,7 @@ package uicomponents;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import main.ProjectwizardUI;
 import model.TestSampleInformation;
@@ -41,6 +42,7 @@ public class TechnologiesPanel extends HorizontalLayout {
 
   private static final long serialVersionUID = -1578503116738309380L;
   List<String> options;
+  Set<String> persons;
   List<TechChooser> choosers;
   Button.ClickListener buttonListener;
   ValueChangeListener poolListener;
@@ -60,9 +62,10 @@ public class TechnologiesPanel extends HorizontalLayout {
    *        inside this component from the outside
    * @param proteinListener
    */
-  public TechnologiesPanel(List<String> techOptions, OptionGroup conditionsSet,
+  public TechnologiesPanel(List<String> techOptions, Set<String> persons, OptionGroup conditionsSet,
       ValueChangeListener poolListener, ValueChangeListener proteinListener, ValueChangeListener mhcLigandListener) {
     this.options = techOptions;
+    this.persons = persons;
 
     this.conditionsSet = conditionsSet;
     this.conditionsSet.addItem("set");
@@ -76,7 +79,7 @@ public class TechnologiesPanel extends HorizontalLayout {
     this.mhcLigandListener = mhcLigandListener;
     
     choosers = new ArrayList<TechChooser>();
-    TechChooser c = new TechChooser(techOptions);
+    TechChooser c = new TechChooser(techOptions, persons);
     c.setImmediate(true);
     c.addPoolListener(poolListener);
     c.addProteinListener(proteinListener);
@@ -129,7 +132,7 @@ public class TechnologiesPanel extends HorizontalLayout {
 
   private void add() {
     choosers.get(choosers.size() - 1).hideHelpers();
-    TechChooser c = new TechChooser(options);
+    TechChooser c = new TechChooser(options, persons);
     c.addPoolListener(poolListener);
     c.addProteinListener(proteinListener);
     c.addMHCListener(mhcLigandListener);
