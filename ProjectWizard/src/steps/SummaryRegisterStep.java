@@ -1,19 +1,17 @@
 /*******************************************************************************
- * QBiC Project Wizard enables users to create hierarchical experiments including different study conditions using factorial design.
- * Copyright (C) "2016"  Andreas Friedrich
+ * QBiC Project Wizard enables users to create hierarchical experiments including different study
+ * conditions using factorial design. Copyright (C) "2016" Andreas Friedrich
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with this program. If
+ * not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 package steps;
 
@@ -26,6 +24,7 @@ import logging.Log4j2Logger;
 import main.ProjectwizardUI;
 import main.SampleSummaryBean;
 import model.ISampleBean;
+import model.OpenbisExperiment;
 
 import org.vaadin.teemu.wizards.WizardStep;
 
@@ -42,6 +41,8 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import componentwrappers.CustomVisibilityComponent;
+import control.Functions;
+import control.Functions.NotificationType;
 
 /**
  * Wizard Step to downloadTSV and upload the TSV file to and from and register samples and context
@@ -67,6 +68,8 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
   private int contactID;
   private String projectIdentifier;
   private String projectName;
+  private boolean isEmptyProject = false;
+  private List<OpenbisExperiment> exps;
 
   public SummaryRegisterStep(DBManager dbm) {
     this.dbm = dbm;
@@ -77,7 +80,8 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
     main.addComponent(ProjectwizardUI.questionize(header,
         "Here you can download a spreadsheet of the samples in your experiment "
             + "and register your project in the database. "
-            + "Registering samples may take a few seconds.", "Sample Registration"));
+            + "Registering samples may take a few seconds.",
+        "Sample Registration"));
 
     summary = new Table("Summary");
     summary.addContainerProperty("Type", String.class, null);
@@ -86,10 +90,10 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
     summary.setImmediate(true);
     summary.setPageLength(1);
 
-    summaryComponent =
-        new CustomVisibilityComponent(ProjectwizardUI.questionize(summary,
-            "This is a summary of samples for Sample Sources/Patients, Tissue Extracts and "
-                + "samples that will be measured.", "Experiment Summary"));
+    summaryComponent = new CustomVisibilityComponent(ProjectwizardUI.questionize(summary,
+        "This is a summary of samples for Sample Sources/Patients, Tissue Extracts and "
+            + "samples that will be measured.",
+        "Experiment Summary"));
     summaryComponent.setVisible(false);
     main.addComponent(summaryComponent.getInnerComponent());
 
@@ -97,15 +101,13 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
     downloadTSV.setEnabled(false);
     HorizontalLayout tsvInfo = new HorizontalLayout();
     tsvInfo.addComponent(downloadTSV);
-    main.addComponent(ProjectwizardUI
-        .questionize(
-            tsvInfo,
-            "You can download a technical spreadsheet to register your samples at a later time instead. More informative spreadsheets are available in the next step.",
-            "TSV Download"));
+    main.addComponent(ProjectwizardUI.questionize(tsvInfo,
+        "You can download a technical spreadsheet to register your samples at a later time instead. More informative spreadsheets are available in the next step.",
+        "TSV Download"));
 
     downloadGraph = new Button("Download Graph");
     downloadGraph.setEnabled(false);
-//    main.addComponent(downloadGraph);
+    // main.addComponent(downloadGraph);
 
     register = new Button("Register All");
     register.setEnabled(false);
@@ -217,19 +219,27 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
       dbm.addPersonToProject(projectID, investigatorID, "PI");
     if (contactID != -1)
       dbm.addPersonToProject(projectID, contactID, "Contact");
-    Notification n =
-        new Notification("Registration of samples complete. Press 'next' for additional options.");
-    n.setStyleName(ValoTheme.NOTIFICATION_CLOSABLE);
-    n.setDelayMsec(-1);
-    n.show(UI.getCurrent().getPage());
+    for (OpenbisExperiment e : exps) {
+      String identifier = projectIdentifier + "/" + e.getOpenbisName();
+      int expID = dbm.addExperimentToDB(identifier);
+      if (e.getPersonID() > -1) {
+        int person = e.getPersonID();
+        dbm.addPersonToExperiment(expID, person, "Contact");
+      }
+    }
+    Functions.notification("Registration complete!",
+        "Registration of samples complete. Press 'next' for additional options.",
+        NotificationType.SUCCESS);
     registrationComplete = true;
   }
 
-  public void setPeopleAndProject(int investigator, int contact, String projectIdentifier, String projectName) {
+  public void setPeopleAndProject(int investigator, int contact, String projectIdentifier,
+      String projectName, List<OpenbisExperiment> exps) {
     this.investigatorID = investigator;
     this.contactID = contact;
     this.projectIdentifier = projectIdentifier;
     this.projectName = projectName;
+    this.exps = exps;
   }
 
   public ProgressBar getProgressBar() {
@@ -240,8 +250,12 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
     return registerInfo;
   }
 
+  public void setEmptyProject(boolean b) {
+    this.isEmptyProject = b;
+  }
+
   public boolean summaryIsSet() {
-    return (summary.size() > 0);
+    return (summary.size() > 0 || isEmptyProject);
   }
 
   public void resetSummary() {
