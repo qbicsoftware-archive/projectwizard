@@ -39,6 +39,8 @@ import model.AttachmentConfig;
 import model.ExperimentBean;
 import model.ExperimentType;
 import model.NewSampleModelBean;
+import model.OpenbisExperiment;
+import model.RegisterableProject;
 
 import org.vaadin.teemu.wizards.Wizard;
 import org.vaadin.teemu.wizards.WizardStep;
@@ -51,6 +53,7 @@ import org.vaadin.teemu.wizards.event.WizardStepSetChangedEvent;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
+import control.Functions.NotificationType;
 
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -70,7 +73,7 @@ import com.vaadin.ui.themes.ValoTheme;
 
 import steps.ConditionInstanceStep;
 import steps.EntityStep;
-import incubator.ExtractionStep;
+import steps.ExtractionStep;
 import io.DBManager;
 import io.DBVocabularies;
 import steps.FinishStep;
@@ -135,7 +138,7 @@ public class WizardController {
   // Functions to add steps to the wizard depending on context
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  private void setUpLoadStep() {
+  private void setRegStep() {
     w.addStep(steps.get(Steps.Registration)); // tsv upload and registration
   }
 
@@ -148,7 +151,7 @@ public class WizardController {
   private void setInheritExtracts() {
     w.addStep(steps.get(Steps.Extract_Tailoring)); // extracts negative selection
     w.addStep(steps.get(Steps.Test_Samples)); // test samples first step
-    setUpLoadStep();
+    setRegStep();
   }
 
   private void setExtractsPooling() {
@@ -158,12 +161,12 @@ public class WizardController {
 
   private void setTestStep() {
     w.addStep(steps.get(Steps.Test_Samples)); // test samples first step
-    setUpLoadStep();
+    setRegStep();
   }
 
   private void setTestsPooling() {
     w.addStep(steps.get(Steps.Test_Sample_Pooling));
-    setUpLoadStep();
+    setRegStep();
   }
 
   private void setCreateEntities() {
@@ -182,11 +185,6 @@ public class WizardController {
   }
 
   private void resetNextSteps() {
-    Notification n = new Notification("Steps updated",
-        "One of your choices has added or removed steps from the wizard. You can see your progress at the top.");
-    n.setStyleName(ValoTheme.NOTIFICATION_CLOSABLE);
-    n.setDelayMsec(-1);
-    // n.show(UI.getCurrent().getPage()); TODO ability to select not to show them - addon notifique?
     List<WizardStep> steps = w.getSteps();
     List<WizardStep> copy = new ArrayList<WizardStep>();
     copy.addAll(steps);
@@ -214,7 +212,7 @@ public class WizardController {
       return false;
     for (Experiment e : openbis.getExperimentsOfProjectByCode(code)) {
       if (e.getExperimentTypeCode().equals("Q_EXPERIMENTAL_DESIGN")) {
-        if(openbis.getSamplesofExperiment(e.getIdentifier()).size() > 0)
+        if (openbis.getSamplesofExperiment(e.getIdentifier()).size() > 0)
           return true;
       }
     }
@@ -280,8 +278,8 @@ public class WizardController {
     final ConditionInstanceStep entCondInstStep =
         new ConditionInstanceStep(vocabularies.getTaxMap().keySet(), "Species", "Biol. Variables");
     final TailoringStep tailoringStep1 = new TailoringStep("Sample Sources", false);
-    final ExtractionStep extrStep =
-        new ExtractionStep(vocabularies.getTissueMap(), vocabularies.getCellLinesMap());
+    final ExtractionStep extrStep = new ExtractionStep(vocabularies.getTissueMap(),
+        vocabularies.getCellLinesMap(), vocabularies.getPeople().keySet());
     final ConditionInstanceStep extrCondInstStep = new ConditionInstanceStep(
         vocabularies.getTissueMap().keySet(), "Tissues", "Extr. Variables");
     final TailoringStep tailoringStep2 = new TailoringStep("Sample Extracts", true);
@@ -306,7 +304,7 @@ public class WizardController {
     steps.put(Steps.Finish, finishStep);
 
     this.dataAggregator = new WizardDataAggregator(steps, openbis, vocabularies.getTaxMap(),
-        vocabularies.getTissueMap());
+        vocabularies.getTissueMap(), vocabularies.getPeople());
     w.addStep(contextStep);
 
     FocusListener fListener = new FocusListener() {
@@ -314,11 +312,14 @@ public class WizardController {
 
       @Override
       public void focus(FocusEvent event) {
-        TextField p = projSelection.getProjectField();
-        if (!p.isValid() || p.isEmpty()) {
+        // new project selected...keep generating codes until one is valid
+        TextField pr = projSelection.getProjectField();
+        if (!pr.isValid() || pr.isEmpty()) {
           projSelection.tryEnableCustomProject(generateProjectCode());
+          contextStep.enableEmptyProjectContextOption(true);
+          contextStep.enableNewContextOption(true);
+          contextStep.makeContextVisible();
         }
-        contextStep.makeContextVisible();
       }
     };
     projSelection.getProjectField().addFocusListener(fListener);
@@ -332,7 +333,13 @@ public class WizardController {
 
       @Override
       public void buttonClick(ClickEvent event) {
-        projSelection.tryEnableCustomProject(generateProjectCode());
+        String existingProject = (String) projSelection.getProjectBox().getValue();
+        if (existingProject == null || existingProject.isEmpty()) {
+          projSelection.tryEnableCustomProject(generateProjectCode());
+          contextStep.enableEmptyProjectContextOption(true);
+          contextStep.enableNewContextOption(true);
+          contextStep.makeContextVisible();
+        }
       }
     };
     projSelection.getProjectReloadButton().addClickListener(projCL);
@@ -348,22 +355,30 @@ public class WizardController {
         String src = event.getButton().getCaption();
         if (src.equals("Register All")) {
           regStep.getRegisterButton().setEnabled(false);
-          ProjectContextStep context = (ProjectContextStep) steps.get(Steps.Project_Context);
-          String desc = context.getDescription();
-          String expSecondaryName = context.getExpSecondaryName();
-          // TODO this needs work
-          openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(regStep.getSamples(),
-              desc, expSecondaryName, techStep.getMSExperimentProperties(),
-              dataAggregator.getMHCLigandExtractProperties(), regStep.getProgressBar(),
-              regStep.getProgressLabel(), new RegisteredSamplesReadyRunnable(regStep), user);
-          // openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(regStep.getSamples(),
-          // desc, expSecondaryName, regStep.getProgressBar(), regStep.getProgressLabel(),
-          // new RegisteredSamplesReadyRunnable(regStep), user);
-          w.addStep(steps.get(Steps.Finish));
+          ProjectContextStep contextStep = (ProjectContextStep) steps.get(Steps.Project_Context);
+          String desc = contextStep.getDescription();
+          String altTitle = contextStep.getExpSecondaryName();
+          // if only an empty project is to be registered
+          String context = (String) contextStep.getProjectContext().getValue();
+          System.out.println(context);
+          if (contextStep.getContextOptions().get(3).equals(context)) {
+            logger.debug("register empty project");
+            registerProjectOnly(desc, altTitle, user, regStep);
+          } else {
+            // TODO this needs work
+            openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(regStep.getSamples(),
+                desc, altTitle, techStep.getMSExperimentProperties(),
+                dataAggregator.getMHCLigandExtractProperties(), regStep.getProgressBar(),
+                regStep.getProgressLabel(), new RegisteredSamplesReadyRunnable(regStep), user);
+            // openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(regStep.getSamples(),
+            // desc, expSecondaryName, regStep.getProgressBar(), regStep.getProgressLabel(),
+            // new RegisteredSamplesReadyRunnable(regStep), user);
+            w.addStep(steps.get(Steps.Finish));
+          }
         }
       }
     };
-    regStep.getDownloadButton().addClickListener(cl);
+    // regStep.getDownloadButton().addClickListener(cl);
     regStep.getRegisterButton().addClickListener(cl);
 
     /**
@@ -378,19 +393,16 @@ public class WizardController {
 
       @Override
       public void valueChange(ValueChangeEvent event) {
-        ComboBox box = contextStep.getSpaceBox();
-        box.removeStyleName(ValoTheme.LABEL_SUCCESS);
         contextStep.resetProjects();
         String space = contextStep.getSpaceCode();
         if (space != null) {
-          box.addStyleName(ValoTheme.LABEL_SUCCESS);
           List<String> projects = new ArrayList<String>();
           for (Project p : openbis.getProjectsOfSpace(space)) {
             projects.add(p.getCode());
           }
           contextStep.setProjectCodes(projects);
-          contextStep.enableNewContextOption(true);
         }
+        // updateContextOptions(projSelection, contextStep);
       }
 
     };
@@ -409,29 +421,8 @@ public class WizardController {
 
       @Override
       public void valueChange(ValueChangeEvent event) {
-        contextStep.tryEnableCustomProject(generateProjectCode());
         contextStep.resetExperiments();
-        String space = contextStep.getSpaceCode();
-        String project = contextStep.getProjectCode().toUpperCase();
-        boolean hasBioEntities = projectHasBioEntities(space, project);
-        boolean hasExtracts = projectHasExtracts(space, project);
-        contextStep.enableExtractContextOption(hasBioEntities);
-        contextStep.enableMeasureContextOption(hasExtracts);
-        // contextStep.enableCopyContextOption(projectHasBioEntities(space, project) ||
-        // hasExtracts);
-        contextStep.enableTSVWriteContextOption(hasBioEntities);
-        if (project != null && !project.isEmpty()) {
-          contextStep.makeContextVisible();
-          List<ExperimentBean> beans = new ArrayList<ExperimentBean>();
-          for (Experiment e : openbis.getExperimentsOfProjectByCode(project)) {
-            if (designExperimentTypes.contains(e.getExperimentTypeCode())) {
-              int numOfSamples = openbis.getSamplesofExperiment(e.getIdentifier()).size();
-              beans.add(new ExperimentBean(e.getIdentifier(), e.getExperimentTypeCode(),
-                  Integer.toString(numOfSamples)));
-            }
-          }
-          contextStep.setExperiments(beans);
-        }
+        updateContextOptions(projSelection, contextStep);
       }
 
     };
@@ -480,6 +471,7 @@ public class WizardController {
       public void valueChange(ValueChangeEvent event) {
         // contextStep.enableExpName(false);
         if (contextStep.getProjectContext().getValue() != null) {
+          regStep.setEmptyProject(false);
           resetNextSteps();
           OptionGroup projectContext = contextStep.getProjectContext();
           List<String> contextOptions = contextStep.getContextOptions();
@@ -517,15 +509,19 @@ public class WizardController {
           // copy context
           // if (contextOptions.get(3).equals(context)) {
           // beans.addAll(context);
-          // setUpLoadStep();
+          // setRegStep();
           // }
-          // read only tsv creation
           if (contextOptions.get(3).equals(context)) {
+            regStep.setEmptyProject(true);
+            setRegStep();
+          }
+          // read only tsv creation
+          if (contextOptions.get(4).equals(context)) {
             for (ExperimentBean b : experiments) {
               if (b.getExperiment_type().equals(ExperimentType.Q_EXPERIMENTAL_DESIGN.toString()))
                 beans.add(b);
             }
-            setUpLoadStep();
+            setRegStep();
           }
           if (beans.size() > 0)
             contextStep.showExperiments(beans);
@@ -569,7 +565,7 @@ public class WizardController {
         if (techStep.hasPools()) {
           setTestsPooling();
         } else {
-          setUpLoadStep();
+          setRegStep();
         }
       }
     };
@@ -774,7 +770,7 @@ public class WizardController {
               contact = vocabularies.getPeople().get(contextStep.getContactPerson());
             regStep.setPeopleAndProject(investigator, contact,
                 "/" + contextStep.getSpaceCode() + "/" + contextStep.getProjectCode(),
-                contextStep.getExpSecondaryName());
+                contextStep.getExpSecondaryName(), dataAggregator.getExperiments());
             regStep.setProcessed(prep.getProcessed());
           }
           if (regStep.summaryIsSet()) {
@@ -797,6 +793,17 @@ public class WizardController {
             regStep.setSummary(prep.getSummary());
             // logger.debug("set processed samples");
             // regStep.setProcessed(prep.getProcessed());
+          }
+          if (contextStep.emptyProjectModeSet()) {
+            int investigator = -1;
+            int contact = -1;
+            if (!contextStep.getPrincipalInvestigator().equals(""))
+              investigator = vocabularies.getPeople().get(contextStep.getPrincipalInvestigator());
+            if (!contextStep.getContactPerson().equals(""))
+              contact = vocabularies.getPeople().get(contextStep.getContactPerson());
+            regStep.setPeopleAndProject(investigator, contact,
+                "/" + contextStep.getSpaceCode() + "/" + contextStep.getProjectCode(),
+                contextStep.getExpSecondaryName(), new ArrayList<OpenbisExperiment>());
           }
         }
         if (event.getActivatedStep().equals(finishStep)) {
@@ -860,6 +867,44 @@ public class WizardController {
       step.destroyTable();
     }
 
+  }
+
+  private void updateContextOptions(ProjectInformationComponent projSelection,
+      ProjectContextStep contextStep) {
+    // disable everything
+    contextStep.disableContextOptions();
+
+    // inputs to check
+    String space = (String) contextStep.getSpaceBox().getValue();
+    String existingProject = (String) projSelection.getProjectBox().getValue();
+
+    if (space != null && !space.isEmpty()) {
+      // space is set
+      if (existingProject != null && !existingProject.isEmpty()) {
+        // known project selected, will deactivate generation
+        projSelection.tryEnableCustomProject("");
+        String project = existingProject;
+        contextStep.enableNewContextOption(true);
+        contextStep.makeContextVisible();
+        boolean hasBioEntities = projectHasBioEntities(space, project);
+        boolean hasExtracts = projectHasExtracts(space, project);
+        contextStep.enableExtractContextOption(hasBioEntities);
+        contextStep.enableMeasureContextOption(hasExtracts);
+        contextStep.enableTSVWriteContextOption(hasBioEntities);
+
+        List<ExperimentBean> beans = new ArrayList<ExperimentBean>();
+        for (Experiment e : openbis.getExperimentsOfProjectByCode(project)) {
+          if (designExperimentTypes.contains(e.getExperimentTypeCode())) {
+            int numOfSamples = openbis.getSamplesofExperiment(e.getIdentifier()).size();
+            beans.add(new ExperimentBean(e.getIdentifier(), e.getExperimentTypeCode(),
+                Integer.toString(numOfSamples)));
+          }
+        }
+        contextStep.setExperiments(beans);
+      } else {
+        projSelection.getProjectField().setEnabled(true);
+      }
+    }
   }
 
   /**
@@ -943,6 +988,17 @@ public class WizardController {
       }
     }, String.format("%s.graphml", name));
     return resource;
+  }
+
+  private void registerProjectOnly(String desc, String altTitle, String user,
+      SummaryRegisterStep regStep) {
+    ProjectContextStep context = (ProjectContextStep) steps.get(Steps.Project_Context);
+    String space = context.getSpaceCode();
+    String code = context.getProjectCode();
+    openbisCreator.registerProject(space, code, desc, user);
+    // will register people to the db and send a success message
+    regStep.registrationDone();
+    // Functions.notification("Success", "Project was registered!", NotificationType.SUCCESS);
   }
 
   public StreamResource getTSVStream(final String content, String name) {
