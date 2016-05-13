@@ -26,11 +26,12 @@ import java.util.Map;
  */
 public class OpenbisExperiment {
 
-  String openbisName;
-  ExperimentType type;
-  String Q_SECONDARY_NAME;
-  String Q_ADDITIONAL_NOTES;
-  Map<String, Object> properties;
+  private String openbisName;
+  private ExperimentType type;
+  private String Q_SECONDARY_NAME;
+  private String Q_ADDITIONAL_NOTES;
+  private Map<String, Object> properties;
+  private int personID;
 
   /**
    * Creates a new Openbis Experiment
@@ -49,9 +50,10 @@ public class OpenbisExperiment {
    * @param name Name of the experiment
    * @param type Experiment type
    */
-  public OpenbisExperiment(String name, ExperimentType type) {
+  public OpenbisExperiment(String name, ExperimentType type, int person) {
     this.openbisName = name;
     this.type = type;
+    this.personID = person;
   }
 
   /**
@@ -63,7 +65,7 @@ public class OpenbisExperiment {
    */
   OpenbisExperiment(String openbisName, ExperimentType type, String secondaryName,
       String additionalNotes) {
-    this(openbisName, type);
+    this(openbisName, type, -1);
     this.Q_ADDITIONAL_NOTES = additionalNotes;
     this.Q_SECONDARY_NAME = secondaryName;
   }
@@ -74,6 +76,10 @@ public class OpenbisExperiment {
 
   public ExperimentType getType() {
     return type;
+  }
+  
+  public int getPersonID() {
+    return personID;
   }
   
   public Map<String, Object> getMetadata() {

@@ -5,10 +5,12 @@ public class TestSampleInformation {
   private String technology;
   private boolean pool;
   private int replicates;
+  private String person;
 
-  public TestSampleInformation(String tech, boolean pool, int reps) {
+  public TestSampleInformation(String tech, boolean pool, int reps, String person) {
     this.replicates = reps;
     this.pool = pool;
+    this.person = person;
     this.technology = tech;
   }
 
@@ -22,6 +24,10 @@ public class TestSampleInformation {
 
   public int getReplicates() {
     return replicates;
+  }
+  
+  public String getPerson() {
+    return person;
   }
 
 }
