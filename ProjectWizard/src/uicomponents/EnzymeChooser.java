@@ -40,7 +40,7 @@ public class EnzymeChooser extends VerticalLayout {
     chooser = new ComboBox();
     chooser.addItems(options);
     chooser.setFilteringMode(FilteringMode.CONTAINS);
-    chooser.setNullSelectionAllowed(false);
+//    chooser.setNullSelectionAllowed(false);
     chooser.setStyleName(ProjectwizardUI.boxTheme);
     addComponent(chooser);
     setSpacing(true);

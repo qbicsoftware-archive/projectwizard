@@ -1,19 +1,17 @@
 /*******************************************************************************
- * QBiC Project Wizard enables users to create hierarchical experiments including different study conditions using factorial design.
- * Copyright (C) "2016"  Andreas Friedrich
+ * QBiC Project Wizard enables users to create hierarchical experiments including different study
+ * conditions using factorial design. Copyright (C) "2016" Andreas Friedrich
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with this program. If
+ * not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 package uicomponents;
 
@@ -26,13 +24,21 @@ import java.util.Map;
 
 import main.ProjectwizardUI;
 
+import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.shared.ui.combobox.FilteringMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
+
+import control.Functions;
+import control.Functions.NotificationType;
+
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.OptionGroup;
+import com.vaadin.ui.TextArea;
+import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 
 public class MSPanel extends VerticalLayout {
@@ -41,8 +47,11 @@ public class MSPanel extends VerticalLayout {
    * 
    */
   private static final long serialVersionUID = -2282545855402710972L;
-//  private ComboBox msProtocol;
+  // private ComboBox msProtocol;
+  private TextField lcName;
   private ComboBox lcmsMethod;
+  private TextArea lcmsSpecial;
+  private TextArea msInfo;
   private ComboBox chromType;
   private ComboBox device;
   private List<String> enzymes;
@@ -73,31 +82,51 @@ public class MSPanel extends VerticalLayout {
     EnzymeChooser c = new EnzymeChooser(enzymes);
     choosers.add(c);
     // addComponent(c);
-//    msProtocol = new ComboBox("MS Protocol", vocabs.getMsProtocols());
+    // msProtocol = new ComboBox("MS Protocol", vocabs.getMsProtocols());
     // msProtocol.setNullSelectionAllowed(false);
-//    msProtocol.setStyleName(ProjectwizardUI.boxTheme);
+    // msProtocol.setStyleName(ProjectwizardUI.boxTheme);
     device = new ComboBox("MS Device", vocabs.getDeviceMap().keySet());
     device.setFilteringMode(FilteringMode.CONTAINS);
     // device.setNullSelectionAllowed(false);
     device.setStyleName(ProjectwizardUI.boxTheme);
     chromType = new ComboBox("MS Chromatography Type", vocabs.getChromTypes());
     chromType.setFilteringMode(FilteringMode.CONTAINS);
-    // chromType.setNullSelectionAllowed(false);
     chromType.setStyleName(ProjectwizardUI.boxTheme);
+    lcName = new TextField("LC Name");
+    lcName.setStyleName(ProjectwizardUI.fieldTheme);
     lcmsMethod = new ComboBox("MS LCMS Method", vocabs.getLcmsMethods());
     lcmsMethod.setFilteringMode(FilteringMode.CONTAINS);
-    // lcmsMethod.setNullSelectionAllowed(false);
     lcmsMethod.setStyleName(ProjectwizardUI.boxTheme);
-//    addComponent(ProjectwizardUI.questionize(msProtocol,
-//        "Designates the general MS protocol for this measurement (e.g. targeted metabolomics)",
-//        "MS Protocol"));
+    lcmsSpecial = new TextArea("LCMS Method Name");
+    lcmsSpecial.setStyleName(ProjectwizardUI.areaTheme);
+    lcmsSpecial.setVisible(false);
+    msInfo = new TextArea("Additional Notes");
+    msInfo.setStyleName(ProjectwizardUI.areaTheme);
+    // addComponent(ProjectwizardUI.questionize(msProtocol,
+    // "Designates the general MS protocol for this measurement (e.g. targeted metabolomics)",
+    // "MS Protocol"));
     addComponent(ProjectwizardUI.questionize(device,
         "The MS device that is used to conduct the experiment.", "MS Device"));
     addComponent(ProjectwizardUI.questionize(chromType,
         "Specifies the kind of chromatography that is coupled to the mass spectrometer.",
         "Chromatography Type"));
+    addComponent(ProjectwizardUI.questionize(lcName, "Name of the Column", "LC Name"));
     addComponent(ProjectwizardUI.questionize(lcmsMethod,
         "Labratory specific parameters for LCMS measurements.", "LCMS Method"));
+    addComponent(lcmsSpecial);
+    addComponent(msInfo);
+
+    lcmsMethod.addValueChangeListener(new ValueChangeListener() {
+
+      @Override
+      public void valueChange(ValueChangeEvent event) {
+        String val = (String) lcmsMethod.getValue();
+        boolean special = val.equals("SPECIAL_METHOD");
+        lcmsSpecial.setVisible(special);
+        if (!special)
+          lcmsSpecial.setValue("");
+      }
+    });
 
     enzymePane = new VerticalLayout();
     enzymePane.setCaption("Digestion Enzymes");
@@ -132,8 +161,18 @@ public class MSPanel extends VerticalLayout {
     Map<String, Object> res = new HashMap<String, Object>();
     res.put("Q_MS_DEVICE", vocabs.getDeviceMap().get(device.getValue()));
     res.put("Q_MS_LCMS_METHOD", lcmsMethod.getValue());
-//    res.put("Q_MS_PROTOCOL", msProtocol.getValue());;
     res.put("Q_CHROMATOGRAPHY_TYPE", chromType.getValue());
+    res.put("Q_CHROMATOGRAPHY_COLUMN_NAME", lcName.getValue());
+    res.put("Q_MS_LCMS_METHOD_INFO", lcmsSpecial.getValue());
+    res.put("Q_ADDITIONAL_INFO", msInfo.getValue());
+    List<String> remove = new ArrayList<String>();
+    for (String key : res.keySet()) {
+      String val = (String) res.get(key);
+      if (val == null || val.isEmpty())
+        remove.add(key);
+    }
+    for (String key : remove)
+      res.remove(key);
     res.put("ENZYMES", getEnzymes());
     return res;
   }
@@ -169,22 +208,19 @@ public class MSPanel extends VerticalLayout {
   }
 
   public boolean isValid() {
-    //TODO restrictions?
-//    Set<String> uniques = new HashSet<String>();
-//    boolean nonEmpty = false;
-//    for (EnzymeChooser c : choosers) {
-//      uniques.add(c.getEnzyme());
-//      nonEmpty |= (!(c.getEnzyme() == null) && !c.getEnzyme().isEmpty());
-//    }
-//    if (uniques.size() < choosers.size() || !nonEmpty) {
-//      Notification n =
-//          new Notification("Please input at least one enzyme and the same enzyme only once.");
-//      n.setStyleName(ValoTheme.NOTIFICATION_CLOSABLE);
-//      n.setDelayMsec(-1);
-//      n.show(UI.getCurrent().getPage());
-//      return false;
-//    } else
-      return true;
+    // TODO restrictions?
+    // Set<String> uniques = new HashSet<String>();
+    // boolean nonEmpty = false;
+    // for (EnzymeChooser c : choosers) {
+    // uniques.add(c.getEnzyme());
+    // nonEmpty |= (!(c.getEnzyme() == null) && !c.getEnzyme().isEmpty());
+    // }
+    // if (uniques.size() < choosers.size() || !nonEmpty) {
+    // Functions.notification("Wrong input", "Please input at least one enzyme and the same enzyme
+    // only once.", NotificationType.ERROR);
+    // return false;
+    // } else
+    return true;
   }
 
   public void resetInputs() {

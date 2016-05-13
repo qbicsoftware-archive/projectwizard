@@ -67,6 +67,7 @@ public class LigandExtractPanel extends VerticalLayout {
   logging.Logger logger = new Log4j2Logger(LigandExtractPanel.class);
 
   public LigandExtractPanel(DBVocabularies vocabs, OptionGroup conditionsSet) {
+    this.setCaption("MHC Ligand Extraction");
     // this.vocabs = vocabs;
     this.antiBodies = vocabs.getAntibodies();
 
@@ -74,7 +75,7 @@ public class LigandExtractPanel extends VerticalLayout {
     this.conditionsSet.addItem("set");
     setSpacing(true);
 
-    extractionExperiments = new Table("Ligand Extractions");
+    extractionExperiments = new Table();
     extractionExperiments.setStyleName(ProjectwizardUI.tableTheme);
     extractionExperiments.addContainerProperty("Sample", String.class, null);
     extractionExperiments.addContainerProperty("Mass [mg]", TextField.class, null);
