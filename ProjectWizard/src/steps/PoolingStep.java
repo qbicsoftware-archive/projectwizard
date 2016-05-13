@@ -1,19 +1,17 @@
 /*******************************************************************************
- * QBiC Project Wizard enables users to create hierarchical experiments including different study conditions using factorial design.
- * Copyright (C) "2016"  Andreas Friedrich
+ * QBiC Project Wizard enables users to create hierarchical experiments including different study
+ * conditions using factorial design. Copyright (C) "2016" Andreas Friedrich
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with this program. If
+ * not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 package steps;
 
@@ -36,6 +34,8 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
+import control.Functions;
+import control.Functions.NotificationType;
 import control.WizardController.Steps;
 
 public class PoolingStep implements WizardStep {
@@ -55,12 +55,12 @@ public class PoolingStep implements WizardStep {
     main = new VerticalLayout();
     main.setSpacing(true);
     main.setMargin(true);
-//    info =
-//        new Label("Drag and Drop Samples that should be part of the pooling sample. "
-//            + "You can add additional pools if needed.");
-//    info.setStyleName("info");
-//    info.setWidth("350px");
-//    main.addComponent(info);
+    // info =
+    // new Label("Drag and Drop Samples that should be part of the pooling sample. "
+    // + "You can add additional pools if needed.");
+    // info.setStyleName("info");
+    // info.setWidth("350px");
+    // main.addComponent(info);
     pooling = new DragDropPoolComponent(getPoolPrefix(poolStep));
     main.addComponent(instances);
   }
@@ -106,12 +106,9 @@ public class PoolingStep implements WizardStep {
   @Override
   public boolean onAdvance() {
     if (pooling.getPools().isEmpty()) {
-      Notification n =
-          new Notification(
-              "Please create at least one pool containing samples or uncheck pooling in the previous step.");
-      n.setStyleName(ValoTheme.NOTIFICATION_CLOSABLE);
-      n.setDelayMsec(-1);
-      n.show(UI.getCurrent().getPage());
+      Functions.notification("No pooled samples",
+          "Please create at least one pool containing samples or uncheck pooling in the previous step.",
+          NotificationType.ERROR);
       return false;
     } else
       return true;
