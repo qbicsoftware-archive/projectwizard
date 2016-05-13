@@ -47,6 +47,8 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.themes.ValoTheme;
 
 import componentwrappers.StandardTextField;
+import control.Functions;
+import control.Functions.NotificationType;
 import control.ProjectNameValidator;
 
 public class AdminView extends VerticalLayout {
@@ -115,9 +117,8 @@ public class AdminView extends VerticalLayout {
     projectCode.setWidth("90px");
     projectCode.setValidationVisible(true);
     CompositeValidator vd = new CompositeValidator();
-    RegexpValidator p =
-        new RegexpValidator("Q[A-Xa-x0-9]{4}",
-            "Project must have length of 5, start with Q and not contain Y or Z");
+    RegexpValidator p = new RegexpValidator("Q[A-Xa-x0-9]{4}",
+        "Project must have length of 5, start with Q and not contain Y or Z");
     vd.addValidator(p);
     vd.addValidator(new ProjectNameValidator(openbis));
     projectCode.addValidator(vd);
@@ -148,7 +149,7 @@ public class AdminView extends VerticalLayout {
     projectView.addComponent(projectName);
     projectView.addComponent(projectDescription);
     projectView.addComponent(createProject);
-    tabs.addTab(projectView, "Create Project");
+//    tabs.addTab(projectView, "Create Project");
 
     // METADATA
     metadataUpload = new MetadataUploadView(openbis);
@@ -195,30 +196,26 @@ public class AdminView extends VerticalLayout {
 
       @Override
       public void buttonClick(ClickEvent event) {
-        Notification n;
         String space = (String) spaceBox.getValue();
         if (canRegisterProject()) {
           String code = projectCode.getValue();
-          registrator.registerProject(space, projectCode.getValue(), projectDescription.getValue(),
+          registrator.registerProject(space, code, projectDescription.getValue(),
               user);
-          Map<String, Object> metadata = new HashMap<String, Object>();
-          if (projectName != null && !projectName.isEmpty()) {
-            metadata.put("Q_SECONDARY_NAME", projectName.getValue());
-            registrator.registerExperiment(space, code, "Q_EXPERIMENTAL_DESIGN", code + "E1",
-                metadata, user);// TODO we might want to change E1 here to E01 at some point
-          }
+//          Map<String, Object> metadata = new HashMap<String, Object>();
+//          if (projectName != null && !projectName.isEmpty()) {
+//            metadata.put("Q_SECONDARY_NAME", projectName.getValue());
+//            registrator.registerExperiment(space, code, "Q_EXPERIMENTAL_DESIGN", code + "E1",
+//                metadata, user);// TODO we might want to change E1 here to E01 at some point
+//          }
           projectCode.setValue("");
           projectName.setValue("");
           projectDescription.setValue("");
-          n = new Notification("Project was registered!");
+          Functions.notification("Success", "Project was registered!", NotificationType.SUCCESS);
         } else {
-          n =
-              new Notification(
-                  "You have to select a space and fill in Description and Project Code");
+          Functions.notification("Missing data",
+              "You have to select a space and fill in Description and Project Code",
+              NotificationType.ERROR);
         }
-        n.setStyleName(ValoTheme.NOTIFICATION_CLOSABLE);
-        n.setDelayMsec(-1);
-        n.show(UI.getCurrent().getPage());
       }
     });
 
