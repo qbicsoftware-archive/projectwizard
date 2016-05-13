@@ -47,10 +47,10 @@ import views.AdminView;
 import views.StandaloneTSVImport;
 import views.WizardBarcodeView;
 
-import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.VocabularyTerm;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Role;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.SpaceWithProjectsAndRoleAssignments;
 
+import com.liferay.portal.model.UserGroup;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.VaadinServletConfiguration;
 import com.vaadin.server.FontAwesome;
@@ -89,7 +89,7 @@ public class ProjectwizardUI extends UI {
   }
 
   logging.Logger logger = new Log4j2Logger(ProjectwizardUI.class);
-  private String version = "Version 0.99, 21.03.16";
+  private String version = "Version 1.00, 03.05.16";
 
   public static String boxTheme = ValoTheme.COMBOBOX_SMALL;
   public static String fieldTheme = ValoTheme.TEXTFIELD_SMALL;
@@ -104,7 +104,7 @@ public class ProjectwizardUI extends UI {
     b.setIcon(icon);
     b.setWidth("10px");
   }
-
+  
   public static HorizontalLayout questionize(Component c, final String info, final String header) {
     final HorizontalLayout res = new HorizontalLayout();
     res.setSpacing(true);
@@ -132,7 +132,7 @@ public class ProjectwizardUI extends UI {
         Label l = new Label(info, ContentMode.HTML);
         l.setCaption(header);
         l.setIcon(FontAwesome.INFO);
-        l.setWidth("250px");
+        l.setWidth("350px");
         l.addStyleName("info");
         return new VerticalLayout(l);
       }
