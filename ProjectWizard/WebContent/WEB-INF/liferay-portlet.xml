@@ -4,7 +4,7 @@
     <portlet>
         <!-- Matches definition in portlet.xml. -->
         <!-- Note: Must not be the same as servlet name. -->
-        <portlet-name>Projectwizard Application portlet</portlet-name>
+        <portlet-name>Projectwizard Application Portlet</portlet-name>
         <instanceable>true</instanceable>
         <ajaxable>false</ajaxable>
     </portlet>

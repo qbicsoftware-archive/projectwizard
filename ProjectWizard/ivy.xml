@@ -43,6 +43,8 @@
 		
 		<!-- Webdav upload -->	
 		<dependency org="com.github.lookfirst" name="sardine" rev="5.5" />
+		<!-- Graphs -->
+		<dependency org="org.jgrapht" name="jgrapht-core" rev="0.9.2" />
 		<!-- logging -->
 		<dependency org="org.apache.logging.log4j" name="log4j-api" rev="2.2" />
   		<dependency org="org.apache.logging.log4j" name="log4j-core" rev="2.2" />
