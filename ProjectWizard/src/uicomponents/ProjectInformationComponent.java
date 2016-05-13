@@ -42,13 +42,13 @@ public class ProjectInformationComponent extends VerticalLayout {
    * 
    */
   private static final long serialVersionUID = 3467663055161160735L;
-  CustomVisibilityComponent projectBox;
-  TextField project;
-  Button reload;
-  TextField expName;
-  CustomVisibilityComponent personBox;
-  ComboBox piBox;
-  ComboBox contactBox;
+  private CustomVisibilityComponent projectBox;
+  private TextField project;
+  private Button reload;
+  private TextField expName;
+  private CustomVisibilityComponent personBox;
+  private ComboBox piBox;
+  private ComboBox contactBox;
   
   TextArea description;
 
@@ -56,7 +56,7 @@ public class ProjectInformationComponent extends VerticalLayout {
 
   public ProjectInformationComponent(Set<String> set) {
     setSpacing(true);
-    ComboBox prBox = new ComboBox("Sub-Projects");
+    ComboBox prBox = new ComboBox("Sub-Project");
     prBox.setStyleName(ProjectwizardUI.boxTheme);
     projectBox = new CustomVisibilityComponent(prBox);
     projectBox.setStyleName(ProjectwizardUI.boxTheme);
@@ -83,11 +83,13 @@ public class ProjectInformationComponent extends VerticalLayout {
         .questionize(
             newProj,
             "Automatically create an unused QBiC project code or fill in your own. "
-                + "The code consists of 5 characters, must start with Q and not contain Y or Z. You can create a new code by clicking "
+                + "The code consists of 5 characters, must start with Q and not contain Y or Z. You can create a random unused code by clicking "
                 + FontAwesome.REFRESH.getHtml() + ".", "New Sub-Project"));
-    expName = new StandardTextField("Sub-Project name");
+    expName = new StandardTextField("Short name");
+    expName.setWidth("200px");
+//    expName.setRequired(true);
     expName.setVisible(false);
-    expName.setInputPrompt("Optional short name");
+    expName.setInputPrompt("Name of sub project");
     addComponent(expName);
 
     VerticalLayout persBox = new VerticalLayout();
