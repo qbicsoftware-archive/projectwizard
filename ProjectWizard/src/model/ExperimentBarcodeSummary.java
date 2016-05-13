@@ -20,6 +20,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import org.cyberneko.html.HTMLEventInfo.SynthesizedItem;
+
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
 
 /**
@@ -29,8 +31,7 @@ import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
  * @author Andreas Friedrich
  * 
  */
-@Deprecated
-public class ExperimentBarcodeSummaryBean {
+public class ExperimentBarcodeSummary {
 
   private String bioType;
   private String amount;
@@ -45,7 +46,7 @@ public class ExperimentBarcodeSummaryBean {
    * @param amount the amount of samples in this experiment
    * @param experimentID the experiment identifier
    */
-  public ExperimentBarcodeSummaryBean(String bioType, String amount, String expID, String date) {
+  public ExperimentBarcodeSummary(String bioType, String amount, String expID, String date) {
     this.bioType = bioType;
     this.amount = amount;
     this.experimentID = expID;
@@ -72,7 +73,7 @@ public class ExperimentBarcodeSummaryBean {
   }
 
   public void setBio_Type(String bio_Type) {
-    bioType = bio_Type;
+    this.bioType = bio_Type;
   }
 
   public void increment() {
