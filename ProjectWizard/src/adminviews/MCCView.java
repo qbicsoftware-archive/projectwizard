@@ -1,19 +1,17 @@
 /*******************************************************************************
- * QBiC Project Wizard enables users to create hierarchical experiments including different study conditions using factorial design.
- * Copyright (C) "2016"  Andreas Friedrich
+ * QBiC Project Wizard enables users to create hierarchical experiments including different study
+ * conditions using factorial design. Copyright (C) "2016" Andreas Friedrich
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with this program. If
+ * not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 package adminviews;
 
@@ -59,7 +57,8 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.themes.ValoTheme;
 import componentwrappers.StandardTextField;
-
+import control.Functions;
+import control.Functions.NotificationType;
 import control.SampleCounter;
 
 public class MCCView extends VerticalLayout implements IRegistrationView {
@@ -124,9 +123,9 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
 
     treatment = new StandardTextField("Treatment");
     timepoint = new StandardTextField("Timepoint");
-    timepoint.setWidth("30px");
+    timepoint.setWidth("40px");
     patient = new StandardTextField("Patient #");
-    patient.setWidth("30px");
+    patient.setWidth("50px");
 
     HorizontalLayout paramTab = new HorizontalLayout();
     paramTab.setSpacing(true);
@@ -163,12 +162,11 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
     addSamples = new Button("Add Samples");
     addSamples.setEnabled(false);
     initMCCListeners();
-    addComponent(ProjectwizardUI
-        .questionize(
-            projectTab,
-            "Samples can only be added if Timepoint, Treatment, Project and Patient Number "
-                + "are filled in and they don't already exist in the current project. E.g. you can add a new timepoint for the same patient and "
-                + "treatment but not the same timepoint.", "Adding new Samples"));
+    addComponent(ProjectwizardUI.questionize(projectTab,
+        "Samples can only be added if Timepoint, Treatment, Project and Patient Number "
+            + "are filled in and they don't already exist in the current project. E.g. you can add a new timepoint for the same patient and "
+            + "treatment but not the same timepoint.",
+        "Adding new Samples"));
     addComponent(paramTab);
     addComponent(existingPatients);
     addComponent(editView);
@@ -180,14 +178,13 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
   private boolean allValid() {
     boolean project = !newProject.isEmpty() || mccProjects.getValue() != null;
     boolean treat = !treatment.isEmpty();
-    boolean pat = !patient.isEmpty() && patient.getValue().matches("[1-9]");
-    boolean time = !timepoint.isEmpty() && timepoint.getValue().matches("[1-9]");
+    boolean pat = !patient.isEmpty() && patient.getValue().matches("[1-9][0-9]*");
+    boolean time = !timepoint.isEmpty() && timepoint.getValue().matches("[1-9][0-9]*");
     boolean input = project && treat && pat && time;
     boolean res = false;
     if (input) {
-      String extID =
-          treatment.getValue().substring(0, 1) + ":0" + patient.getValue() + ":"
-              + timepoint.getValue();
+      String extID = treatment.getValue().substring(0, 1) + ":0" + patient.getValue() + ":"
+          + timepoint.getValue();
       res = !cases.contains(extID);
     }
     return res;
@@ -269,8 +266,8 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
           counter = new SampleCounter(newProject.getValue());
         String treatment = "";
         boolean wrongFormat = false;
-        for (Sample s : openbis.getSamplesOfProject("/" + mccSpace + "/"
-            + (String) mccProjects.getValue())) {
+        for (Sample s : openbis.getSamplesWithParentsAndChildrenOfProjectBySearchService(
+            "/" + mccSpace + "/" + (String) mccProjects.getValue())) {
           counter.increment(s);
           String id = s.getProperties().get("Q_EXTERNALDB_ID");
           if (s.getSampleTypeCode().equals("Q_BIOLOGICAL_ENTITY")) {
@@ -295,17 +292,18 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
         }
         addSamples.setEnabled(allValid());
         if (wrongFormat) {
-          Notification n =
-              new Notification(
-                  "Project doesn't fit the expected layout. Please choose another project.");
-          n.setStyleName(ValoTheme.NOTIFICATION_CLOSABLE);
-          n.setDelayMsec(-1);
-          n.show(UI.getCurrent().getPage());
-          addSamples.setEnabled(false);
+          logger.warn(
+              "MCCView found samples with unexpected/empty External ID. Probably no problem...");
+          // Functions.notification("Wrong format",
+          // "Project doesn't fit the expected layout. Please choose another project.",
+          // NotificationType.ERROR);
+          // addSamples.setEnabled(false);
         }
         BeanItemContainer<MCCPatient> c = new BeanItemContainer<MCCPatient>(MCCPatient.class);
         for (String id : cases) {
-          MCCPatient p = new MCCPatient(id.substring(0, 4), treatment, id.substring(5, 6));
+          System.out.println(id);
+          String[] idSplit = id.split(":");
+          MCCPatient p = new MCCPatient(idSplit[1], treatment, idSplit[2]);
           c.addBean(p);
         }
         existingPatients.setContainerDataSource(c);
@@ -330,8 +328,8 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
             logger.debug("Created samples: " + s);
         addSamples.setEnabled(false);
         creator.prepareXMLProps(samps);
-        creator.registerProjectWithExperimentsAndSamplesBatchWise(samps, null, null, null, null, bar,
-            registerInfo, new RegisteredSamplesReadyRunnable(getView()), user);
+        creator.registerProjectWithExperimentsAndSamplesBatchWise(samps, null, null, null, null,
+            bar, registerInfo, new RegisteredSamplesReadyRunnable(getView()), user);
       }
     });
   }
@@ -354,7 +352,9 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
     if (!newProject.isEmpty())
       project = newProject.getValue();
 
-    String patientExtID = treatment.substring(0, 1).toUpperCase() + ":0" + patient;
+    if (patient.length() < 2)
+      patient += "0" + patient;
+    String patientExtID = treatment.substring(0, 1).toUpperCase() + ":" + patient;
     String patientID = project + "ENTITY-" + patient;// new parent
 
     HashMap<String, String> metadata = new HashMap<String, String>();
@@ -369,8 +369,8 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
 
     String urineExtIDBase = extIDBase + "U:1";
     metadata = new HashMap<String, String>();
-    metadata
-        .put("XML_FACTORS", "treatment: " + treatment + "; timepoint: evaluation #" + timepoint);
+    metadata.put("XML_FACTORS",
+        "treatment: " + treatment + "; timepoint: evaluation #" + timepoint);
     metadata.put("Q_PRIMARY_TISSUE", "URINE");
     metadata.put("Q_EXTERNALDB_ID", urineExtIDBase);
     String urineID = counter.getNewBarcode();// parent
@@ -388,17 +388,17 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
       String plasmaID = counter.getNewBarcode();// parent
       metadata.put("Q_EXTERNALDB_ID", plasmaExtID);
       metadata.put("Q_PRIMARY_TISSUE", "BLOOD_PLASMA");
-      plasma.add(new TSVSampleBean(plasmaID, project + "E4", project, mccSpace,
-          "Q_BIOLOGICAL_SAMPLE", "EDTA plasma #" + i, patientID, (HashMap<String, String>) metadata
-              .clone()));
+      plasma
+          .add(new TSVSampleBean(plasmaID, project + "E4", project, mccSpace, "Q_BIOLOGICAL_SAMPLE",
+              "EDTA plasma #" + i, patientID, (HashMap<String, String>) metadata.clone()));
       if (i == 1) {
         for (int j = 1; j < 3; j++) {
           char lower = (char) ('a' + j - 1);
           String ID = counter.getNewBarcode();
           metadata.put("Q_EXTERNALDB_ID", plasmaExtID + lower);
-          pAliquots.add(new TSVSampleBean(ID, project + "E4", project, mccSpace,
-              "Q_BIOLOGICAL_SAMPLE", "plasma aliquot #" + j, plasmaID,
-              (HashMap<String, String>) metadata.clone()));
+          pAliquots
+              .add(new TSVSampleBean(ID, project + "E4", project, mccSpace, "Q_BIOLOGICAL_SAMPLE",
+                  "plasma aliquot #" + j, plasmaID, (HashMap<String, String>) metadata.clone()));
         }
       }
       if (i == 3) {
@@ -430,9 +430,8 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
       liver.add(new TSVSampleBean(ID, project + "E6", project, mccSpace, "Q_BIOLOGICAL_SAMPLE",
           "liver biopsy #" + i, patientID, (HashMap<String, String>) metadata.clone()));
     }
-    List<List<ISampleBean>> dummy =
-        new ArrayList<List<ISampleBean>>(Arrays.asList(patients, urine, uAliquots, plasma,
-            pAliquots, molecules, liver));
+    List<List<ISampleBean>> dummy = new ArrayList<List<ISampleBean>>(
+        Arrays.asList(patients, urine, uAliquots, plasma, pAliquots, molecules, liver));
     for (List<ISampleBean> l : dummy)
       if (l.size() > 0)
         res.add(l);
