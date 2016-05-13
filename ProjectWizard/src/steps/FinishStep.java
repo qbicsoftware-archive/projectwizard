@@ -33,7 +33,6 @@ import processes.TSVReadyRunnable;
 import main.UploadsPanel;
 
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
-import ch.systemsx.cisd.openbis.plugin.query.shared.api.v1.dto.QueryTableModel;
 
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -52,7 +51,8 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 import concurrency.UpdateProgressBar;
-
+import control.Functions;
+import control.Functions.NotificationType;
 import de.uni_tuebingen.qbic.main.LiferayAndVaadinUtils;
 
 /**
@@ -71,7 +71,6 @@ public class FinishStep implements WizardStep {
   private Button dlEntities;
   private Button dlExtracts;
   private Button dlPreps;
-  // private Table summary;
   private CheckBox attach;
   private UploadsPanel uploads;
   private Wizard w;
@@ -88,13 +87,11 @@ public class FinishStep implements WizardStep {
     main.setMargin(true);
     main.setSpacing(true);
     Label header = new Label("Summary and File Upload");
-    main.addComponent(ProjectwizardUI
-        .questionize(
-            header,
-            "Here you can download spreadsheets of the samples in your experiment "
-                + "and upload informative files belonging to your project, e.g. treatment information. "
-                + "It might take a few minutes for your files to show up in our project browser.",
-            "Last Step"));
+    main.addComponent(ProjectwizardUI.questionize(header,
+        "Here you can download spreadsheets of the samples in your experiment "
+            + "and upload informative files belonging to your project, e.g. treatment information. "
+            + "It might take a few minutes for your files to show up in our project browser.",
+        "Last Step"));
     summary = new Label();
     summary.setContentMode(ContentMode.PREFORMATTED);
     Panel summaryPane = new Panel();
@@ -139,13 +136,11 @@ public class FinishStep implements WizardStep {
   public void fileCommitDone() {
     uploads.commitDone();
     logger.info("Moving of files to Datamover folder complete!");
-    Notification n =
-        new Notification(
+    Functions
+        .notification("Upload complete",
             "Registration of files complete. It might take a few minutes for your files to show up in the navigator. \n"
-                + "You can end the project creation by clicking 'Finish'.");
-    n.setStyleName(ValoTheme.NOTIFICATION_CLOSABLE);
-    n.setDelayMsec(-1);
-    n.show(UI.getCurrent().getPage());
+                + "You can end the project creation by clicking 'Finish'.",
+            NotificationType.SUCCESS);
     w.getFinishButton().setVisible(true);
   }
 
@@ -154,65 +149,54 @@ public class FinishStep implements WizardStep {
     int entitieNum = 0;
     int samplesNum = 0;
     List<String> ids = new ArrayList<String>();
-    // int i = 0;
     for (String exp : samplesByExperiment.keySet()) {
-      // i++;
       List<Sample> samps = samplesByExperiment.get(exp);
       for (Sample s : samps)
         ids.add(s.getIdentifier());
       int amount = samps.size();
-      // String type = "Unknown";
       String sampleType = samps.get(0).getSampleTypeCode();
       switch (sampleType) {
         case "Q_BIOLOGICAL_ENTITY":
           entitieNum += amount;
-          // type = "Sample Sources";
           break;
         case "Q_BIOLOGICAL_SAMPLE":
           samplesNum += amount;
-          // type = "Sample Extracts";
           break;
         case "Q_TEST_SAMPLE":
           samplesNum += amount;
-          // type = "Sample Preparations";
           break;
         default:
           break;
       }
-      // summary.addItem(new Object[] {type, amount}, i);
     }
-    // summary.setPageLength(summary.size());
     summary.setValue("Your Experimental Design was registered. Project " + proj + " now has "
         + entitieNum + " Sample Sources and " + samplesNum + " samples. \n"
         + "Project description: " + desc.substring(0, Math.min(desc.length(), 60)) + "...");
     w.getFinishButton().setVisible(true);
 
     initUpload(space, proj, openbis);
-    prepareSpreadsheets(ids, space, proj, openbis);
+    prepareSpreadsheets(
+        new ArrayList<String>(
+            Arrays.asList("Q_BIOLOGICAL_ENTITY", "Q_BIOLOGICAL_SAMPLE", "Q_TEST_SAMPLE")),
+        ids.size(), space, proj, openbis);
   }
 
-  private void prepareSpreadsheets(final List<String> ids, final String space,
-      final String project, final OpenBisClient openbis) {
+  private void prepareSpreadsheets(List<String> sampleTypes, int numSamples, String space,
+      final String project, OpenBisClient openbis) {
 
-    final FinishStep layout = this;
+    FinishStep layout = this;
     bar.setVisible(true);
     info.setVisible(true);
 
-    final int todo = 1;
+    int todo = 3;
     Thread t = new Thread(new Runnable() {
       volatile int current = 0;
 
       @Override
       public void run() {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put(
-            "types",
-            new ArrayList<String>(Arrays.asList("Q_BIOLOGICAL_ENTITY", "Q_BIOLOGICAL_SAMPLE",
-                "Q_TEST_SAMPLE")));
-        params.put("ids", ids);
         updateProgressBar(current, todo, bar, info);
 
-        while (openbis.getSamplesOfProject("/" + space + "/" + project).size() < ids.size()) {
+        while (openbis.getSamplesOfProject("/" + space + "/" + project).size() < numSamples) {
           try {
             Thread.sleep(50);
           } catch (InterruptedException e) {
@@ -220,13 +204,15 @@ public class FinishStep implements WizardStep {
             e.printStackTrace();
           }
         }
-        QueryTableModel table =
-            openbis.getAggregationService("get-experimental-design-tsv", params);
-        current++;
-        updateProgressBar(current, todo, bar, info);
+        Map<String, List<String>> tables = new HashMap<String, List<String>>();
+        for (String type : sampleTypes) {
+          tables.put(type, openbis.getProjectTSV(project, type));
+          current++;
+          updateProgressBar(current, todo, bar, info);
+        }
 
         UI.getCurrent().setPollInterval(-1);
-        UI.getCurrent().access(new TSVReadyRunnable(layout, table, project));
+        UI.getCurrent().access(new TSVReadyRunnable(layout, tables, project));
       }
     });
     t.start();
@@ -267,9 +253,8 @@ public class FinishStep implements WizardStep {
         logger.error("Could not contact Liferay for User screen name.");
       }
 
-    this.uploads =
-        new UploadsPanel(ProjectwizardUI.tmpFolder, space, project, new ArrayList<String>(
-            Arrays.asList("Experimental Design")), userID, attachConfig, openbis);
+    this.uploads = new UploadsPanel(ProjectwizardUI.tmpFolder, space, project,
+        new ArrayList<String>(Arrays.asList("Experimental Design")), userID, attachConfig, openbis);
     this.uploads.setVisible(false);
     main.addComponent(uploads);
   }
