@@ -98,8 +98,9 @@ public class WizardDataAggregator {
   private String projectCode;
   private List<OpenbisExperiment> experiments;
   private String species;
+  private String speciesInfo;
   private String tissue;
-  private String cellLine;
+  private String specialTissue;
   private List<TestSampleInformation> techTypeInfo = new ArrayList<TestSampleInformation>();
 
   // info needed to create samples
@@ -215,6 +216,7 @@ public class WizardDataAggregator {
     this.factorMap = new HashMap<String, Factor>();
     experiments = new ArrayList<OpenbisExperiment>();
     species = s2.getSpecies();
+    speciesInfo = s2.getSpecialSpecies();
     bioReps = s2.getBioRepAmount();
 
     // entities are not created new, but parsed from registered ones
@@ -248,7 +250,9 @@ public class WizardDataAggregator {
    */
   public List<AOpenbisSample> prepareExtracts(Map<Object, Integer> map) throws JAXBException {
     tissue = s5.getTissue();
-    cellLine = s5.getCellLine();
+    specialTissue = s5.getCellLine();
+    if (tissue.equals("Other"))
+      specialTissue = s5.getSpecialTissue();
     extractReps = s5.getExtractRepAmount();
 
     // extracts are not created new, but parsed from registered ones
@@ -538,9 +542,8 @@ public class WizardDataAggregator {
         }
         String taxID = taxMap.get(species);
         entities.add(new OpenbisBiologicalEntity(projectCode + "ENTITY-" + entityNum, spaceCode,
-            experiments.get(0).getOpenbisName(), secondaryName, "", factors, taxID, "")); // TODO
-                                                                                          // ext db
-                                                                                          // id
+            experiments.get(0).getOpenbisName(), secondaryName, "", factors, taxID, speciesInfo,
+            ""));
         entityNum++;
       }
     }
@@ -610,7 +613,7 @@ public class WizardDataAggregator {
           incrementOrCreateBarcode();
           extracts.add(new OpenbisBiologicalSample(nextBarcode, spaceCode,
               experiments.get(expNum).getOpenbisName(), secondaryName, "", curFactors, tissueCode,
-              cellLine, e.getCode(), e.getQ_EXTERNALDB_ID())); // TODO
+              specialTissue, e.getCode(), e.getQ_EXTERNALDB_ID())); // TODO
           // ext
           // db
           // id
@@ -753,7 +756,8 @@ public class WizardDataAggregator {
         factorMap.put(name, f);
       }
       res.add(new OpenbisBiologicalEntity(code, spaceCode, exp, p.get("Q_SECONDARY_NAME"),
-          p.get("Q_ADDITIONAL_INFO"), factors, p.get("Q_NCBI_ORGANISM"), p.get("Q_EXTERNALDB_ID")));
+          p.get("Q_ADDITIONAL_INFO"), factors, p.get("Q_NCBI_ORGANISM"),
+          p.get("Q_ORGANISM_DETAILED"), p.get("Q_EXTERNALDB_ID")));
     }
     return res;
   }
@@ -1063,23 +1067,8 @@ public class WizardDataAggregator {
     return result;
   }
 
-  public static void main(String[] args) {
-    Map<String, Object> test = new HashMap<String, Object>();
-    test.put("Q_MS_DEVICE", "PCT_THERMO_ORBITRAP_ELITE");
-    test.put("Q_MS_LCMS_METHOD", "SPECIAL_METHOD");
-    test.put("Q_ADDITIONAL_INFO", "experiment went well");
-    test.put("ENZYMES", new ArrayList<String>(Arrays.asList("LYSN")));
-    test.put("Q_MS_LCMS_METHOD_INFO", "the best #method = don't ask");
-    test.put("Q_CHROMATOGRAPHY_TYPE", "RP_UPLC_C18_COLUMN");
-    test.put("Q_CHROMATOGRAPHY_COLUMN_NAME", "my favorite### column");
-  }
-  // {Q_MS_DEVICE=PCT_THERMO_ORBITRAP_ELITE, Q_MS_LCMS_METHOD=SPECIAL_METHOD,
-  // Q_ADDITIONAL_INFO=experiment went well, ENZYMES=[LYSN], Q_MS_LCMS_METHOD_INFO=the best method,
-  // don't ask, Q_CHROMATOGRAPHY_TYPE=RP_UPLC_C18_COLUMN, Q_CHROMATOGRAPHY_COLUMN_NAME=my favorite
-  // column}
-
   private static String escapeSpecials(String s) {
-    return s.replace("#", "%%%").replace("=", ">>>");
+    return s.replace("#", "%%%").replace("=", ">>>").replace("\n", ";");
   }
 
   private static String addExperimentInfoLine(Map<String, Object> props, String type) {

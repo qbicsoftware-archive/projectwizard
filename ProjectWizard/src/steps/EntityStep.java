@@ -27,6 +27,9 @@ import org.vaadin.teemu.wizards.WizardStep;
 
 import uicomponents.ConditionsPanel;
 
+import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.shared.ui.combobox.FilteringMode;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.GridLayout;
@@ -50,24 +53,22 @@ import control.Functions.NotificationType;
  */
 public class EntityStep implements WizardStep {
 
-  boolean skip = false;
-  OptionGroup conditionsSet = new OptionGroup("dummy");
+  private boolean skip = false;
+  private OptionGroup conditionsSet = new OptionGroup("dummy");
 
-  VerticalLayout main;
+  private VerticalLayout main;
 
-  OpenbisInfoComboBox species;
-  Map<String, String> speciesMap;
+  private OpenbisInfoComboBox species;
+  private TextField specialSpecies;
+  private ConditionsPanel c;
 
-  GridLayout grid;
-  ConditionsPanel c;
-
-  String emptyFactor = "Other (please specify)";
-  List<String> suggestions = new ArrayList<String>(Arrays.asList("Age", "Genotype", "Health State",
+  private String emptyFactor = "Other (please specify)";
+  private List<String> suggestions = new ArrayList<String>(Arrays.asList("Age", "Genotype", "Health State",
       "Phenotype", "Species", "Treatment", emptyFactor));
 
-  OpenbisInfoTextField speciesNum;
+  private OpenbisInfoTextField speciesNum;
 
-  OpenbisInfoTextField bioReps;
+  private OpenbisInfoTextField bioReps;
 
   public ConditionsPanel getCondPanel() {
     return c;
@@ -91,7 +92,6 @@ public class EntityStep implements WizardStep {
         "Sample sources are individual patients, animals or plants that are used in the experiment. "
             + "You can input (optional) experimental variables, e.g. genotypes, that differ between different experimental groups.",
         "Sample Sources"));
-    this.speciesMap = speciesMap;
     ArrayList<String> openbisSpecies = new ArrayList<String>();
     openbisSpecies.addAll(speciesMap.keySet());
     Collections.sort(openbisSpecies);
@@ -108,6 +108,24 @@ public class EntityStep implements WizardStep {
     main.addComponent(c);
     main.addComponent(speciesNum.getInnerComponent());
     main.addComponent(species.getInnerComponent());
+    
+    species.getInnerComponent().addValueChangeListener(new ValueChangeListener() {
+
+      /**
+       * 
+       */
+      private static final long serialVersionUID = 1987640360028444299L;
+
+      @Override
+      public void valueChange(ValueChangeEvent event) {
+        specialSpecies.setVisible(species.getValue().equals("Other"));
+      }
+    });
+    specialSpecies = new TextField("Species Information");
+    specialSpecies.setStyleName(ProjectwizardUI.fieldTheme);
+    specialSpecies.setVisible(false);
+    specialSpecies.setWidth("350px");
+    main.addComponent(specialSpecies);
 
     bioReps = new OpenbisInfoTextField(
         "How many identical biological replicates (e.g. animals) per group are there?",
@@ -173,6 +191,10 @@ public class EntityStep implements WizardStep {
 
   public String getSpecies() {
     return species.getValue();
+  }
+
+  public String getSpecialSpecies() {
+    return specialSpecies.getValue();
   }
 
   public boolean factorFieldOther(ComboBox source) {

@@ -81,7 +81,7 @@ public class ConditionInstanceStep implements WizardStep {
     main.addComponent(instances);
     preview = new Table();
     preview.addContainerProperty("Factors", String.class, null);
-    preview.addContainerProperty("Amount", TextField.class, null);
+    preview.addContainerProperty("Samples", TextField.class, null);
     preview.setStyleName(ProjectwizardUI.tableTheme);
     VerticalLayout frame = new VerticalLayout();
     frame.setCaption("Preview of Combinations");

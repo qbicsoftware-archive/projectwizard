@@ -59,18 +59,15 @@ import control.Functions.NotificationType;
  */
 public class ExtractionStep implements WizardStep {
 
-  boolean skip = false;
-  OptionGroup conditionsSet = new OptionGroup("dummy");
+  private boolean skip = false;
+  private OptionGroup conditionsSet = new OptionGroup("dummy");
 
-  VerticalLayout main;
+  private VerticalLayout main;
 
-  OpenbisInfoComboBox tissue;
-  ComboBox cellLine;
-  Map<String, String> tissueMap;
-  Map<String, String> cellLinesMap;
-
-  GridLayout grid;
-  ConditionsPanel c;
+  private OpenbisInfoComboBox tissue;
+  private ComboBox cellLine;
+  private TextField otherTissue;
+  private ConditionsPanel c;
 
   String emptyFactor = "Other (please specify)";
   List<String> suggestions = new ArrayList<String>(Arrays.asList("Extraction time", "Tissue",
@@ -105,7 +102,8 @@ public class ExtractionStep implements WizardStep {
    * @param tissueMap A map of available tissues (codes and labels)
    * @param cellLinesMap
    */
-  public ExtractionStep(Map<String, String> tissueMap, Map<String, String> cellLinesMap, Set<String> persons) {
+  public ExtractionStep(Map<String, String> tissueMap, Map<String, String> cellLinesMap,
+      Set<String> persons) {
     main = new VerticalLayout();
     main.setMargin(true);
     main.setSpacing(true);
@@ -116,7 +114,6 @@ public class ExtractionStep implements WizardStep {
             + "of extracts.",
         "Sample Extracts"));
 
-    this.tissueMap = tissueMap;
     ArrayList<String> tissues = new ArrayList<String>();
     tissues.addAll(tissueMap.keySet());
     Collections.sort(tissues);
@@ -127,8 +124,6 @@ public class ExtractionStep implements WizardStep {
         "How many different tissue types are there in this sample extraction?", "", "50px", "2");
     tissueNum.getInnerComponent().setVisible(false);
     tissueNum.getInnerComponent().setEnabled(false);
-    person = new ComboBox("Contact Person", persons);
-    person.setStyleName(ProjectwizardUI.boxTheme);
     c = new ConditionsPanel(suggestions, emptyFactor, "Tissue",
         (ComboBox) tissue.getInnerComponent(), true, conditionsSet,
         (TextField) tissueNum.getInnerComponent());
@@ -165,8 +160,6 @@ public class ExtractionStep implements WizardStep {
     });
     main.addComponent(tissueNum.getInnerComponent());
     main.addComponent(tissue.getInnerComponent());
-    main.addComponent(ProjectwizardUI.questionize(person,
-        "Contact person responsible for tissue extraction.", "Contact Person"));
 
     tissue.getInnerComponent().addValueChangeListener(new ValueChangeListener() {
 
@@ -178,9 +171,9 @@ public class ExtractionStep implements WizardStep {
       @Override
       public void valueChange(ValueChangeEvent event) {
         cellLine.setVisible(tissue.getValue().equals("Cell Line"));
+        otherTissue.setVisible(tissue.getValue().equals("Other"));
       }
     });
-    this.cellLinesMap = cellLinesMap;
     ArrayList<String> cellLines = new ArrayList<String>();
     cellLines.addAll(cellLinesMap.keySet());
     Collections.sort(cellLines);
@@ -190,6 +183,15 @@ public class ExtractionStep implements WizardStep {
     cellLine.setVisible(false);
     cellLine.setFilteringMode(FilteringMode.CONTAINS);
     main.addComponent(cellLine);
+    otherTissue = new TextField("Tissue Information");
+    otherTissue.setWidth("350px");
+    otherTissue.setStyleName(ProjectwizardUI.fieldTheme);
+    otherTissue.setVisible(false);
+    main.addComponent(otherTissue);
+    person = new ComboBox("Contact Person", persons);
+    person.setStyleName(ProjectwizardUI.boxTheme);
+    main.addComponent(ProjectwizardUI.questionize(person,
+        "Contact person responsible for tissue extraction.", "Contact Person"));
 
     extractReps = new OpenbisInfoTextField(
         "Extracted replicates per patient/animal/plant per experimental variable.",
@@ -253,6 +255,10 @@ public class ExtractionStep implements WizardStep {
 
   public String getTissue() {
     return tissue.getValue();
+  }
+  
+  public String getSpecialTissue() {
+    return otherTissue.getValue();
   }
 
   public String getCellLine() {
