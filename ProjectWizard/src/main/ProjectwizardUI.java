@@ -96,15 +96,15 @@ public class ProjectwizardUI extends UI {
   public static String areaTheme = ValoTheme.TEXTAREA_SMALL;
   public static String tableTheme = ValoTheme.TABLE_SMALL;
   // hardcoded stuff (experiment types mainly used in the wizard)
-  List<String> expTypes = new ArrayList<String>(Arrays.asList("Q_EXPERIMENTAL_DESIGN",
-      "Q_SAMPLE_EXTRACTION", "Q_SAMPLE_PREPARATION"));
+  List<String> expTypes = new ArrayList<String>(
+      Arrays.asList("Q_EXPERIMENTAL_DESIGN", "Q_SAMPLE_EXTRACTION", "Q_SAMPLE_PREPARATION"));
 
   public static void iconButton(Button b, Resource icon) {
     b.setStyleName(ValoTheme.BUTTON_BORDERLESS);
     b.setIcon(icon);
     b.setWidth("10px");
   }
-  
+
   public static HorizontalLayout questionize(Component c, final String info, final String header) {
     final HorizontalLayout res = new HorizontalLayout();
     res.setSpacing(true);
@@ -195,8 +195,8 @@ public class ProjectwizardUI extends UI {
         isAdmin = true;
       } else {
         success = false;
-        logger.info("User \"" + userID
-            + "\" not found. Probably running on Liferay and not logged in.");
+        logger.info(
+            "User \"" + userID + "\" not found. Probably running on Liferay and not logged in.");
         layout.addComponent(new Label("User not found. Are you logged in?"));
       }
     }
@@ -207,10 +207,11 @@ public class ProjectwizardUI extends UI {
     } catch (Exception e) {
       success = false;
       if (isDevelopment()) {
-        logger.error("No connection to openBIS. Here a dummy version for testing could be implemented.");
+        logger.error(
+            "No connection to openBIS. Here a dummy version for testing could be implemented.");
       } else {
-        logger.error("User \"" + userID
-            + "\" could not connect to openBIS and has been informed of this.");
+        logger.error(
+            "User \"" + userID + "\" could not connect to openBIS and has been informed of this.");
         layout.addComponent(new Label(
             "Data Management System could not be reached. Please try again later or contact us."));
       }
@@ -232,12 +233,7 @@ public class ProjectwizardUI extends UI {
       // stuff from mysql database
       DBConfig mysqlConfig = new DBConfig(mysqlHost, mysqlPort, mysqlDB, mysqlUser, mysqlPass);
       DBManager dbm = new DBManager(mysqlConfig);
-      Map<String, Integer> map = new HashMap<String, Integer>();
-      try {
-        map = dbm.getPrincipalInvestigatorsWithIDs();
-      } catch (NullPointerException e) {
-        map.put("No Connection", -1);
-      }
+      Map<String, Integer> map = fetchPeople(dbm);
       DBVocabularies vocabs =
           new DBVocabularies(taxMap, tissueMap, cellLinesMap, sampleTypes, spaces, map, expTypes,
               enzymes, antibodiesWithLabels, deviceMap, msProtocols, lcmsMethods, chromTypes);
@@ -260,6 +256,16 @@ public class ProjectwizardUI extends UI {
       layout.addComponent(new Label(version));
       layout.addComponent(new Label("User: " + userID));
     }
+  }
+
+  private Map<String, Integer> fetchPeople(DBManager dbm) {
+    Map<String, Integer> map = new HashMap<String, Integer>();
+    try {
+      map = dbm.getPrincipalInvestigatorsWithIDs();
+    } catch (NullPointerException e) {
+      map.put("No Connection", -1);
+    }
+    return map;
   }
 
   private List<String> getUserSpaces(String userID) {
@@ -294,9 +300,8 @@ public class ProjectwizardUI extends UI {
 
   private void initView(final DBManager dbm, final DBVocabularies vocabularies, final String user) {
     tabs.removeAllComponents();
-    AttachmentConfig attachConfig =
-        new AttachmentConfig(Integer.parseInt(attachmentSize), attachmentURI, attachmentUser,
-            attachmentPass);
+    AttachmentConfig attachConfig = new AttachmentConfig(Integer.parseInt(attachmentSize),
+        attachmentURI, attachmentUser, attachmentPass);
     WizardController c = new WizardController(openbis, dbm, vocabularies, attachConfig);
     c.init(user);
     Wizard w = c.getWizard();
@@ -310,11 +315,13 @@ public class ProjectwizardUI extends UI {
 
       @Override
       public void wizardCompleted(WizardCompletedEvent event) {
+        vocabularies.setPeople(fetchPeople(dbm));
         initView(dbm, vocabularies, user);
       }
 
       @Override
       public void wizardCancelled(WizardCancelledEvent event) {
+        vocabularies.setPeople(fetchPeople(dbm));
         initView(dbm, vocabularies, user);
       }
 
@@ -341,8 +348,8 @@ public class ProjectwizardUI extends UI {
       logger.info("User is " + user + " and can see admin panel and print barcodes.");
       VerticalLayout padding = new VerticalLayout();
       padding.setMargin(true);
-      padding.addComponent(new AdminView(openbis, vocabularies.getSpaces(), creationController,
-          user));
+      padding
+          .addComponent(new AdminView(openbis, vocabularies.getSpaces(), creationController, user));
       tabs.addTab(padding, "Admin Functions").setIcon(FontAwesome.WRENCH);
     }
     tabs.addSelectedTabChangeListener(new SelectedTabChangeListener() {

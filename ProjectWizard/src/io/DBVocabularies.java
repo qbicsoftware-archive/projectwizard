@@ -38,8 +38,8 @@ public class DBVocabularies {
   public DBVocabularies(Map<String, String> taxMap, Map<String, String> tissueMap,
       Map<String, String> cellLinesMap, List<String> measureTypes, List<String> spaces,
       Map<String, Integer> piMap, List<String> experimentTypes, List<String> enzymes,
-      Map<String, String> antibodiesWithDescriptions, Map<String, String> deviceMap, List<String> msProtocols,
-      List<String> lcmsMethods, List<String> chromTypes) {
+      Map<String, String> antibodiesWithDescriptions, Map<String, String> deviceMap,
+      List<String> msProtocols, List<String> lcmsMethods, List<String> chromTypes) {
     this.taxMap = taxMap;
     this.tissueMap = tissueMap;
     this.cellLinesMap = cellLinesMap;
@@ -105,6 +105,10 @@ public class DBVocabularies {
 
   public Map<String, String> getAntibodies() {
     return antibodies;
+  }
+
+  public void setPeople(Map<String, Integer> people) {
+    this.investigators = people;
   }
 
 }
