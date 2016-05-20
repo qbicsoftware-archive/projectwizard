@@ -169,13 +169,6 @@ public class WizardBarcodeView extends VerticalLayout {
     addComponent(download);
   }
 
-  private void mapCols() {
-    experimentTable.setColumnHeader("amount", "Samples");
-    experimentTable.setColumnHeader("bio_Type", "Type");
-    experimentTable.setColumnHeader("experiment", "Experiment");
-    experimentTable.setColumnHeader("date", "Date");
-  }
-
   public WizardBarcodeView() {
     SampleToBarcodeFieldTranslator translator = new SampleToBarcodeFieldTranslator();
 

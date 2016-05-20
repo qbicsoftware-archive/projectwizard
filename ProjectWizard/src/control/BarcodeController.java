@@ -159,25 +159,32 @@ public class BarcodeController {
           // NotificationType.DEFAULT);
         }
         if (src.equals("Prepare Barcodes")) {
-          view.creationPressed();
-          Iterator<Extension> it = view.getDownloadButton().getExtensions().iterator();
-          if (it.hasNext())
-            view.getDownloadButton().removeExtension(it.next());
-          barcodeBeans = getSamplesFromExperimentSummaries(view.getExperiments());
-          // boolean overwrite = view.getOverwrite();
-          String project = view.getProjectCode();
-          ProgressBar bar = view.getProgressBar();
-          bar.setVisible(true);
-          sortBeans(barcodeBeans);
-          if (view.getTabs().getSelectedTab() instanceof BarcodePreviewComponent) {
-            logger.info("Preparing barcodes (tubes) for project " + project);
-            creator.findOrCreateTubeBarcodesWithProgress(barcodeBeans, bar, view.getProgressInfo(),
-                new TubeBarcodesReadyRunnable(view, creator, barcodeBeans));
-          } else {
-            logger.info("Preparing barcodes (sheet) for project " + project);
-            creator.findOrCreateSheetBarcodesWithProgress(barcodeBeans, bar, view.getProgressInfo(),
-                new SheetBarcodesReadyRunnable(view, creator, barcodeBeans));
-          }
+          if (expSelected()) {
+            view.creationPressed();
+            Iterator<Extension> it = view.getDownloadButton().getExtensions().iterator();
+            if (it.hasNext())
+              view.getDownloadButton().removeExtension(it.next());
+            barcodeBeans = getSamplesFromExperimentSummaries(view.getExperiments());
+            // boolean overwrite = view.getOverwrite();
+            String project = view.getProjectCode();
+            ProgressBar bar = view.getProgressBar();
+            bar.setVisible(true);
+            sortBeans(barcodeBeans);
+            if (view.getTabs().getSelectedTab() instanceof BarcodePreviewComponent) {
+              logger.info("Preparing barcodes (tubes) for project " + project);
+              creator.findOrCreateTubeBarcodesWithProgress(barcodeBeans, bar,
+                  view.getProgressInfo(),
+                  new TubeBarcodesReadyRunnable(view, creator, barcodeBeans));
+            } else {
+              logger.info("Preparing barcodes (sheet) for project " + project);
+              creator.findOrCreateSheetBarcodesWithProgress(barcodeBeans, bar,
+                  view.getProgressInfo(),
+                  new SheetBarcodesReadyRunnable(view, creator, barcodeBeans));
+            }
+          } else
+            Functions.notification("Can't create Barcodes",
+                "Please select at least one group of Sampes from the table!",
+                NotificationType.DEFAULT);
         }
       }
     };
@@ -218,6 +225,7 @@ public class BarcodeController {
         view.resetExperiments();
         String project = view.getProjectCode();
         view.setAvailableTubes(0);
+        view.enablePrep(projSelected());
         if (project != null) {
           reactToProjectSelectionNew(project);
         }
@@ -238,7 +246,7 @@ public class BarcodeController {
       public void valueChange(ValueChangeEvent event) {
         barcodeBeans = null;
         view.reset();
-        view.enablePrep(expSelected());// && optionSelected());
+        view.enablePrep(projSelected());// && optionSelected());
         if (expSelected() && tubesSelected())
           view.enablePreview(getUsefulSampleFromExperiment());
       }
@@ -249,7 +257,7 @@ public class BarcodeController {
       @Override
       public void selectedTabChange(SelectedTabChangeEvent event) {
         view.reset();
-        view.enablePrep(expSelected());
+        view.enablePrep(projSelected());
         if (tubesSelected() && expSelected())
           view.enablePreview(getUsefulSampleFromExperiment());
         else
@@ -352,6 +360,10 @@ public class BarcodeController {
 
   private boolean tubesSelected() {
     return view.getTabs().getSelectedTab() instanceof BarcodePreviewComponent;
+  }
+
+  private boolean projSelected() {
+    return view.getProjectBox().getValue() != null;
   }
 
   private boolean expSelected() {
