@@ -24,12 +24,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.xml.bind.JAXBException;
 
@@ -37,7 +33,6 @@ import logging.Log4j2Logger;
 import main.OpenBisClient;
 import main.ProjectwizardUI;
 import model.AOpenbisSample;
-import model.ExperimentBean;
 import model.ExperimentType;
 import model.MHCLigandExtractionProtocol;
 import model.OpenbisBiologicalEntity;
@@ -249,12 +244,6 @@ public class WizardDataAggregator {
    * @throws JAXBException
    */
   public List<AOpenbisSample> prepareExtracts(Map<Object, Integer> map) throws JAXBException {
-    tissue = s5.getTissue();
-    specialTissue = s5.getCellLine();
-    if (tissue.equals("Other"))
-      specialTissue = s5.getSpecialTissue();
-    extractReps = s5.getExtractRepAmount();
-
     // extracts are not created new, but parsed from registered ones
     if (inheritExtracts) {
       prepareBasics();
@@ -264,6 +253,11 @@ public class WizardDataAggregator {
       extracts = parseExtracts(samples, getParentMap(samples));
       // create new entities and an associated experiment from collected inputs
     } else {
+      tissue = s5.getTissue();
+      specialTissue = s5.getCellLine();
+      if (tissue.equals("Other"))
+        specialTissue = s5.getSpecialTissue();
+      extractReps = s5.getExtractRepAmount();
       int personID = -1;
       String person = s5.getPerson();
       if (person != null && !person.isEmpty())
