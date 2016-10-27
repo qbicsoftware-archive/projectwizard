@@ -59,7 +59,7 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.themes.ValoTheme;
 
-import control.SampleNameValidator;
+import control.ProjectNameValidator;
 
 /**
  * Wizard Step to set the Context of the new experiment and sample creation
@@ -181,7 +181,7 @@ public class ProjectContextStep implements WizardStep {
         new RegexpValidator("Q[A-Xa-x0-9]{4}",
             "Project must have length of 5, start with Q and not contain Y or Z");
     vd.addValidator(p);
-    vd.addValidator(new SampleNameValidator(openbis));
+    vd.addValidator(new ProjectNameValidator(openbis));
     f.addValidator(vd);
     f.setImmediate(true);
     f.setValidationVisible(true);

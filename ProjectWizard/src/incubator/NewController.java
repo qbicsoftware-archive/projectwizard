@@ -70,7 +70,7 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.themes.ValoTheme;
 
-import control.SampleNameValidator;
+import control.ProjectNameValidator;
 
 import incubator.ConditionInstanceStep;
 import incubator.EntityStep;

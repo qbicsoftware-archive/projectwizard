@@ -17,15 +17,15 @@
  *******************************************************************************/
 package control;
 
-import main.OpenBisClient;
+import main.IOpenBisClient;
 
 import com.vaadin.data.Validator;
 
 public class ProjectNameValidator implements Validator {
   
-  OpenBisClient openbis;
+  IOpenBisClient openbis;
   
-  public ProjectNameValidator(OpenBisClient openbis) {
+  public ProjectNameValidator(IOpenBisClient openbis) {
     this.openbis = openbis;
   }
   

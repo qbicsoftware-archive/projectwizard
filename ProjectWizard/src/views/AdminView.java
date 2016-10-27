@@ -45,7 +45,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import componentwrappers.StandardTextField;
 import control.Functions;
 import control.Functions.NotificationType;
-import control.SampleNameValidator;
+import control.ProjectNameValidator;
 
 public class AdminView extends VerticalLayout {
 
@@ -116,7 +116,7 @@ public class AdminView extends VerticalLayout {
     RegexpValidator p = new RegexpValidator("Q[A-Xa-x0-9]{4}",
         "Project must have length of 5, start with Q and not contain Y or Z");
     vd.addValidator(p);
-    vd.addValidator(new SampleNameValidator(openbis));
+    vd.addValidator(new ProjectNameValidator(openbis));
     projectCode.addValidator(vd);
     projectCode.setImmediate(true);
 

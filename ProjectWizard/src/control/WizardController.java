@@ -736,7 +736,7 @@ public class WizardController {
     RegexpValidator p = new RegexpValidator("Q[A-Xa-x0-9]{4}",
         "Project must have length of 5, start with Q and not contain Y or Z");
     vd.addValidator(p);
-    vd.addValidator(new SampleNameValidator(openbis));
+    vd.addValidator(new ProjectNameValidator(openbis));
     f.addValidator(vd);
     f.setImmediate(true);
     f.setValidationVisible(true);
