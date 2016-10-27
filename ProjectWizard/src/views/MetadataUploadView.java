@@ -1,19 +1,17 @@
 /*******************************************************************************
- * QBiC Project Wizard enables users to create hierarchical experiments including different study conditions using factorial design.
- * Copyright (C) "2016"  Andreas Friedrich
+ * QBiC Project Wizard enables users to create hierarchical experiments including different study
+ * conditions using factorial design. Copyright (C) "2016" Andreas Friedrich
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with this program. If
+ * not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 package views;
 
@@ -35,11 +33,14 @@ import properties.Factor;
 import uicomponents.UploadComponent;
 
 import logging.Log4j2Logger;
+import main.IOpenBisClient;
 import main.OpenBisClient;
 import main.ProjectwizardUI;
 
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
+import control.Functions;
+import control.Functions.NotificationType;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
 
 import com.vaadin.data.Property.ValueChangeEvent;
@@ -58,32 +59,31 @@ import com.vaadin.ui.themes.ValoTheme;
 
 public class MetadataUploadView extends VerticalLayout {
 
-  OptionGroup typeOfData = new OptionGroup("Type of Metadata", new ArrayList<String>(Arrays.asList(
-      "Experiments", "Samples")));
+  OptionGroup typeOfData = new OptionGroup("Type of Metadata",
+      new ArrayList<String>(Arrays.asList("Experiments", "Samples")));
   Label info;
   // ConditionsPanel pane;
   // Button dlTemplate;
   UploadComponent upload;
   Button send;
 
-  OpenBisClient openbis;
+  IOpenBisClient openbis;
   Map<String, Object> metadata;
 
   private logging.Logger logger = new Log4j2Logger(MetadataUploadView.class);
 
-  public MetadataUploadView(OpenBisClient openbis) {
+  public MetadataUploadView(IOpenBisClient openbis) {
     this.openbis = openbis;
     setSpacing(true);
     setMargin(true);
-    addComponent(typeOfData);
-    info = new Label();
+    info = new Label("Warning: Existing Metadata is overwritten!");
     addComponent(info);
+    addComponent(typeOfData);
     // dlTemplate = new Button("Download Template");
     // dlTemplate.setEnabled(false);
     // addComponent(dlTemplate);
-    upload =
-        new UploadComponent("Upload Metadata CSV", "Upload", ProjectwizardUI.tmpFolder, "meta_",
-            10000);
+    upload = new UploadComponent("Upload Metadata (tab-separated)", "Upload",
+        ProjectwizardUI.tmpFolder, "meta_", 10000);
     upload.setVisible(false);
     addComponent(upload);
     send = new Button("Send to Openbis");
@@ -124,6 +124,8 @@ public class MetadataUploadView extends VerticalLayout {
   }
 
   protected boolean parse(File file) throws IOException, JAXBException {
+    List<String> ignoredCols =
+        new ArrayList<String>(Arrays.asList("SAMPLE TYPE", "SPACE", "EXPERIMENT", "PARENT"));
     boolean updateExperiments = typeOfData.getValue().equals("Experiments");
     metadata = new HashMap<String, Object>();
     List<String> codes = new ArrayList<String>();
@@ -136,7 +138,19 @@ public class MetadataUploadView extends VerticalLayout {
     while ((line = b.readLine()) != null) {
       data.add(line.replace("\n", "").split("\t"));
     }
-    String firstCode = data.get(0)[header.indexOf("Identifier")];
+    String firstCode = null;
+    if (header.contains("Identifier"))
+      firstCode = data.get(0)[header.indexOf("Identifier")];
+    else if (header.contains("Code"))
+      firstCode = data.get(0)[header.indexOf("Code")];
+    if (firstCode == null) {
+      Functions.notification("Could not find Barcodes",
+          "File must contain barcode column labeled \"Identifier\" or \"Code\".",
+          NotificationType.ERROR);
+      input.close();
+      b.close();
+      return false;
+    }
     Project p = openbis.getProjectByCode(firstCode.substring(0, 5));
     List<Sample> sampsOfProject = new ArrayList<Sample>();
     Map<String, Sample> sampleMap = new HashMap<String, Sample>();
@@ -175,66 +189,69 @@ public class MetadataUploadView extends VerticalLayout {
     List<String> conditions = new ArrayList<String>();
     List<String> types = new ArrayList<String>();
     for (int i = 1; i < header.size(); i++) {
-      // TODO collect properties
+      // TODO? collect properties
       String type = header.get(i);
-      if (type.startsWith("Condition: ")) {
-        type = type.replace("Condition: ", "").replace(" ", "");
-        conditions.add(type);
-      }
-      types.add(type);
-      // maps between sample codes and values of the currently handled metadata type
-      Map<String, String> curTypeMap = new HashMap<String, String>();
-      for (String[] entData : data) {
-        String code = entData[0];
-        if (!codes.contains(code))
-          codes.add(code);
-        String entType = entCodeToType.get(code);
-        if (entData[i].length() > 0) {
-          if (typesInProject.get(entType).keySet().contains(type) || conditions.contains(type)) {
-            curTypeMap.put(code, entData[i]);
-          } else {
-            String error = type + " is not part of sample type " + entType + " (" + code + ")";
-            logger.error(error);
-            Notification n = new Notification(error);
-            n.setStyleName(ValoTheme.NOTIFICATION_CLOSABLE);
-            n.setDelayMsec(-1);
-            n.show(UI.getCurrent().getPage());
-            input.close();
-            b.close();
-            return false;
+      if (!ignoredCols.contains(type)) { // new
+        if (type.startsWith("Condition: ")) {
+          type = type.replace("Condition: ", "").replace(" ", "");
+          conditions.add(type);
+        }
+        types.add(type);
+        // maps between sample codes and values of the currently handled metadata type
+        Map<String, String> curTypeMap = new HashMap<String, String>();
+        for (String[] entData : data) {
+          String code = entData[0];
+          if (!codes.contains(code))
+            codes.add(code);
+          String entType = entCodeToType.get(code);
+          if (entData[i].length() > 0) {
+            if (typesInProject.get(entType).keySet().contains(type) || conditions.contains(type)) {
+              curTypeMap.put(code, entData[i]);
+            } else {
+              Functions.notification("Wrong format",
+                  "Property " + type + " is not part of sample type " + entType + " (" + code
+                      + ") and should be removed from the file. Properties must use the openBIS type code (Q_...).",
+                  NotificationType.ERROR);
+              input.close();
+              b.close();
+              return false;
+            }
           }
         }
+        if (curTypeMap.size() > 0)
+          metadata.put(type, curTypeMap);
       }
-      if (curTypeMap.size() > 0)
-        metadata.put(type, curTypeMap);
     }
     XMLParser xmlParser = new XMLParser();
     Map<String, String> xmlPropertyMap = new HashMap<String, String>();
     // for each sample
     for (String code : codes) {
-      boolean change = false;
-      List<Factor> factors =
-          xmlParser.getFactorsFromXML(sampleMap.get(code).getProperties().get("Q_PROPERTIES"));
+      // boolean change = false;
+      // List<Factor> factors =
+      // xmlParser.getFactorsFromXML(sampleMap.get(code).getProperties().get("Q_PROPERTIES"));
       // for each condition found in the update tsv
+      List<Factor> factors = new ArrayList<Factor>();
       for (String condition : conditions) {
         // check if it should be updated or added for this sample.
         if (metadata.containsKey(condition)) {
           Map<String, String> condMap = (Map<String, String>) metadata.get(condition);
           if (condMap.containsKey(code)) {
             String value = condMap.get(code);
-            int factorIndex = 0;
-            for (Factor f : factors) {
-              if (f.getLabel().equals(condition)) {
-                f = new Factor(condition, value);
-                factors.set(factorIndex, f);
-                change = true;
-              }
-              factorIndex++;
-            }
+            factors.add(new Factor(condition, value));
+            // int factorIndex = 0;
+            // for (Factor f : factors) {
+            // if (f.getLabel().equals(condition)) {
+            // f = new Factor(condition, value);
+            // factors.set(factorIndex, f);
+            // change = true;
+            // }
+            // factorIndex++;
+            // }
           }
         }
       }
-      if (change)
+      // if (change)
+      if (!factors.isEmpty())
         xmlPropertyMap.put(code, xmlParser.toString(xmlParser.createXMLFromFactors(factors)));
     }
     for (String condition : conditions) {

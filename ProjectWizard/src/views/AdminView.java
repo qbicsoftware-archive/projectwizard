@@ -19,11 +19,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
 import logging.Log4j2Logger;
-import main.OpenBisClient;
+import main.IOpenBisClient;
 import main.OpenbisCreationController;
 import main.ProjectwizardUI;
 import model.OpenbisSpaceUserRole;
@@ -33,15 +32,12 @@ import adminviews.MCCView;
 import com.vaadin.data.validator.CompositeValidator;
 import com.vaadin.data.validator.RegexpValidator;
 import com.vaadin.server.FontAwesome;
-import com.vaadin.ui.AbstractComponent;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Notification;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
-import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.themes.ValoTheme;
@@ -49,7 +45,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import componentwrappers.StandardTextField;
 import control.Functions;
 import control.Functions.NotificationType;
-import control.ProjectNameValidator;
+import control.SampleNameValidator;
 
 public class AdminView extends VerticalLayout {
 
@@ -58,7 +54,7 @@ public class AdminView extends VerticalLayout {
    */
   private static final long serialVersionUID = -1713715806593305379L;
 
-  OpenBisClient openbis;
+  IOpenBisClient openbis;
   OpenbisCreationController registrator;
   String user;
 
@@ -84,7 +80,7 @@ public class AdminView extends VerticalLayout {
   // logger
   logging.Logger logger = new Log4j2Logger(AdminView.class);
 
-  public AdminView(OpenBisClient openbis, List<String> spaces,
+  public AdminView(IOpenBisClient openbis, List<String> spaces,
       OpenbisCreationController creationController, String user) {
     this.user = user;
     this.registrator = creationController;
@@ -120,7 +116,7 @@ public class AdminView extends VerticalLayout {
     RegexpValidator p = new RegexpValidator("Q[A-Xa-x0-9]{4}",
         "Project must have length of 5, start with Q and not contain Y or Z");
     vd.addValidator(p);
-    vd.addValidator(new ProjectNameValidator(openbis));
+    vd.addValidator(new SampleNameValidator(openbis));
     projectCode.addValidator(vd);
     projectCode.setImmediate(true);
 
@@ -149,7 +145,7 @@ public class AdminView extends VerticalLayout {
     projectView.addComponent(projectName);
     projectView.addComponent(projectDescription);
     projectView.addComponent(createProject);
-//    tabs.addTab(projectView, "Create Project");
+    // tabs.addTab(projectView, "Create Project");
 
     // METADATA
     metadataUpload = new MetadataUploadView(openbis);
@@ -183,6 +179,9 @@ public class AdminView extends VerticalLayout {
           if (getUsers().size() > 0)
             roleInfos.put(OpenbisSpaceUserRole.USER, getUsers());
           registrator.registerSpace(getSpace(), roleInfos, user);
+          Functions.notification("Space created", "The space " + getSpace() + " has been created!",
+              NotificationType.SUCCESS);
+          resetSpaceTab();
         }
       }
     });
@@ -199,14 +198,13 @@ public class AdminView extends VerticalLayout {
         String space = (String) spaceBox.getValue();
         if (canRegisterProject()) {
           String code = projectCode.getValue();
-          registrator.registerProject(space, code, projectDescription.getValue(),
-              user);
-//          Map<String, Object> metadata = new HashMap<String, Object>();
-//          if (projectName != null && !projectName.isEmpty()) {
-//            metadata.put("Q_SECONDARY_NAME", projectName.getValue());
-//            registrator.registerExperiment(space, code, "Q_EXPERIMENTAL_DESIGN", code + "E1",
-//                metadata, user);// TODO we might want to change E1 here to E01 at some point
-//          }
+          registrator.registerProject(space, code, projectDescription.getValue(), user);
+          // Map<String, Object> metadata = new HashMap<String, Object>();
+          // if (projectName != null && !projectName.isEmpty()) {
+          // metadata.put("Q_SECONDARY_NAME", projectName.getValue());
+          // registrator.registerExperiment(space, code, "Q_EXPERIMENTAL_DESIGN", code + "E1",
+          // metadata, user);// TODO we might want to change E1 here to E01 at some point
+          // }
           projectCode.setValue("");
           projectName.setValue("");
           projectDescription.setValue("");
@@ -231,6 +229,11 @@ public class AdminView extends VerticalLayout {
         projectCode.setValue(generateProjectCode());
       }
     });
+  }
+
+  protected void resetSpaceTab() {
+    users.setValue("");
+    space.setValue("");
   }
 
   private String generateProjectCode() {
