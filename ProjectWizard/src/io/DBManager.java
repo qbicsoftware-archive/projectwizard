@@ -22,10 +22,17 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import logging.Log4j2Logger;
+import model.Person;
+import model.Printer;
+import model.Printer.PrinterType;
 
 public class DBManager {
   private DBConfig config;
@@ -246,8 +253,8 @@ public class DBManager {
   }
 
   public void addPersonToExperiment(int expID, int personID, String role) {
-    logger.debug("exp id: " + expID);
-    logger.debug("person id: " + personID);
+    if (expID == 0 || personID == 0)
+      return;
 
     if (!hasPersonRoleInExperiment(personID, expID, role)) {
       logger.info("Trying to add person with role " + role + " to an experiment.");
@@ -290,6 +297,77 @@ public class DBManager {
       e.printStackTrace();
     }
     logout(conn);
+    return res;
+  }
+
+  private void endQuery(Connection c, PreparedStatement p) {
+    if (p != null)
+      try {
+        p.close();
+      } catch (Exception e) {
+        logger.error("PreparedStatement close problem");
+      }
+    if (c != null)
+      try {
+        logout(c);
+      } catch (Exception e) {
+        logger.error("Database Connection close problem");
+      }
+  }
+
+  // TODO test this once tables exist
+  public Set<Printer> getPrintersForProject(String project) {
+    Set<Printer> res = new HashSet<Printer>();
+    String sql =
+        "SELECT projects.*, printer_project_association.*, labelprinter.* FROM projects, printer_project_association, labelprinter WHERE projects.openbis_project_identifier LIKE ?"
+            + " AND projects.id = printer_project_association.project_id";
+    Connection conn = login();
+    PreparedStatement statement = null;
+    try {
+      statement = conn.prepareStatement(sql);
+      statement.setString(1, "%" + project);
+      ResultSet rs = statement.executeQuery();
+
+      while (rs.next()) {
+        String location = rs.getString("location");
+        String name = rs.getString("name");
+        String ip = rs.getString("url");
+        PrinterType type = PrinterType.fromString(rs.getString("type"));
+        boolean adminOnly = rs.getBoolean("admin_only");
+        if (!adminOnly)
+          res.add(new Printer(location, name, ip, type, adminOnly));
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      logout(conn);
+    } finally {
+      endQuery(conn, statement);
+    }
+
+    sql = "SELECT * FROM labelprinter";
+    conn = login();
+    statement = null;
+    try {
+      statement = conn.prepareStatement(sql);
+      ResultSet rs = statement.executeQuery();
+
+      while (rs.next()) {
+        String location = rs.getString("location");
+        String name = rs.getString("name");
+        String ip = rs.getString("url");
+        PrinterType type = PrinterType.fromString(rs.getString("type"));
+        boolean adminOnly = rs.getBoolean("admin_only");
+        if (adminOnly)
+          res.add(new Printer(location, name, ip, type, adminOnly));
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      logout(conn);
+      res.add(new Printer("QBiC LAB", "TSC_TTP-343C", "printserv.qbic.uni-tuebingen.de",
+          PrinterType.Label_Printer, true));
+    } finally {
+      endQuery(conn, statement);
+    }
     return res;
   }
 

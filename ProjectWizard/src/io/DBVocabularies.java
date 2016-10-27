@@ -25,6 +25,7 @@ public class DBVocabularies {
   private Map<String, String> tissueMap;
   private Map<String, String> deviceMap;
   private Map<String, String> cellLinesMap;
+  private Map<String, String> proteinPurificationMethods;
   private List<String> measureTypes;
   private List<String> spaces;
   private Map<String, Integer> investigators;
@@ -34,12 +35,15 @@ public class DBVocabularies {
   private List<String> msProtocols;
   private List<String> lcmsMethods;
   private List<String> chromTypes;
+  private List<String> fractionationTypes;
+  private List<String> enrichmentTypes;
 
   public DBVocabularies(Map<String, String> taxMap, Map<String, String> tissueMap,
       Map<String, String> cellLinesMap, List<String> measureTypes, List<String> spaces,
       Map<String, Integer> piMap, List<String> experimentTypes, List<String> enzymes,
       Map<String, String> antibodiesWithDescriptions, Map<String, String> deviceMap,
-      List<String> msProtocols, List<String> lcmsMethods, List<String> chromTypes) {
+      List<String> msProtocols, List<String> lcmsMethods, List<String> chromTypes,
+      List<String> fractionationTypes, List<String> enrichmentTypes, Map<String, String> purificationMethods) {
     this.taxMap = taxMap;
     this.tissueMap = tissueMap;
     this.cellLinesMap = cellLinesMap;
@@ -53,6 +57,21 @@ public class DBVocabularies {
     this.msProtocols = msProtocols;
     this.lcmsMethods = lcmsMethods;
     this.chromTypes = chromTypes;
+    this.fractionationTypes = fractionationTypes;
+    this.enrichmentTypes = enrichmentTypes;
+    this.proteinPurificationMethods = purificationMethods;
+  }
+
+  public List<String> getFractionationTypes() {
+    return fractionationTypes;
+  }
+
+  public List<String> getEnrichmentTypes() {
+    return enrichmentTypes;
+  }
+
+  public Map<String, String> getProteinPurificationMethodsMap() {
+    return proteinPurificationMethods;
   }
 
   public Map<String, String> getCellLinesMap() {
@@ -109,6 +128,10 @@ public class DBVocabularies {
 
   public void setPeople(Map<String, Integer> people) {
     this.investigators = people;
+  }
+
+  public void setSpaces(List<String> userSpaces) {
+    this.spaces = spaces;
   }
 
 }
