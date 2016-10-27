@@ -1,25 +1,16 @@
-/*******************************************************************************
- * QBiC Project Wizard enables users to create hierarchical experiments including different study conditions using factorial design.
- * Copyright (C) "2016"  Andreas Friedrich
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *******************************************************************************/
 package uicomponents;
+
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import org.apache.commons.io.FilenameUtils;
 
 import logging.Log4j2Logger;
 
@@ -44,7 +35,7 @@ public class UploadComponent extends VerticalLayout implements Upload.SucceededL
 
   protected Upload upload;
   protected String directory;
-  protected String targetPrefix;
+  protected String user;
   protected File file;
   protected long maxSize; // In bytes. 100Kb = 100000
   protected ProgressBar progressIndicator; // May be null
@@ -57,13 +48,14 @@ public class UploadComponent extends VerticalLayout implements Upload.SucceededL
   private boolean success;
 
   public UploadComponent(String fieldCaption, String buttonCaption, String directoryParam,
-      String targetPrefix, int maxSize) {
+      String user, int maxSize) {
     upload = new Upload(fieldCaption, null);
+    this.user = user;
     this.addComponent(upload);
     this.maxSize = maxSize;
     upload.setReceiver(this);
     this.directory = directoryParam;
-    this.targetPrefix = targetPrefix;
+    // this.targetPrefix = targetPrefix;
     upload.setButtonCaption(buttonCaption);
     upload.addSucceededListener(this);
     upload.addFailedListener(this);
@@ -87,21 +79,31 @@ public class UploadComponent extends VerticalLayout implements Upload.SucceededL
         upload.interruptUpload();
       }
     });
+
     cancelProcessing.setStyleName("small");
     processingLayout.addComponent(cancelProcessing);
   }
 
   @Override
   public OutputStream receiveUpload(String filename, String MIMEType) {
+    filename = FilenameUtils.getName(filename);
+    if (filename.isEmpty()) {
+      upload.interruptUpload();
+    }
     FileOutputStream fos = null;
-    file = new File(directory, targetPrefix + filename);
-
+    Date date = new java.util.Date();
+    String timeStamp = new SimpleDateFormat("HHmmssS").format(new Timestamp(date.getTime()));
+    file = new File(directory, user + "_" + timeStamp + "_" + filename);
     try {
       fos = new FileOutputStream(file);
     } catch (final java.io.FileNotFoundException e) {
       throw new RuntimeException(e);
     }
     return fos; // Return the output stream to write to
+  }
+
+  public Upload getUploadComponent() {
+    return upload;
   }
 
   @Override
@@ -125,17 +127,22 @@ public class UploadComponent extends VerticalLayout implements Upload.SucceededL
   @Override
   public void uploadFailed(FailedEvent event) {
     processingLayout.setVisible(false);
-    if (contentLength != null && maxSize < contentLength) {
+    if (event.getFilename().isEmpty()) {
+      showNotification("No file selected", "Please select a file before adding it.");
+      logger.info("Upload was cancelled due to no file selected.");
+    } else if (contentLength != null && maxSize < contentLength) {
       showNotification("File too large", "Your file is " + contentLength / 1000
           + "Kb long. Maximum file size is " + maxSize / 1000 + "Kb");
       logger.info("Upload was cancelled due to file exceeding size limit.");
     } else if (cancelled) {
       // Nothing to do...
     } else {
+      StringWriter sw = new StringWriter();
+      PrintWriter pw = new PrintWriter(sw);
+      if (event.getReason() != null)
+        event.getReason().printStackTrace(pw);
       logger.error("Upload cancelled due to error.");
-      logger.error("event.getReason().getStackTrace().toString()");
-      showNotification("There was a problem uploading your file.", event.getReason()
-          .getStackTrace().toString());
+      showNotification("There was a problem uploading your file.", "");
     }
 
     try {
