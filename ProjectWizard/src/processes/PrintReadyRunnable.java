@@ -1,4 +1,4 @@
-package control;
+package processes;
 
 import model.IReadyRunnable;
 import views.WizardBarcodeView;

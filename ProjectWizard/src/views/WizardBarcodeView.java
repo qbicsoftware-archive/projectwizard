@@ -21,6 +21,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import org.tepi.filtertable.FilterTable;
 
 import uicomponents.BarcodePreviewComponent;
 import uicomponents.SheetOptionComponent;
@@ -28,32 +31,31 @@ import uicomponents.SheetOptionComponent;
 import logging.Log4j2Logger;
 import main.ProjectwizardUI;
 import model.ExperimentBarcodeSummary;
-import model.ExperimentBarcodeSummaryBean;
-import model.ExperimentBean;
+import model.Printer;
+import model.Printer.PrinterType;
 import model.SampleToBarcodeFieldTranslator;
 import model.SortBy;
-import properties.Factor;
+import processes.PrintReadyRunnable;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
 
-import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.shared.ui.combobox.FilteringMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
-import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import componentwrappers.CustomVisibilityComponent;
-import componentwrappers.StandardTextField;
 import control.BarcodeController;
 import control.Functions;
 import control.Functions.NotificationType;
-import control.PrintReadyRunnable;
+import control.SampleFilterDecorator;
+import control.SampleFilterGenerator;
 
 /**
  * View class for the Sample Sheet and Barcode pdf creation
@@ -61,7 +63,7 @@ import control.PrintReadyRunnable;
  * @author Andreas Friedrich
  * 
  */
-public class WizardBarcodeView extends VerticalLayout {
+public class WizardBarcodeView extends HorizontalLayout {
 
   logging.Logger logger = new Log4j2Logger(WizardBarcodeView.class);
   /**
@@ -73,6 +75,7 @@ public class WizardBarcodeView extends VerticalLayout {
   private Table experimentTable;
   private OptionGroup sortby;
   private Map<Object, ExperimentBarcodeSummary> experiments;
+  private Map<Object, Sample> samples;
 
   private Component tabsTab;
   private TabSheet tabs;
@@ -81,22 +84,40 @@ public class WizardBarcodeView extends VerticalLayout {
 
   private SheetOptionComponent sheetPreview;
   private Button prepareBarcodes;
+  private ComboBox printerSelection;
   private Button printTubeCodes;
+
+  private FilterTable sampleTable;
 
   private ProgressBar bar;
   private Label info;
   private Button download;
+  private Map<String, Printer> printerMap;
+  private boolean isAdmin;
+
+  private List<String> barcodeSamples = new ArrayList<String>(Arrays.asList("Q_BIOLOGICAL_SAMPLE",
+      "Q_TEST_SAMPLE", "Q_NGS_SINGLE_SAMPLE_RUN", "Q_MHC_LIGAND_EXTRACT"));
 
   /**
    * Creates a new component view for barcode creation
    * 
    * @param spaces List of available openBIS spaces
    * @param isAdmin
+   * @param gen
    */
-  public WizardBarcodeView(List<String> spaces, boolean isAdmin) {
+  public WizardBarcodeView(List<String> spaces, boolean isAdmin, SampleFilterGenerator gen) {
+    VerticalLayout left = new VerticalLayout();
+    VerticalLayout right = new VerticalLayout();
+    initSampleTable(gen);
+    right.addComponent(sampleTable);
+
+    left.setSpacing(true);
+    left.setMargin(true);
+    right.setSpacing(true);
+    right.setMargin(true);
+
     SampleToBarcodeFieldTranslator translator = new SampleToBarcodeFieldTranslator();
-    setSpacing(true);
-    setMargin(true);
+    this.isAdmin = isAdmin;
 
     spaceBox = new ComboBox("Project", spaces);
     spaceBox.setStyleName(ProjectwizardUI.boxTheme);
@@ -110,24 +131,12 @@ public class WizardBarcodeView extends VerticalLayout {
     projectBox.setImmediate(true);
     projectBox.setNullSelectionAllowed(false);
 
-    addComponent(ProjectwizardUI.questionize(spaceBox, "Name of the project", "Project Name"));
-    addComponent(
+    left.addComponent(ProjectwizardUI.questionize(spaceBox, "Name of the project", "Project Name"));
+    left.addComponent(
         ProjectwizardUI.questionize(projectBox, "QBiC 5 letter project code", "Sub-Project"));
 
-    experimentTable = new Table("Experiments");
-    experimentTable.setStyleName(ValoTheme.TABLE_SMALL);
-    experimentTable.setPageLength(1);
-    // experimentTable
-    // .setContainerDataSource(new BeanItemContainer<ExperimentBean>(ExperimentBean.class));
-    experimentTable.setSelectable(true);
-    experimentTable.setMultiSelect(true);
-    // mapCols();
-    experimentTable.addContainerProperty("Samples", String.class, null);
-    experimentTable.addContainerProperty("Type", String.class, null);
-    experimentTable.addContainerProperty("Date", String.class, null);
-    experimentTable.addContainerProperty("Experiment", String.class, null);
-    // experimentTable.setColumnWidth("External DB ID", 106);
-    addComponent(ProjectwizardUI.questionize(experimentTable,
+    initExperimentTable();
+    left.addComponent(ProjectwizardUI.questionize(experimentTable,
         "This table gives an overview of tissue samples and extracted materials"
             + " for which barcodes can be printed. You can select one or multiple rows.",
         "Sample Overview"));
@@ -135,7 +144,7 @@ public class WizardBarcodeView extends VerticalLayout {
     sortby = new OptionGroup("Sort Barcodes By");
     sortby.addItems(SortBy.values());
     sortby.setValue(SortBy.BARCODE_ID);
-    addComponent(sortby);
+    left.addComponent(sortby);
 
     sheetPreview = new SheetOptionComponent(translator);
     tubePreview = new BarcodePreviewComponent(translator);
@@ -146,75 +155,80 @@ public class WizardBarcodeView extends VerticalLayout {
     tabs.addTab(tubePreview, "Barcode Stickers");
     tabsTab = new CustomVisibilityComponent(tabs);
     tabsTab.setVisible(false);
-    addComponent(ProjectwizardUI.questionize(tabsTab,
-        "Prepare an A4 sample sheet or qr codes for sample tubes.", "Barcode Preparation"));
+    left.addComponent(ProjectwizardUI.questionize(tabsTab,
+        "Prepare an A4 sample sheet or barcodes for sample tubes.", "Barcode Preparation"));
 
     info = new Label();
     bar = new ProgressBar();
     bar.setVisible(false);
-    addComponent(info);
-    addComponent(bar);
+    left.addComponent(info);
+    left.addComponent(bar);
 
     prepareBarcodes = new Button("Prepare Barcodes");
     prepareBarcodes.setEnabled(false);
-    addComponent(prepareBarcodes);
+    left.addComponent(prepareBarcodes);
+
+    printerSelection = new ComboBox("Printer");
+    printerSelection.setVisible(isAdmin);
+    printerSelection.setWidth("300px");
+    printerSelection.setStyleName(ProjectwizardUI.boxTheme);
+    printerSelection.setVisible(false);
+    printerSelection.setNullSelectionAllowed(false);
+    left.addComponent(printerSelection);
 
     printTubeCodes = new Button("Print Barcodes");
     printTubeCodes.setVisible(isAdmin);
     printTubeCodes.setEnabled(false);
-    addComponent(printTubeCodes);
+    left.addComponent(printTubeCodes);
 
     download = new Button("Download");
     download.setEnabled(false);
-    addComponent(download);
+    left.addComponent(download);
+    addComponent(left);
+    addComponent(right);
+    disablePreview();
   }
 
-  public WizardBarcodeView() {
-    SampleToBarcodeFieldTranslator translator = new SampleToBarcodeFieldTranslator();
-
-    spaceBox = new ComboBox();
-    projectBox = new ComboBox();
-
+  private void initExperimentTable() {
     experimentTable = new Table("Experiments");
     experimentTable.setStyleName(ValoTheme.TABLE_SMALL);
     experimentTable.setPageLength(1);
-    // experimentTable
-    // .setContainerDataSource(new BeanItemContainer<ExperimentBean>(ExperimentBean.class));
     experimentTable.setSelectable(true);
     experimentTable.setMultiSelect(true);
-    // mapCols();
     experimentTable.addContainerProperty("Samples", String.class, null);
     experimentTable.addContainerProperty("Type", String.class, null);
     experimentTable.addContainerProperty("Date", String.class, null);
     experimentTable.addContainerProperty("Experiment", String.class, null);
-    // experimentTable.setColumnWidth("External DB ID", 106);
-    addComponent(experimentTable);
-
-    tubePreview = new BarcodePreviewComponent(translator);
-    addComponent(tubePreview);
-
-    prepareBarcodes = new Button("Prepare Barcodes");
-    prepareBarcodes.setEnabled(false);
-    addComponent(prepareBarcodes);
-
-    info = new Label();
-    bar = new ProgressBar();
-    addComponent(info);
-    addComponent(bar);
   }
 
-  public void enableExperiments(boolean enable) {
-    experimentTable.setEnabled(enable);
+  private void initSampleTable(SampleFilterGenerator gen) {
+    sampleTable = new FilterTable("Samples (optional sub-selection)");
+    sampleTable.setStyleName(ValoTheme.TABLE_SMALL);
+    sampleTable.setPageLength(1);
+    sampleTable.setSelectable(true);
+    sampleTable.setMultiSelect(true);
+    sampleTable.addContainerProperty("QBiC Code", String.class, null);
+    sampleTable.addContainerProperty("Secondary Name", String.class, null);
+    sampleTable.addContainerProperty("Lab ID", String.class, null);
+    sampleTable.addContainerProperty("Type", String.class, null);
+    sampleTable.setColumnWidth("Lab ID", 120);
+    sampleTable.setColumnWidth("Type", 130);
+    sampleTable.setFilterDecorator(new SampleFilterDecorator());
+    sampleTable.setFilterGenerator(gen);
+    sampleTable.setFilterBarVisible(true);
+    sampleTable.setImmediate(true);
+    sampleTable.setVisible(false);
   }
 
   public void creationPressed() {
-    enableExperiments(false);
+    experimentTable.setEnabled(false);
+    sampleTable.setEnabled(false);
     spaceBox.setEnabled(false);
     projectBox.setEnabled(false);
     prepareBarcodes.setEnabled(false);
   }
 
-  public void reset() {
+  public void resetOptions() {
     info.setValue("");
     download.setEnabled(false);
     spaceBox.setEnabled(true);
@@ -231,6 +245,13 @@ public class WizardBarcodeView extends VerticalLayout {
     experimentTable.setPageLength(1);
     experimentTable.removeAllItems();
     tabsTab.setVisible(false);
+    resetSamples();
+  }
+
+  public void resetSamples() {
+    sampleTable.setPageLength(1);
+    sampleTable.removeAllItems();
+    sampleTable.setVisible(false);
   }
 
   public String getSpaceCode() {
@@ -271,31 +292,62 @@ public class WizardBarcodeView extends VerticalLayout {
       experiments.put(i, s);
       experimentTable.addItem(row.toArray(new Object[row.size()]), i);
     }
-
-    // BeanItemContainer<ExperimentBarcodeSummaryBean> c =
-    // new BeanItemContainer<ExperimentBarcodeSummaryBean>(ExperimentBarcodeSummaryBean.class);
-    // c.addAll(beans);
-    // experimentTable.setContainerDataSource(c);
     experimentTable.setPageLength(collection.size());
-    // if (exps.size() == 1)
-    // experimentTable.select(.getIdByIndex(0));
   }
 
-  // public void setExperiments(List<ExperimentBarcodeSummaryBean> beans) {
-  // BeanItemContainer<ExperimentBarcodeSummaryBean> c =
-  // new BeanItemContainer<ExperimentBarcodeSummaryBean>(ExperimentBarcodeSummaryBean.class);
-  // c.addAll(beans);
-  // experimentTable.setContainerDataSource(c);
-  // experimentTable.setPageLength(beans.size());
-  // if (c.size() == 1)
-  // experimentTable.select(c.getIdByIndex(0));
-  // }
+  public void setSamples(List<Sample> sampleList, Map<Sample, String> types) {
+    samples = new HashMap<Object, Sample>();
+    int i = 0;
+    for (Sample s : sampleList) {
+      i++;
+      List<Object> row = new ArrayList<Object>();
+      Map<String, String> props = s.getProperties();
+      row.add(s.getCode());
+      row.add(props.get("Q_SECONDARY_NAME"));
+      row.add(props.get("Q_EXTERNALDB_ID"));
+      row.add(getType(s, props, types));
+      samples.put(i, s);
+      sampleTable.addItem(row.toArray(new Object[row.size()]), i);
+      sampleTable.select(i);
+    }
+    sampleTable.setPageLength(sampleList.size());
+    sampleTable.setVisible(!sampleList.isEmpty());
+  }
+
+  private String getType(Sample s, Map<String, String> props, Map<Sample, String> types) {
+    String type = s.getSampleTypeCode();
+    String bioType = null;
+    if (type.equals(barcodeSamples.get(0))) {
+      String tissue = props.get("Q_PRIMARY_TISSUE");
+      String detailedTissue = props.get("Q_TISSUE_DETAILED");
+      if (detailedTissue == null || detailedTissue.isEmpty())
+        bioType = tissue;
+      else
+        bioType = detailedTissue;
+    } else if (type.equals(barcodeSamples.get(1)))
+      bioType = s.getProperties().get("Q_SAMPLE_TYPE");
+    else if (type.equals(barcodeSamples.get(2)))
+      bioType = types.get(s);
+    else if (type.equals(barcodeSamples.get(3)))
+      bioType = props.get("Q_MHC_CLASS");
+    return bioType;
+  }
 
   @SuppressWarnings("unchecked")
-  public Collection<ExperimentBarcodeSummary> getExperiments() {
+  public Collection<ExperimentBarcodeSummary> getSelectedExperiments() {
     List<ExperimentBarcodeSummary> res = new ArrayList<ExperimentBarcodeSummary>();
     for (Object id : (Collection<Object>) experimentTable.getValue()) {
       res.add(experiments.get(id));
+    }
+    return res;
+  }
+
+  public List<Sample> getSelectedSamples() {
+    List<Sample> res = new ArrayList<Sample>();
+    for (Object id : (Collection<Object>) sampleTable.getValue()) {
+      if (sampleTable.containsId(id)) {
+        res.add(samples.get(id));
+      }
     }
     return res;
   }
@@ -322,7 +374,8 @@ public class WizardBarcodeView extends VerticalLayout {
   }
 
   public void creationDone() {
-    enableExperiments(true);
+    experimentTable.setEnabled(true);
+    sampleTable.setEnabled(true);
     bar.setVisible(false);
   }
 
@@ -350,11 +403,16 @@ public class WizardBarcodeView extends VerticalLayout {
 
   public void disablePreview() {
     tubePreview.setVisible(false);
+    printerSelection.setVisible(false);
+    printTubeCodes.setVisible(false);
   }
 
-  public void enablePreview(Sample sample) {
+  public void enableTubeLabelPreview(Sample sample) {
     tubePreview.setExample(sample);
     tubePreview.setVisible(true);
+    boolean printAvailable = printerSelection.size() > 0;
+    printerSelection.setVisible(printAvailable);
+    printTubeCodes.setVisible(printAvailable);
   }
 
   public String getCodedString(Sample s) {
@@ -405,5 +463,32 @@ public class WizardBarcodeView extends VerticalLayout {
     else
       Functions.notification("Printing error", "There was a problem with contacting the printer.",
           NotificationType.ERROR);
+  }
+
+  public void resetPrinters() {
+    this.printerSelection.removeAllItems();
+    this.printerSelection.setVisible(false);
+  }
+
+  public void setPrinters(Set<Printer> set) {
+    printerMap = new HashMap<String, Printer>();
+    for (Printer p : set) {
+      boolean allowed = !p.isAdminPrinter() || p.isAdminPrinter() && isAdmin;
+      if (p.getType().equals(PrinterType.Label_Printer) && allowed) {
+        printerMap.put(p.getName() + " (" + p.getLocation() + ")", p);
+      }
+    }
+    if (printerMap.size() > 0) {
+      printerSelection.addItems(printerMap.keySet());
+      printerSelection.select(printerMap.keySet().iterator().next());
+    }
+  }
+
+  public Printer getPrinter() {
+    return printerMap.get(printerSelection.getValue().toString());
+  }
+
+  public FilterTable getSampleTable() {
+    return sampleTable;
   }
 }

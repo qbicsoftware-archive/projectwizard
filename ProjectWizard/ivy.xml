@@ -40,7 +40,8 @@
 		<!-- Compiler for custom widget sets. Should not be deployed -->
 		<dependency org="com.vaadin" name="vaadin-client-compiler"
 			rev="&vaadin.version;" conf="widgetset-compile->default" />
-		
+		<!-- filter table -->	
+		<dependency org="org.vaadin.addons" name="filteringtable" rev="0.9.11.v7" />
 		<!-- Webdav upload -->	
 		<dependency org="com.github.lookfirst" name="sardine" rev="5.5" />
 		<!-- Graphs -->
