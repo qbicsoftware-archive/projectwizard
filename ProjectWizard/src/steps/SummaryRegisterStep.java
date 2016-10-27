@@ -18,14 +18,22 @@ package steps;
 import io.DBManager;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import logging.Log4j2Logger;
+import main.IOpenBisClient;
+import main.OpenBisClient;
 import main.ProjectwizardUI;
 import main.SampleSummaryBean;
+import model.ExperimentType;
 import model.ISampleBean;
 import model.OpenbisExperiment;
+import model.notes.Note;
+import uicomponents.ExperimentSummaryTable;
 
+import org.apache.commons.lang.WordUtils;
 import org.vaadin.teemu.wizards.WizardStep;
 
 import views.IRegistrationView;
@@ -34,12 +42,12 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.Notification;
 import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.Table;
-import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+
+import ch.systemsx.cisd.common.shared.basic.string.StringUtils;
 import componentwrappers.CustomVisibilityComponent;
 import control.Functions;
 import control.Functions.NotificationType;
@@ -56,23 +64,26 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
   private Button downloadTSV;
   private Button register;
   private Button downloadGraph;
-  private Table summary;
+  private ExperimentSummaryTable summary;
   private List<List<ISampleBean>> samples;
   private Label registerInfo;
   private ProgressBar bar;
   private CustomVisibilityComponent summaryComponent;
-  logging.Logger logger = new Log4j2Logger(SummaryRegisterStep.class);
+  private logging.Logger logger = new Log4j2Logger(SummaryRegisterStep.class);
   private boolean registrationComplete = false;
-  DBManager dbm;
+  private DBManager dbm;
+  private IOpenBisClient openbis;
   private int investigatorID;
   private int contactID;
   private String projectIdentifier;
   private String projectName;
   private boolean isEmptyProject = false;
   private List<OpenbisExperiment> exps;
+  private List<Note> notes;
 
-  public SummaryRegisterStep(DBManager dbm) {
+  public SummaryRegisterStep(DBManager dbm, IOpenBisClient openbis) {
     this.dbm = dbm;
+    this.openbis = openbis;
     main = new VerticalLayout();
     main.setMargin(true);
     main.setSpacing(true);
@@ -83,12 +94,7 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
             + "Registering samples may take a few seconds.",
         "Sample Registration"));
 
-    summary = new Table("Summary");
-    summary.addContainerProperty("Type", String.class, null);
-    summary.addContainerProperty("Number of Samples", Integer.class, null);
-    summary.setStyleName(ValoTheme.TABLE_SMALL);
-    summary.setImmediate(true);
-    summary.setPageLength(1);
+    summary = new ExperimentSummaryTable();
 
     summaryComponent = new CustomVisibilityComponent(ProjectwizardUI.questionize(summary,
         "This is a summary of samples for Sample Sources/Patients, Tissue Extracts and "
@@ -120,45 +126,8 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
     main.addComponent(bar);
   }
 
-  // public void setSummary(ArrayList<SampleSummaryBean> arrayList) {
-  // summaryComponent.setVisible(false);
-  // BeanItemContainer<SampleSummaryBean> c =
-  // new BeanItemContainer<SampleSummaryBean>(SampleSummaryBean.class);
-  // c.addAll(arrayList);
-  // summary.setPageLength(arrayList.size());
-  // summary.setContainerDataSource(c);
-  // summaryComponent.setVisible(true);
-  // enableDownloads(true);
-  // }
-
   public void setSummary(ArrayList<SampleSummaryBean> beans) {
-    summary.removeAllItems();
-    int i = 0;
-    for (SampleSummaryBean b : beans) {
-      i++;
-      int amount = Integer.parseInt(b.getAmount());
-      String type = "Unknown";
-      String sampleType = b.getType();
-      if (b.isPool())
-        type = "Pooled/Multiplexed";
-      else {
-        switch (sampleType) {
-          case "Biological Source":
-            type = "Sample Sources";
-            break;
-          case "Extracted Samples":
-            type = "Sample Extracts";
-            break;
-          case "Prepared Samples":
-            type = "Sample Preparations";
-            break;
-          default:
-            type = sampleType;
-        }
-      }
-      summary.addItem(new Object[] {type, amount}, i);
-    }
-    summary.setPageLength(i);
+    summary.setSamples(beans);
     summaryComponent.setVisible(true);
     enableDownloads(true);
   }
@@ -212,8 +181,25 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
     return samples;
   }
 
+  private void writeNoteToOpenbis(String id, Note note) {
+    Map<String, Object> params = new HashMap<String, Object>();
+    params.put("id", id);
+    params.put("user", note.getUsername());
+    params.put("comment", note.getComment());
+    params.put("time", note.getTime());
+    openbis.ingest("DSS1", "add-to-xml-note", params);
+  }
+
   public void registrationDone() {
     logger.info("Sample registration complete!");
+    for (OpenbisExperiment e : exps) {
+      if (e.getType().equals(ExperimentType.Q_EXPERIMENTAL_DESIGN)) {
+        String id = projectIdentifier + "/" + e.getOpenbisName();
+        for (Note n : notes) {
+          writeNoteToOpenbis(id, n);
+        }
+      }
+    }
     int projectID = dbm.addProjectToDB(projectIdentifier, projectName);
     if (investigatorID != -1)
       dbm.addPersonToProject(projectID, investigatorID, "PI");
@@ -251,6 +237,10 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
   }
 
   public void setEmptyProject(boolean b) {
+    if(b)
+    register.setCaption("Register Project");
+    else
+      register.setCaption("Register All");
     this.isEmptyProject = b;
   }
 
@@ -264,6 +254,10 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
 
   public Button getGraphButton() {
     return downloadGraph;
+  }
+
+  public void setProjectNotes(List<Note> notes) {
+    this.notes = notes;
   }
 
 }
