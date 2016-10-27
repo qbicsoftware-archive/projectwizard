@@ -22,6 +22,7 @@ import java.util.Set;
 import main.ProjectwizardUI;
 import model.TestSampleInformation;
 
+import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
@@ -52,6 +53,7 @@ public class TechChooser extends VerticalLayout {
   public TechChooser(List<String> options, Set<String> persons) {
     chooser = new ComboBox("Analyte", options);
     chooser.setStyleName(ProjectwizardUI.boxTheme);
+
     replicates = new OpenbisInfoTextField("Replicates", "", "50px", "1");
     person = new ComboBox("Contact Person", persons);
     person.setStyleName(ProjectwizardUI.boxTheme);
@@ -70,6 +72,17 @@ public class TechChooser extends VerticalLayout {
     HorizontalLayout help4 = ProjectwizardUI.questionize(pool,
         "Select if multiple samples are pooled into a single " + "sample before measurement.",
         "Pooling");
+    
+    chooser.addValueChangeListener(new ValueChangeListener() {
+
+      @Override
+      public void valueChange(ValueChangeEvent event) {
+        if (chooser.getValue() != null) {
+          help4.setVisible(!chooser.getValue().equals("PROTEINS"));
+        }
+      }
+    });
+    
     addComponent(help4);
     helpers.add(help1);
     helpers.add(help2);

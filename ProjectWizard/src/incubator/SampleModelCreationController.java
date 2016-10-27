@@ -53,7 +53,7 @@ public class SampleModelCreationController {
         }
         res.add(factorValues);
       }
-      permutations.addAll(dataAggregator.generatePermutations(res));
+//      permutations.addAll(dataAggregator.generatePermutations(res));TODO
     }
     return permutations;
   }
@@ -74,8 +74,9 @@ public class SampleModelCreationController {
       }
       res.add(factorValues);
     }
-    List<String> permutations = dataAggregator.generatePermutations(res);
-    return permutations;
+//    List<String> permutations = dataAggregator.generatePermutations(res);TODO
+//    return permutations;
+    return null;
   }
 
 }

@@ -43,9 +43,7 @@ import processes.AttachmentMover;
 import processes.MoveUploadsReadyRunnable;
 import processes.TSVReadyRunnable;
 import properties.Factor;
-
-import main.UploadsPanel;
-
+import uicomponents.UploadsPanel;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
 import ch.systemsx.cisd.openbis.plugin.query.shared.api.v1.dto.QueryTableModel;
 
@@ -239,7 +237,7 @@ public class FinishStep implements WizardStep {
         updateProgressBar(current, todo, bar, info);
 
         UI.getCurrent().setPollInterval(-1);
-        UI.getCurrent().access(new TSVReadyRunnable(layout, table, project));
+//        UI.getCurrent().access(new TSVReadyRunnable(layout, table, project));TODO
       }
     });
     t.start();

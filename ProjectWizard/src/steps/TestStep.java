@@ -17,6 +17,9 @@ package steps;
 
 import io.DBVocabularies;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,10 +28,13 @@ import model.AOpenbisSample;
 import model.MHCLigandExtractionProtocol;
 import model.TestSampleInformation;
 
+import org.vaadin.teemu.wizards.Wizard;
 import org.vaadin.teemu.wizards.WizardStep;
 
+import uicomponents.MSOptionComponent;
 import uicomponents.LigandExtractPanel;
 import uicomponents.MSPanel;
+import uicomponents.MSSampleMultiplicationTable;
 import uicomponents.TechnologiesPanel;
 
 import com.vaadin.data.Property.ValueChangeEvent;
@@ -44,6 +50,7 @@ import com.vaadin.ui.themes.ValoTheme;
 
 import control.Functions;
 import control.Functions.NotificationType;
+import control.WizardController.Steps;
 
 /**
  * Wizard Step to put in information about the Sample Preparation that leads to a list of Test
@@ -56,19 +63,22 @@ public class TestStep implements WizardStep {
 
   private VerticalLayout main;
   private TechnologiesPanel techPanel;
-  private MSPanel msPanel;
+  private MSOptionComponent msPanel;
   private LigandExtractPanel mhcLigandPanel;
   private CheckBox noMeasure;
-  DBVocabularies vocabs;
+  private DBVocabularies vocabs;
   private boolean containsProteins = false;
   private boolean containsMHCLigands = false;
+
+  private Wizard wizard;
 
   /**
    * Create a new Sample Preparation step for the wizard
    * 
    * @param sampleTypes Available list of sample types, e.g. Proteins, RNA etc.
    */
-  public TestStep(DBVocabularies vocabs) {
+  public TestStep(Wizard wizard, DBVocabularies vocabs) {
+    this.wizard = wizard;
     this.vocabs = vocabs;
     main = new VerticalLayout();
     main.setMargin(true);
@@ -122,9 +132,9 @@ public class TestStep implements WizardStep {
   public boolean onAdvance() {
     if (techPanel.isValid() || noMeasure.getValue()) {
       if (containsProteins) {// TODO mhc ligands
-        if (msPanel.isValid())
+        if (msPanel.isValid()) {
           return true;
-        else
+        } else
           return false;
       } else
         return true;
@@ -136,13 +146,15 @@ public class TestStep implements WizardStep {
     }
   }
 
+  private void replaceWizardSteps(List<WizardStep> nextMSSteps) {
+    resetNextSteps();
+    for (WizardStep step : nextMSSteps)
+      wizard.addStep(step);
+  }
+
   @Override
   public boolean onBack() {
     return true;
-  }
-
-  public List<String> getMSEnzymes() {
-    return msPanel.getEnzymes();
   }
 
   public List<TestSampleInformation> getAnalyteInformation() {
@@ -157,7 +169,8 @@ public class TestStep implements WizardStep {
     return techPanel.poolingSet();
   }
 
-  public void initTestStep(ValueChangeListener testPoolListener) {
+  public void initTestStep(ValueChangeListener testPoolListener,
+      ValueChangeListener outerProteinListener, Map<Steps, WizardStep> steps) {
     ValueChangeListener proteinListener = new ValueChangeListener() {
 
       /**
@@ -170,10 +183,15 @@ public class TestStep implements WizardStep {
         containsProteins = false;
         for (TestSampleInformation i : getAnalyteInformation()) {
           String tech = i.getTechnology();
-          containsProteins |=
-              tech.equals("PROTEINS") || tech.equals("PEPTIDES") || tech.equals("PHOSPHOPEPTIDES");
+          containsProteins |= tech.equals("PROTEINS");
         }
         msPanel.setVisible(containsProteins);
+        if (!containsProteins) {
+          resetNextSteps();
+          wizard.addStep(steps.get(Steps.Registration));
+        } else {
+          replaceWizardSteps(msPanel.getNextMSSteps(steps));
+        }
       }
     };
 
@@ -194,16 +212,26 @@ public class TestStep implements WizardStep {
       }
     };
     techPanel = new TechnologiesPanel(vocabs.getMeasureTypes(), vocabs.getPeople().keySet(),
-        new OptionGroup(""), testPoolListener, proteinListener, mhcLigandListener);
+        new OptionGroup(""), testPoolListener,
+        new ArrayList<ValueChangeListener>(Arrays.asList(outerProteinListener, proteinListener)),
+        mhcLigandListener);
     main.addComponent(techPanel);
-    main.addComponent(new Label("<hr />", Label.CONTENT_XHTML));// test - clear separation between
-                                                                // tech type and meta info
-    msPanel = new MSPanel(vocabs, new OptionGroup(""));
+    main.addComponent(new Label("<hr />", Label.CONTENT_XHTML));
+    msPanel = new MSOptionComponent(vocabs);
     msPanel.setVisible(false);
+    ValueChangeListener msExpChangedListener = new ValueChangeListener() {
+
+      @Override
+      public void valueChange(ValueChangeEvent event) {
+        replaceWizardSteps(msPanel.getNextMSSteps(steps));
+      }
+    };
+
+    msPanel.addMSListener(msExpChangedListener);
 
     main.addComponent(msPanel);
 
-    mhcLigandPanel = new LigandExtractPanel(vocabs, new OptionGroup(""));
+    mhcLigandPanel = new LigandExtractPanel(vocabs);
     mhcLigandPanel.setVisible(false);
 
     main.addComponent(mhcLigandPanel);
@@ -224,14 +252,35 @@ public class TestStep implements WizardStep {
       return null;
   }
 
-  public Map<String, Object> getMSExperimentProperties() {
-    if (containsProteins)
-      return msPanel.getExperimentalProperties();
-    else
-      return null;
-  }
-
   public boolean hasMHCLigands() {
     return containsMHCLigands;
+  }
+
+  public Map<String, Object> getProteinPreparationInformation() {
+    Map<String, Object> res = new HashMap<String, Object>();
+    if (msPanel.usesPurification())
+      res.put("Q_MS_PURIFICATION_METHOD", msPanel.getPurificationMethod());
+    if (msPanel.usesShortGel())
+      res.put("Q_ADDITIONAL_INFO", "Short Gel");
+    return res;
+  }
+
+  private void resetNextSteps() {
+    List<WizardStep> steps = wizard.getSteps();
+    List<WizardStep> copy = new ArrayList<WizardStep>();
+    copy.addAll(steps);
+    boolean isNew = false;
+    for (int i = 0; i < copy.size(); i++) {
+      WizardStep cur = copy.get(i);
+      if (isNew) {
+        wizard.removeStep(cur);
+      }
+      if (cur.equals(this))
+        isNew = true;
+    }
+  }
+
+  public boolean hasComplexProteinPoolBeforeFractionation() {
+    return msPanel.hasProteinPoolBeforeFractionation();
   }
 }

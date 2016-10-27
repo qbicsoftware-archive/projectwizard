@@ -16,36 +16,40 @@
 package steps;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import model.AOpenbisSample;
+import model.ExperimentModel;
+import model.MSExperimentModel;
+import model.OpenbisTestSample;
+import properties.Factor;
 
 import org.vaadin.teemu.wizards.WizardStep;
 
 import uicomponents.DragDropPoolComponent;
 
 import com.vaadin.ui.Component;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Notification;
 import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 import control.Functions;
 import control.Functions.NotificationType;
 import control.WizardController.Steps;
+import logging.Log4j2Logger;
 
 public class PoolingStep implements WizardStep {
 
   private VerticalLayout main;
   private Steps type;
-  private Label info;
   private DragDropPoolComponent pooling;
   private List<DragDropPoolComponent> poolings;
   private TabSheet instances;
+  private MSExperimentModel model;
+  logging.Logger logger = new Log4j2Logger(PoolingStep.class);
 
   public PoolingStep(Steps poolStep) {
     instances = new TabSheet();
@@ -55,12 +59,6 @@ public class PoolingStep implements WizardStep {
     main = new VerticalLayout();
     main.setSpacing(true);
     main.setMargin(true);
-    // info =
-    // new Label("Drag and Drop Samples that should be part of the pooling sample. "
-    // + "You can add additional pools if needed.");
-    // info.setStyleName("info");
-    // info.setWidth("350px");
-    // main.addComponent(info);
     pooling = new DragDropPoolComponent(getPoolPrefix(poolStep));
     main.addComponent(instances);
   }
@@ -73,6 +71,12 @@ public class PoolingStep implements WizardStep {
         break;
       case Test_Sample_Pooling:
         name = "Prep-";
+        break;
+      case Protein_Fractionation_Pooling:
+        name = "Fraction-";
+        break;
+      case Peptide_Fractionation_Pooling:
+        name = "Fraction-";
         break;
       default:
         name = "";
@@ -91,6 +95,12 @@ public class PoolingStep implements WizardStep {
       case Test_Sample_Pooling:
         name = "Prep. Pooling";
         break;
+      case Protein_Fractionation_Pooling:
+        name = "Fract. Pooling";
+        break;
+      case Peptide_Fractionation_Pooling:
+        name = "Fract. Pooling";
+        break;
       default:
         name = "";
         break;
@@ -107,7 +117,7 @@ public class PoolingStep implements WizardStep {
   public boolean onAdvance() {
     if (pooling.getPools().isEmpty()) {
       Functions.notification("No pooled samples",
-          "Please create at least one pool containing samples or uncheck pooling in the previous step.",
+          "Please create at least one pool containing samples or uncheck pooling in the previous step(s).",
           NotificationType.ERROR);
       return false;
     } else
@@ -120,10 +130,13 @@ public class PoolingStep implements WizardStep {
     return true;
   }
 
-  public void setSamples(List<List<AOpenbisSample>> sampleGroups, Steps testSamplePooling) {
+  public void setSamples(List<List<AOpenbisSample>> sampleGroups, Steps poolingType) {
     for (List<AOpenbisSample> group : sampleGroups) {
+      System.out.println(group);
+      System.out.println(group.get(0));
+      System.out.println(group.get(0).getValueMap());
       String type = group.get(0).getValueMap().get("Q_SAMPLE_TYPE");
-      pooling = new DragDropPoolComponent(getPoolPrefix(testSamplePooling));
+      pooling = new DragDropPoolComponent(getPoolPrefix(poolingType));
       pooling.initConditionsAndSetSamples(group);
       poolings.add(pooling);
       instances.addTab(pooling, type);
@@ -143,6 +156,38 @@ public class PoolingStep implements WizardStep {
     main.removeComponent(instances);
     instances = new TabSheet();
     main.addComponent(instances);
+  }
+
+  // sets Samples from the last analyte level (last step) of the current ms experiment model to be
+  // used in the pooling.
+  // in the future pooling between samples created in different steps might be considered
+  public void setPreliminaryExperiments(MSExperimentModel msExperimentModel, Steps poolingType) {
+    this.model = msExperimentModel;
+    List<List<AOpenbisSample>> allSamples = new ArrayList<List<AOpenbisSample>>();
+    List<AOpenbisSample> currentSamples = new ArrayList<AOpenbisSample>();
+    for (ExperimentModel fract : msExperimentModel.getLastStepAnalytes()) {
+      currentSamples.addAll(fract.getSamples());
+    }
+    allSamples.add(currentSamples);
+    setSamples(allSamples, poolingType);
+  }
+
+  public MSExperimentModel getPreliminarySamples() {
+    String analyte = "unknown";
+    if (type.equals(Steps.Protein_Fractionation_Pooling))
+      analyte = "PROTEINS";
+    if (type.equals(Steps.Peptide_Fractionation_Pooling))
+      analyte = "PEPTIDES";
+    List<AOpenbisSample> samples = new ArrayList<AOpenbisSample>();
+    Map<String, List<AOpenbisSample>> pools = getPools();
+    for (String name : pools.keySet()) {
+      samples.add(new OpenbisTestSample(1, pools.get(name), analyte, name, "",
+          new ArrayList<Factor>(), ""));
+    }
+    ExperimentModel exp = new ExperimentModel(1, samples);
+    List<ExperimentModel> exps = new ArrayList<ExperimentModel>(Arrays.asList(exp));
+    this.model.addAnalyteStepExperiments(exps);
+    return model;
   }
 
 }

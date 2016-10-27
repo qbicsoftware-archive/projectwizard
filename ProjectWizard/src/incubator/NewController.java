@@ -1,19 +1,17 @@
 /*******************************************************************************
- * QBiC Project Wizard enables users to create hierarchical experiments including different study conditions using factorial design.
- * Copyright (C) "2016"  Andreas Friedrich
+ * QBiC Project Wizard enables users to create hierarchical experiments including different study
+ * conditions using factorial design. Copyright (C) "2016" Andreas Friedrich
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with this program. If
+ * not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 package incubator;
 
@@ -72,11 +70,10 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.themes.ValoTheme;
 
-import control.ProjectNameValidator;
+import control.SampleNameValidator;
 
 import incubator.ConditionInstanceStep;
 import incubator.EntityStep;
-import incubator.ExtractionStep;
 import incubator.FinishStep;
 import incubator.PoolingStep;
 import incubator.ProjectContextStep;
@@ -88,6 +85,7 @@ import uicomponents.ProjectInformationComponent;
 import processes.AttachmentMover;
 import processes.RegisteredSamplesReadyRunnable;
 import properties.Factor;
+import steps.ExtractionStep;
 
 /**
  * Controller for the sample/experiment creation wizard
@@ -114,7 +112,7 @@ public class NewController {
   logging.Logger logger = new Log4j2Logger(NewController.class);
 
   private AttachmentConfig attachConfig;
-  
+
   private boolean inheritEntities;
   private boolean inheritExtracts;
 
@@ -186,12 +184,13 @@ public class NewController {
   }
 
   private void resetNextSteps() {
-//    Notification n =
-//        new Notification(
-//            "Steps updated",
-//            "One of your choices has added or removed steps from the wizard. You can see your progress at the top.");
-//    n.setStyleName(ValoTheme.NOTIFICATION_CLOSABLE);
-//    n.setDelayMsec(-1);
+    // Notification n =
+    // new Notification(
+    // "Steps updated",
+    // "One of your choices has added or removed steps from the wizard. You can see your progress at
+    // the top.");
+    // n.setStyleName(ValoTheme.NOTIFICATION_CLOSABLE);
+    // n.setDelayMsec(-1);
     List<WizardStep> steps = w.getSteps();
     List<WizardStep> copy = new ArrayList<WizardStep>();
     copy.addAll(steps);
@@ -223,12 +222,14 @@ public class NewController {
     w.getFinishButton().setStyleName(ValoTheme.BUTTON_DANGER);
     w.getCancelButton().setStyleName(ValoTheme.BUTTON_DANGER);
 
-    final ProjectContextStep contextStep = new ProjectContextStep(openbis, vocabs.getSpaces(), vocabs.getPeople());
+    final ProjectContextStep contextStep =
+        new ProjectContextStep(openbis, vocabs.getSpaces(), vocabs.getPeople().keySet());
     final EntityStep entStep = new EntityStep(vocabs.getTaxMap());
     final ConditionInstanceStep entCondInstStep =
         new ConditionInstanceStep(vocabs.getTaxMap().keySet(), "Species", "Biol. Variables");
     final TailoringStep negStep1 = new TailoringStep("Sample Sources", false);
-    final ExtractionStep extrStep = new ExtractionStep(vocabs.getTissueMap());
+    final ExtractionStep extrStep = new ExtractionStep(vocabs.getTissueMap(),
+        vocabs.getCellLinesMap(), vocabs.getPeople().keySet());
     final ConditionInstanceStep extrCondInstStep =
         new ConditionInstanceStep(vocabs.getTissueMap().keySet(), "Tissues", "Extr. Variables");
     final TailoringStep negStep2 = new TailoringStep("Sample Extracts", true);
@@ -252,7 +253,7 @@ public class NewController {
     steps.put(Steps.Registration, regStep);
     steps.put(Steps.Finish, finishStep);
 
-//    this.dataAggregator = new NewAggregator(steps, openbis, taxMap, tissueMap);
+    // this.dataAggregator = new NewAggregator(steps, openbis, taxMap, tissueMap);
     this.dataAggregator = new NewAggregator();
     w.addStep(contextStep);
 
@@ -270,9 +271,10 @@ public class NewController {
           ProjectContextStep context = (ProjectContextStep) steps.get(Steps.Project_Context);
           String desc = context.getDescription();
           String expSecondaryName = context.getExpSecondaryName();
+          // TODO
           openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(regStep.getSamples(),
-              desc, expSecondaryName, regStep.getProgressBar(), regStep.getProgressLabel(),
-              new RegisteredSamplesReadyRunnable(regStep), user);
+              desc, expSecondaryName, null, null, regStep.getProgressBar(),
+              regStep.getProgressLabel(), new RegisteredSamplesReadyRunnable(regStep), user);
           w.addStep(steps.get(Steps.Finish));
         }
       }
@@ -458,8 +460,8 @@ public class NewController {
         }
         // Entity Condition Instances Step
         if (event.getActivatedStep().equals(entCondInstStep)) {
-          reloadConditionsPreviewTable(entCondInstStep,
-              Integer.toString(entStep.getBioRepAmount()), new ArrayList<AOpenbisSample>());
+          reloadConditionsPreviewTable(entCondInstStep, Integer.toString(entStep.getBioRepAmount()),
+              new ArrayList<AOpenbisSample>());
           if (!bioFactorInstancesSet) {
             if (entStep.speciesIsFactor())
               entCondInstStep.initOptionsFactorField(entStep.getSpeciesAmount());
@@ -471,11 +473,8 @@ public class NewController {
         }
         // Summary and Deletion of Entities
         if (event.getActivatedStep().equals(negStep1)) {
-          try {
-            negStep1.setSamples(createSamplesFromPreselection(entCondInstStep.getPreSelection()), null);
-          } catch (JAXBException e) {
-            e.printStackTrace();
-          }
+          negStep1.setSamples(createSamplesFromPreselection(entCondInstStep.getPreSelection()),
+              null);
         }
         // Extract Setup Step
         if (event.getActivatedStep().equals(extrStep)) {
@@ -498,15 +497,12 @@ public class NewController {
         // Summary and Deletion of Extracts
         if (event.getActivatedStep().equals(negStep2)) {
           extractPoolsSet = false;
-          try {
-            negStep2.setSamples(createSamplesFromPreselection(extrCondInstStep.getPreSelection()), extrStep.getLabelingMethod());
-          } catch (JAXBException e) {
-            e.printStackTrace();
-          }
+          negStep2.setSamples(createSamplesFromPreselection(extrCondInstStep.getPreSelection()),
+              extrStep.getLabelingMethod());
         }
         // Extract Pool Step
         if (event.getActivatedStep().equals(poolStep1)) {
-          dataAggregator.resetExtracts(); //TODO needed?
+          dataAggregator.resetExtracts(); // TODO needed?
           if (!extractPoolsSet) {
             poolStep1.setSamples(
                 new ArrayList<List<AOpenbisSample>>(Arrays.asList(negStep2.getSamples())),
@@ -518,8 +514,8 @@ public class NewController {
         if (event.getActivatedStep().equals(techStep)) {
           testPoolsSet = false;
           List<AOpenbisSample> all = new ArrayList<AOpenbisSample>();
-          all.addAll(negStep2.getSamples()); //TODO needed
-          dataAggregator.setSampleLevel(poolStep1.getPoolingSamples(),4);
+          all.addAll(negStep2.getSamples()); // TODO needed
+          dataAggregator.setSampleLevel(poolStep1.getPoolingSamples(), 4);
           dataAggregator.setExtracts(all);
         }
         // Test Pool Step
@@ -556,11 +552,7 @@ public class NewController {
           }
           // Write TSV mode
           if (contextStep.fetchTSVModeSet()) {
-            try {
-              dataAggregator.parseAll();
-            } catch (JAXBException e1) {
-              e1.printStackTrace();
-            }
+            dataAggregator.parseAll();
             createTSV();
             try {
               prep.processTSV(dataAggregator.getTSV(), false);
@@ -574,7 +566,7 @@ public class NewController {
           }
         }
         if (event.getActivatedStep().equals(finishStep)) {
-          //TODO info component
+          // TODO info component
           String proj = dataAggregator.getProjectCode();
           Project p = openbis.getProjectByCode(proj);
           Map<String, List<Sample>> samplesByExperiment = new HashMap<String, List<Sample>>();
@@ -604,13 +596,7 @@ public class NewController {
   }
 
   protected void createTSV() {
-    try {
-      dataAggregator.createTSV();
-    } catch (FileNotFoundException e) {
-      e.printStackTrace();
-    } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
-    }
+    dataAggregator.createTSV();
   }
 
   protected void initConditionListener(final ConditionInstanceStep step, final String amount,
@@ -692,7 +678,7 @@ public class NewController {
     List<String> permutations = generatePermutations(res);
     return permutations;
   }
-  
+
   /**
    * Generates all permutations of a list of experiment conditions
    * 
@@ -718,8 +704,8 @@ public class NewController {
     for (int i = 0; i < lists.get(depth).size(); ++i) {
       if (current.equals(""))
         separator = "";
-      generatePermutationsHelper(lists, result, depth + 1, current + separator
-          + lists.get(depth).get(i));
+      generatePermutationsHelper(lists, result, depth + 1,
+          current + separator + lists.get(depth).get(i));
     }
   }
 
@@ -770,7 +756,7 @@ public class NewController {
     }, String.format("%s.tsv", name));
     return resource;
   }
-  
+
   /**
    * set flag denoting the inheritance from entities existing in the system
    * 

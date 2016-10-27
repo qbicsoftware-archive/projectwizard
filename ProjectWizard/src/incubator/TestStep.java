@@ -22,7 +22,7 @@ import io.DBVocabularies;
 import java.util.List;
 
 import main.ProjectwizardUI;
-import model.AntibodyProtocolInformation;
+import model.TestSampleInformation;
 
 import org.vaadin.teemu.wizards.WizardStep;
 
@@ -140,7 +140,7 @@ public class TestStep implements WizardStep {
     return msPanel.getEnzymes();
   }
 
-  public List<AntibodyProtocolInformation> getSampleTypes() {
+  public List<TestSampleInformation> getSampleTypes() {
     return techPanel.getTechInfo();
   }
 
@@ -149,7 +149,7 @@ public class TestStep implements WizardStep {
   }
 
   public boolean hasPools() {
-    for (AntibodyProtocolInformation info : techPanel.getTechInfo())
+    for (TestSampleInformation info : techPanel.getTechInfo())
       if (info.isPooled())
         return true;
     return false;
@@ -166,16 +166,16 @@ public class TestStep implements WizardStep {
       @Override
       public void valueChange(ValueChangeEvent event) {
         containsProteins = false;
-        for (AntibodyProtocolInformation i : getSampleTypes()) {
+        for (TestSampleInformation i : getSampleTypes()) {
           containsProteins |= i.getTechnology().equals("PROTEINS");
         }
         // msPanelComponent.setVisible(containsProteins);
         msPanel.setVisible(containsProteins);
       }
     };
-    techPanel =
-        new TechnologiesPanel(vocabs.getMeasureTypes(), new OptionGroup(""), testPoolListener,
-            proteinListener);
+//    techPanel =
+//        new TechnologiesPanel(vocabs.getMeasureTypes(), null, new OptionGroup(""), testPoolListener,
+//            proteinListener, mhcListener);TODO
     main.addComponent(techPanel);
     msPanel = new MSPanel(vocabs, new OptionGroup(""));
     // msPanelComponent =

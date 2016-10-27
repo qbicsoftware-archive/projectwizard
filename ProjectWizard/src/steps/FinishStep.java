@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import logging.Log4j2Logger;
+import main.IOpenBisClient;
 import main.OpenBisClient;
 import main.ProjectwizardUI;
 import model.AttachmentConfig;
@@ -30,7 +31,7 @@ import org.vaadin.teemu.wizards.WizardStep;
 
 import processes.TSVReadyRunnable;
 
-import main.UploadsPanel;
+import uicomponents.UploadsPanel;
 
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
 
@@ -145,7 +146,7 @@ public class FinishStep implements WizardStep {
   }
 
   public void setExperimentInfos(String space, String proj, String desc,
-      Map<String, List<Sample>> samplesByExperiment, OpenBisClient openbis) {
+      Map<String, List<Sample>> samplesByExperiment, IOpenBisClient openbis) {
     int entitieNum = 0;
     int samplesNum = 0;
     List<String> ids = new ArrayList<String>();
@@ -182,7 +183,7 @@ public class FinishStep implements WizardStep {
   }
 
   private void prepareSpreadsheets(List<String> sampleTypes, int numSamples, String space,
-      final String project, OpenBisClient openbis) {
+      final String project, IOpenBisClient openbis) {
 
     FinishStep layout = this;
     bar.setVisible(true);
@@ -241,7 +242,7 @@ public class FinishStep implements WizardStep {
     b.setEnabled(true);
   }
 
-  private void initUpload(String space, String project, OpenBisClient openbis) {
+  private void initUpload(String space, String project, IOpenBisClient openbis) {
     if (uploads != null)
       main.removeComponent(uploads);
     String userID = "admin";
@@ -254,7 +255,8 @@ public class FinishStep implements WizardStep {
       }
 
     this.uploads = new UploadsPanel(ProjectwizardUI.tmpFolder, space, project,
-        new ArrayList<String>(Arrays.asList("Experimental Design")), userID, attachConfig, openbis);
+        new ArrayList<String>(Arrays.asList("Experimental Design")), userID, attachConfig,
+        (OpenBisClient) openbis);// TODO this cast is not safe in dev mode when openbis is down
     this.uploads.setVisible(false);
     main.addComponent(uploads);
   }

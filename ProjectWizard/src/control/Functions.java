@@ -79,6 +79,31 @@ public class Functions {
     return System.currentTimeMillis();
   }
 
+  public static int compareSampleCodes(String c1, String c2) {
+    if (!c1.startsWith("Q") || c1.contains("ENTITY") || !c2.startsWith("Q")
+        || c2.contains("ENTITY"))
+      return c1.compareTo(c2);
+    try {
+      // compares sample codes by projects, ending letters (999A --> 001B) and numbers (001A -->
+      // 002A)
+      int projCompare = c1.substring(0, 5).compareTo(c2.substring(0, 5));
+      int numCompare = c1.substring(5, 8).compareTo(c2.substring(5, 8));
+      int letterCompare = c1.substring(8, 9).compareTo(c2.substring(8, 9));
+      if (projCompare != 0)
+        return projCompare;
+      else {
+        if (letterCompare != 0)
+          return letterCompare;
+        else
+          return numCompare;
+      }
+    } catch (Exception e) {
+      System.out.println("Could not split code " + c1 + " or " + c2
+          + ". Falling back to primitive lexicographical comparison.");
+    }
+    return c1.compareTo(c2);
+  }
+
   public static void printElapsedTime(long startTime) {
     long stopTime = System.currentTimeMillis();
     long elapsedTime = stopTime - startTime;
@@ -153,24 +178,6 @@ public class Functions {
   }
 
   /**
-   * Maps an integer to a char representation. This can be used for computing the checksum.
-   * 
-   * @param i number to be mapped
-   * @return char representing the input number
-   */
-  public static char mapToChar(int i) {
-    i += 48;
-    if (i > 57) {
-      i += 7;
-    }
-    return (char) i;
-  }
-
-  public static float getPercentageStep(int max) {
-    return new Float(1.0 / max);
-  }
-
-  /**
    * Computes a checksum digit for a given String. This checksum is weighted position-specific,
    * meaning it will also most likely fail a check if there is a typo of the String resulting in a
    * swapping of two numbers.
@@ -187,12 +194,30 @@ public class Functions {
     }
     return mapToChar(sum % 34);
   }
+  
+  /**
+   * Maps an integer to a char representation. This can be used for computing the checksum.
+   * 
+   * @param i number to be mapped
+   * @return char representing the input number
+   */
+  public static char mapToChar(int i) {
+    i += 48;
+    if (i > 57) {
+      i += 7;
+    }
+    return (char) i;
+  }
 
   public static void main(String[] args) {
     String test = "QMELA005A";
     System.out.println(checksum(test));
   }
 
+  public static float getPercentageStep(int max) {
+    return new Float(1.0 / max);
+  }
+  
   /**
    * Parses a whole String list to integers and returns them in another list.
    * 
@@ -249,6 +274,12 @@ public class Functions {
       return sample.substring(0, 4);
     else
       return sample.substring(0, 5);
+  }
+
+  public static boolean isMeasurementOfBarcode(String code, String type) {
+    String prefix = type.split("_")[1];
+    code = code.replaceFirst(prefix, "");
+    return isQbicBarcode(code);
   }
 
 }

@@ -30,11 +30,14 @@ import java.util.Map;
 import javax.xml.bind.JAXBException;
 
 import logging.Log4j2Logger;
+import main.IOpenBisClient;
 import main.OpenBisClient;
 import main.ProjectwizardUI;
 import model.AOpenbisSample;
+import model.ExperimentModel;
 import model.ExperimentType;
 import model.MHCLigandExtractionProtocol;
+import model.MSExperimentModel;
 import model.OpenbisBiologicalEntity;
 import model.OpenbisBiologicalSample;
 import model.OpenbisExperiment;
@@ -75,7 +78,7 @@ public class WizardDataAggregator {
 
   private String tsvContent;
 
-  private OpenBisClient openbis;
+  private IOpenBisClient openbis;
   private XMLParser xmlParser = new XMLParser();
   private Map<String, String> taxMap;
   private Map<String, String> tissueMap;
@@ -85,7 +88,7 @@ public class WizardDataAggregator {
   private int firstFreeEntityID;
   private HashSet<String> existingBarcodes;
   private String nextBarcode;
-  private int firstFreeBarcodeID;
+  private String firstFreeBarcode;
   private char classChar = 'X';
 
   // mandatory openBIS fields
@@ -113,12 +116,18 @@ public class WizardDataAggregator {
   private List<AOpenbisSample> tests;
   private List<AOpenbisSample> extractPools;
   private List<AOpenbisSample> testPools;
+  private List<AOpenbisSample> msSamples;
   private List<AOpenbisSample> mhcExtracts;
   private Map<String, Character> classChars;
   logging.Logger logger = new Log4j2Logger(WizardDataAggregator.class);
   private ArrayList<Sample> samples;
 
   private Map<String, Map<String, Object>> mhcExperimentProtocols;
+  // private boolean containsFractionationExperiment;
+  // private boolean hasFractionationExperiment;
+  private MSExperimentModel fractionationProperties;
+  private List<ExperimentType> informativeExpTypes = new ArrayList<ExperimentType>(
+      Arrays.asList(ExperimentType.Q_MHC_LIGAND_EXTRACTION, ExperimentType.Q_MS_MEASUREMENT));
 
   /**
    * Creates a new WizardDataAggregator
@@ -128,7 +137,7 @@ public class WizardDataAggregator {
    * @param taxMap mapping between taxonomy IDs and species names
    * @param tissueMap mapping of tissue names and labels
    */
-  public WizardDataAggregator(Map<Steps, WizardStep> steps, OpenBisClient openbis,
+  public WizardDataAggregator(Map<Steps, WizardStep> steps, IOpenBisClient openbis,
       Map<String, String> taxMap, Map<String, String> tissueMap, Map<String, Integer> personMap) {
     s1 = (ProjectContextStep) steps.get(Steps.Project_Context);
     s2 = (EntityStep) steps.get(Steps.Entities);
@@ -155,7 +164,7 @@ public class WizardDataAggregator {
   private void prepareBasics() {
     firstFreeExperimentID = 1;
     firstFreeEntityID = 1;
-    firstFreeBarcodeID = 1;// TODO cleanup where not needed
+    firstFreeBarcode = "";// TODO cleanup where not needed
     existingBarcodes = new HashSet<String>();
     spaceCode = s1.getSpaceCode();
     projectCode = s1.getProjectCode().toUpperCase();
@@ -185,9 +194,12 @@ public class WizardDataAggregator {
         String code = s.getCode();
         if (Functions.isQbicBarcode(code)) {
           existingBarcodes.add(code);
-          int num = Integer.parseInt(code.substring(5, 8));
-          if (num >= firstFreeBarcodeID)
-            firstFreeBarcodeID = num + 1;
+          // int num = Integer.parseInt(code.substring(5, 8));
+          // if (num >= firstFreeBarcodeID)
+          // firstFreeBarcodeID = num + 1;
+          if (Functions.compareSampleCodes(firstFreeBarcode, code) <= 0) {
+            firstFreeBarcode = Functions.incrementSampleCode(code);
+          }
         } else if (s.getSampleTypeCode().equals(("Q_BIOLOGICAL_ENTITY"))) {
           int num = Integer.parseInt(s.getCode().split("-")[1]);
           if (num >= firstFreeEntityID)
@@ -255,7 +267,7 @@ public class WizardDataAggregator {
     } else {
       tissue = s5.getTissue();
       specialTissue = s5.getCellLine();
-      if (tissue.equals("Other"))
+      if ("Other".equals(tissue))
         specialTissue = s5.getSpecialTissue();
       extractReps = s5.getExtractRepAmount();
       int personID = -1;
@@ -325,17 +337,16 @@ public class WizardDataAggregator {
       String person = x.getPerson();
       if (person != null && !person.isEmpty())
         personID = personMap.get(person);
-      logger.debug(person);
-      logger.debug(String.valueOf(personID));
-      experiments.add(new OpenbisExperiment(buildExperimentName(),
-          ExperimentType.Q_SAMPLE_PREPARATION, personID));
+      OpenbisExperiment exp = new OpenbisExperiment(buildExperimentName(),
+          ExperimentType.Q_SAMPLE_PREPARATION, personID);
+      experiments.add(exp);
     }
     List<List<AOpenbisSample>> techSortedTests = buildTestSamples(extracts, classChars);
     tests = new ArrayList<AOpenbisSample>();
     for (List<AOpenbisSample> group : techSortedTests)
       tests.addAll(group);
     for (int i = techSortedTests.size() - 1; i > -1; i--) {
-      if (!techTypeInfo.get(i).isPooled())
+      if (!techTypeInfo.get(i).isPooled() && !s8.hasComplexProteinPoolBeforeFractionation())
         techSortedTests.remove(i);
     }
     return techSortedTests;
@@ -619,12 +630,19 @@ public class WizardDataAggregator {
 
   private void incrementOrCreateBarcode() {
     if (nextBarcode == null) {
-      classChar = 'A';
-      nextBarcode = projectCode + Functions.createCountString(firstFreeBarcodeID, 3) + classChar;
-      nextBarcode = nextBarcode + Functions.checksum(nextBarcode);
+      if (firstFreeBarcode.isEmpty()) {
+        classChar = 'A';
+        String base = projectCode + Functions.createCountString(1, 3) + classChar;
+        firstFreeBarcode = base + Functions.checksum(base);
+      }
+      nextBarcode = firstFreeBarcode;
     } else {
       nextBarcode = Functions.incrementSampleCode(nextBarcode);
     }
+  }
+
+  public List<AOpenbisSample> getTestPools() {
+    return testPools;
   }
 
   public List<AOpenbisSample> createPoolingSamples(Map<String, List<AOpenbisSample>> pools) {
@@ -917,10 +935,11 @@ public class WizardDataAggregator {
         firstFreeEntityID++;
       } else {
         if (nextBarcode == null) {
-          classChar = 'A';
-          nextBarcode =
-              projectCode + Functions.createCountString(firstFreeBarcodeID, 3) + classChar;
-          nextBarcode = nextBarcode + Functions.checksum(nextBarcode);
+          // classChar = 'A';
+          // nextBarcode =
+          // projectCode + Functions.createCountString(firstFreeBarcodeID, 3) + classChar;
+          // nextBarcode = nextBarcode + Functions.checksum(nextBarcode);
+          nextBarcode = firstFreeBarcode;
         } else {
           nextBarcode = Functions.incrementSampleCode(nextBarcode);
         }
@@ -984,6 +1003,10 @@ public class WizardDataAggregator {
     samples.addAll(entities);
     samples.addAll(extracts);
     samples.addAll(tests);
+    if (testPools != null)
+      samples.addAll(testPools);
+    if (msSamples != null)
+      samples.addAll(msSamples);// TODO test
     if (mhcExtracts != null)
       samples.addAll(mhcExtracts);
     List<String> rows = new ArrayList<String>();
@@ -1005,7 +1028,6 @@ public class WizardDataAggregator {
     String secondaryName = s1.getExpSecondaryName();
     String investigator = s1.getPrincipalInvestigator();
     String contact = s1.getContactPerson();
-    Map<String, Object> msProps = s8.getMSExperimentProperties();
 
     String result = "";
     description = description.replace("\n", "\n#");
@@ -1014,13 +1036,22 @@ public class WizardDataAggregator {
     result += "#ALTERNATIVE_NAME=" + secondaryName + "\n";
     result += "#INVESTIGATOR=" + investigator + "\n";
     result += "#CONTACT=" + contact + "\n";
-    if (msProps != null)
-      result += addExperimentInfoLine(msProps, "Q_MS_MEASUREMENT") + "\n";
+
+    // TODO reuse this in the refactored version, it's not stupid
+    if (experiments != null) {
+      for (OpenbisExperiment e : experiments) {
+        if (informativeExpTypes.contains(e.getType()) || e.containsProperties()) {
+          result += e.getPropertiesString() + "\n";
+        }
+      }
+    }
+    // Map<String, Object> msProps = s8.getProteinMSExperimentProperties(); TODO might need this for
+    // non-fractionation experiments
+    // if (msProps != null)
+    // result += addExperimentInfoLine(msProps, "Q_MS_MEASUREMENT") + "\n";
     if (mhcExperimentProtocols != null) {
       header.add("Q_ANTIBODY");
       header.add("Q_MHC_CLASS");
-      for (Map<String, Object> prop : mhcExperimentProtocols.values())
-        result += addExperimentInfoLine(prop, "Q_MHC_LIGAND_EXTRACTION") + "\n";
     }
 
     String headerLine = "Identifier";
@@ -1033,7 +1064,8 @@ public class WizardDataAggregator {
     }
     for (AOpenbisSample s : samples) {
       String code = s.getCode();
-      if (isEntity(code) || Functions.isQbicBarcode(code)) {
+      if (isEntity(code) || Functions.isQbicBarcode(code)
+          || Functions.isMeasurementOfBarcode(code, s.getValueMap().get("SAMPLE TYPE"))) {
         Map<String, String> data = s.getValueMap();
         String row = s.getCode();
         List<String> factors = s.getFactorStringsWithoutLabel();
@@ -1061,28 +1093,43 @@ public class WizardDataAggregator {
     return result;
   }
 
-  private static String escapeSpecials(String s) {
-    return s.replace("#", "%%%").replace("=", ">>>").replace("\n", ";");
-  }
-
-  private static String addExperimentInfoLine(Map<String, Object> props, String type) {
-    String res = "";
-    for (String key : props.keySet()) {
-      Object val = props.get(key);
-      if (val instanceof List) {
-        List<String> list = (List<String>) val;
-        String listItems = "";
-        for (String item : list)
-          listItems += "#" + escapeSpecials(item);
-        listItems = listItems.substring(1);
-        res += "##" + key + "=" + listItems;
-      } else {
-        res += "##" + key + "=" + escapeSpecials(String.valueOf(val));
+  // TODO should be parsed from the tsv
+  public List<OpenbisExperiment> getExperimentsWithMetadata() {
+    List<OpenbisExperiment> res = new ArrayList<OpenbisExperiment>();
+    for (OpenbisExperiment e : experiments) {
+      if (informativeExpTypes.contains(e.getType()) || e.containsProperties()) {
+        res.add(e);
       }
     }
-    res = res.substring(2);
-    return "#EXP:" + type + ":{" + res + "}";
+    return res;
   }
+
+  // public void setContainsFractionationExperiment(boolean containsFractionationExperiment) {
+  // this.containsFractionationExperiment = containsFractionationExperiment;
+  // }
+
+  // private static String escapeSpecials(String s) {
+  // return s.replace("#", "%%%").replace("=", ">>>").replace("\n", ";");
+  // }
+  //
+  // private static String addExperimentInfoLine(Map<String, Object> props, String type) {
+  // String res = "";
+  // for (String key : props.keySet()) {
+  // Object val = props.get(key);
+  // if (val instanceof List) {
+  // List<String> list = (List<String>) val;
+  // String listItems = "";
+  // for (String item : list)
+  // listItems += "#" + escapeSpecials(item);
+  // listItems = listItems.substring(1);
+  // res += "##" + key + "=" + listItems;
+  // } else {
+  // res += "##" + key + "=" + escapeSpecials(String.valueOf(val));
+  // }
+  // }
+  // res = res.substring(2);
+  // return "#EXP:" + type + ":{" + res + "}";
+  // }
 
   private static boolean isEntity(String code) {
     String pattern = "Q[A-Z0-9]{4}ENTITY-[0-9]+";
@@ -1150,11 +1197,136 @@ public class WizardDataAggregator {
     extracts = new ArrayList<AOpenbisSample>();
   }
 
-  public void resetTests() {
-    tests = new ArrayList<AOpenbisSample>();
-  }
-
   public List<OpenbisExperiment> getExperiments() {
     return experiments;
+  }
+
+  // public void setHasFractionationExperiment(boolean b) {
+  // this.hasFractionationExperiment = b;
+  // }
+
+  public void setFractionationExperimentsProperties(
+      MSExperimentModel fractionationPropertiesFromLastStep) {
+    this.fractionationProperties = fractionationPropertiesFromLastStep;
+  }
+
+  /**
+   * creates fractionation samples (proteins and or peptides) as well as samples for the attached
+   * Mass Spectrometry runs should be called before creating the project spreadsheet (tsv)
+   */
+  public void createFractionationSamplesAndExperiments() {
+    List<AOpenbisSample> res = new ArrayList<AOpenbisSample>();
+
+    ExperimentModel exp = fractionationProperties.getBaseAnalytes();
+    Map<String, Object> proteinPrepProps = s8.getProteinPreparationInformation();
+    if (proteinPrepProps != null) {
+      for (String key : proteinPrepProps.keySet()) {
+        exp.addProperty(key, proteinPrepProps.get(key));
+      }
+    }
+    String eName = buildExperimentName();
+    experiments.add(
+        new OpenbisExperiment(eName, ExperimentType.Q_SAMPLE_PREPARATION, exp.getProperties()));
+    for (AOpenbisSample s : exp.getSamples()) {
+      s.setExperiment(eName);
+      s.setSpace(spaceCode);
+      s.setSampleType("Q_TEST_SAMPLE");
+      String parents = "";
+      if (s.getParents() == null)
+        parents = s.getParent();
+      else {
+        for (AOpenbisSample p : s.getParents()) {
+          parents += p.getCode() + " ";
+        }
+        parents = parents.trim();
+
+      }
+      s.setParent(parents);
+      if (s.getCode() == null) {
+        incrementOrCreateBarcode();
+        s.setCode(nextBarcode);
+      }
+      this.testPools = new ArrayList<AOpenbisSample>();
+      if (!tests.contains(s))
+        this.testPools.add(s);
+    }
+
+    for (List<ExperimentModel> fe : fractionationProperties.getAnalytes()) {
+      for (ExperimentModel e : fe) {
+        String expName = buildExperimentName();
+        experiments.add(
+            new OpenbisExperiment(expName, ExperimentType.Q_SAMPLE_PREPARATION, e.getProperties()));
+        for (AOpenbisSample s : e.getSamples()) {
+          s.setExperiment(expName);
+          s.setSpace(spaceCode);
+          s.setSampleType("Q_TEST_SAMPLE");
+          String parents = "";
+          for (AOpenbisSample p : s.getParents()) {
+            parents += p.getCode() + " ";
+          }
+          parents = parents.trim();
+          s.setParent(parents);
+          if (s.getCode() == null) {
+            incrementOrCreateBarcode();
+            s.setCode(nextBarcode);
+          }
+        }
+        res.addAll(e.getSamples());
+      }
+    }
+    for (ExperimentModel e : fractionationProperties.getPeptideExperiments()) {
+      String expName = buildExperimentName();
+      experiments.add(
+          new OpenbisExperiment(expName, ExperimentType.Q_SAMPLE_PREPARATION, e.getProperties()));
+      for (AOpenbisSample s : e.getSamples()) {
+        s.setExperiment(expName);
+        s.setSpace(spaceCode);
+        s.setSampleType("Q_TEST_SAMPLE");
+        String parents = "";
+        if (s.getParents() == null)
+          parents = s.getParent();
+        else {
+          for (AOpenbisSample p : s.getParents()) {
+            parents += p.getCode() + " ";
+          }
+          parents = parents.trim();
+        }
+        s.setParent(parents);
+        if (s.getCode() == null) {
+          incrementOrCreateBarcode();
+          s.setCode(nextBarcode);
+        }
+      }
+      res.addAll(e.getSamples());
+    }
+    for (List<ExperimentModel> fe : fractionationProperties.getMSRuns()) {
+      for (ExperimentModel e : fe) {
+        String expName = buildExperimentName();
+        experiments.add(
+            new OpenbisExperiment(expName, ExperimentType.Q_MS_MEASUREMENT, e.getProperties()));
+        for (AOpenbisSample s : e.getSamples()) {
+          s.setExperiment(expName);
+          s.setSpace(spaceCode);
+          s.setSampleType("Q_MS_RUN");
+          String parents = "";
+          for (AOpenbisSample p : s.getParents()) {
+            parents += p.getCode() + " ";
+          }
+          parents = parents.trim();
+          s.setParent(parents);
+          s.setCode("MS" + parents);
+        }
+        res.addAll(e.getSamples());
+      }
+    }
+    msSamples = res;
+    // for (List<AOpenbisSample> step : res) {
+    // System.out.println("new step");
+    // for (AOpenbisSample s : step) {
+    // System.out.println("p: " + s.getParent());
+    // System.out.println(s.getCode());
+    // System.out.println(s.getValueMap().get("SAMPLE TYPE"));
+    // }
+    // }
   }
 }

@@ -21,8 +21,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,16 +33,20 @@ import java.util.Random;
 import javax.xml.bind.JAXBException;
 
 import logging.Log4j2Logger;
-import main.OpenBisClient;
+import main.IOpenBisClient;
 import main.OpenbisCreationController;
 import main.SamplePreparator;
+import main.TSVSampleBean;
 import model.AOpenbisSample;
 import model.AttachmentConfig;
 import model.ExperimentBean;
 import model.ExperimentType;
+import model.ISampleBean;
+import model.MSExperimentModel;
 import model.NewSampleModelBean;
 import model.OpenbisExperiment;
-import model.RegisterableProject;
+import model.TestSampleInformation;
+import model.notes.Note;
 
 import org.vaadin.teemu.wizards.Wizard;
 import org.vaadin.teemu.wizards.WizardStep;
@@ -64,8 +70,6 @@ import com.vaadin.event.FieldEvents.FocusListener;
 import com.vaadin.server.FileDownloader;
 import com.vaadin.server.StreamResource;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Notification;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.Button.ClickEvent;
@@ -77,6 +81,7 @@ import steps.ExtractionStep;
 import io.DBManager;
 import io.DBVocabularies;
 import steps.FinishStep;
+import steps.MSAnalyteStep;
 import steps.PoolingStep;
 import steps.ProjectContextStep;
 import steps.TailoringStep;
@@ -94,7 +99,7 @@ import properties.Factor;
  */
 public class WizardController {
 
-  private OpenBisClient openbis;
+  private IOpenBisClient openbis;
   private OpenbisCreationController openbisCreator;
   private Wizard w;
   private Map<Steps, WizardStep> steps;
@@ -125,11 +130,11 @@ public class WizardController {
    * @param dataMoverFolder for attachment upload
    * @param uploadSize
    */
-  public WizardController(OpenBisClient openbis, DBManager dbm, DBVocabularies vocabularies,
+  public WizardController(IOpenBisClient openbis, DBManager dbm, DBVocabularies vocabularies,
       AttachmentConfig attachmentConfig) {
     this.openbis = openbis;
     this.dbm = dbm;
-    this.openbisCreator = new OpenbisCreationController(openbis);
+    this.openbisCreator = new OpenbisCreationController(openbis);// wont work if openbis is down
     this.vocabularies = vocabularies;
     this.attachConfig = attachmentConfig;
     this.designExperimentTypes = vocabularies.getExperimentTypes();
@@ -258,7 +263,7 @@ public class WizardController {
   }
 
   public static enum Steps {
-    Project_Context, Entities, Entity_Conditions, Entity_Tailoring, Extraction, Extract_Conditions, Extract_Tailoring, Extract_Pooling, Test_Samples, Test_Sample_Pooling, Registration, Finish;
+    Project_Context, Entities, Entity_Conditions, Entity_Tailoring, Extraction, Extract_Conditions, Extract_Tailoring, Extract_Pooling, Test_Samples, Test_Sample_Pooling, Registration, Finish, Protein_Fractionation, Protein_Fractionation_Pooling, Peptide_Fractionation, Peptide_Fractionation_Pooling;
   }
 
   /**
@@ -283,11 +288,17 @@ public class WizardController {
     final ConditionInstanceStep extrCondInstStep = new ConditionInstanceStep(
         vocabularies.getTissueMap().keySet(), "Tissues", "Extr. Variables");
     final TailoringStep tailoringStep2 = new TailoringStep("Sample Extracts", true);
-    final TestStep techStep = new TestStep(vocabularies);
-    final SummaryRegisterStep regStep = new SummaryRegisterStep(dbm);
+    final TestStep techStep = new TestStep(w, vocabularies);
+    final SummaryRegisterStep regStep = new SummaryRegisterStep(dbm, openbis);
     final PoolingStep poolStep1 = new PoolingStep(Steps.Extract_Pooling);
     final PoolingStep poolStep2 = new PoolingStep(Steps.Test_Sample_Pooling);
     final FinishStep finishStep = new FinishStep(w, attachConfig);
+
+    final MSAnalyteStep protFracStep = new MSAnalyteStep(vocabularies, "PROTEINS");
+    // final PoolingStep afterProtFracPooling = new
+    // PoolingStep(Steps.Protein_Fractionation_Pooling);
+    final MSAnalyteStep pepFracStep = new MSAnalyteStep(vocabularies, "PEPTIDES");
+    // final PoolingStep afterPepFracPooling = new PoolingStep(Steps.Peptide_Fractionation_Pooling);
 
     steps = new HashMap<Steps, WizardStep>();
     steps.put(Steps.Project_Context, contextStep);
@@ -300,6 +311,10 @@ public class WizardController {
     steps.put(Steps.Extract_Pooling, poolStep1);
     steps.put(Steps.Test_Samples, techStep);
     steps.put(Steps.Test_Sample_Pooling, poolStep2);
+    steps.put(Steps.Protein_Fractionation, protFracStep);
+    steps.put(Steps.Peptide_Fractionation, pepFracStep);
+    // steps.put(Steps.Protein_Fractionation_Pooling, afterProtFracPooling);
+    // steps.put(Steps.Peptide_Fractionation_Pooling, afterPepFracPooling);
     steps.put(Steps.Registration, regStep);
     steps.put(Steps.Finish, finishStep);
 
@@ -353,28 +368,90 @@ public class WizardController {
       @Override
       public void buttonClick(ClickEvent event) {
         String src = event.getButton().getCaption();
+        if (src.equals("Register Project")) {
+          String desc = contextStep.getDescription();
+          String altTitle = contextStep.getExpSecondaryName();
+          logger.debug("register empty project");
+          registerProjectOnly(desc, altTitle, user, regStep);
+        }
         if (src.equals("Register All")) {
           regStep.getRegisterButton().setEnabled(false);
           ProjectContextStep contextStep = (ProjectContextStep) steps.get(Steps.Project_Context);
           String desc = contextStep.getDescription();
           String altTitle = contextStep.getExpSecondaryName();
-          // if only an empty project is to be registered
-          String context = (String) contextStep.getProjectContext().getValue();
-          System.out.println(context);
-          if (contextStep.getContextOptions().get(3).equals(context)) {
-            logger.debug("register empty project");
-            registerProjectOnly(desc, altTitle, user, regStep);
-          } else {
-            // TODO this needs work
-            openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(regStep.getSamples(),
-                desc, altTitle, techStep.getMSExperimentProperties(),
-                dataAggregator.getMHCLigandExtractProperties(), regStep.getProgressBar(),
-                regStep.getProgressLabel(), new RegisteredSamplesReadyRunnable(regStep), user);
-            // openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(regStep.getSamples(),
-            // desc, expSecondaryName, regStep.getProgressBar(), regStep.getProgressLabel(),
-            // new RegisteredSamplesReadyRunnable(regStep), user);
-            w.addStep(steps.get(Steps.Finish));
+          boolean afterMS = w.getSteps().contains(steps.get(Steps.Protein_Fractionation));
+          // Additional information set in the protein and/or peptide step(s)
+          List<Note> notes = new ArrayList<Note>();
+          if (afterMS) {
+            List<String> infos = new ArrayList<String>();
+            String protInfo = protFracStep.getAdditionalInfo();
+            if (protInfo != null && !protInfo.isEmpty()) {
+              infos.add(protInfo);
+            }
+            String pepInfo = pepFracStep.getAdditionalInfo();
+            if (pepInfo != null && !pepInfo.isEmpty()) {
+              infos.add(pepInfo);
+            }
+            if (!infos.isEmpty()) {
+              Date now = new Date();
+              SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+              for (String comment : infos) {
+                Note note = new Note();
+                note.setComment(comment);
+                note.setUsername(user);
+                note.setTime(ft.format(now));
+                notes.add(note);
+              }
+            }
           }
+          regStep.setProjectNotes(notes);
+          // TODO this needs work
+          List<List<ISampleBean>> samples = regStep.getSamples();
+          String space = contextStep.getSpaceCode();
+          String project = contextStep.getProjectCode();
+          String exp = project + "_INFO";
+          String code = project + "000";
+          String sampleType = "Q_ATTACHMENT_SAMPLE";
+          ISampleBean infoSample = new TSVSampleBean(code, exp, project, space, sampleType, "", "",
+              new HashMap<String, String>());
+          samples.add(new ArrayList<ISampleBean>(Arrays.asList(infoSample)));
+          openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(samples, desc, altTitle,
+              dataAggregator.getExperimentsWithMetadata(),
+              dataAggregator.getMHCLigandExtractProperties(), regStep.getProgressBar(),
+              regStep.getProgressLabel(), new RegisteredSamplesReadyRunnable(regStep), user);
+          w.addStep(steps.get(Steps.Finish));
+        }
+      }
+
+      private void createAttachmentSample(String space, String project, String exp, String code,
+          String type) {
+        if (!openbis.expExists(space, project, exp)) {
+          System.out.println(space + project + exp + "does not exist, creating");
+          openbisCreator.registerExperiment(space, project, "Q_PROJECT_DETAILS", exp,
+              new HashMap<String, Object>(), user);
+          try {
+            System.out.println("waiting");
+            Thread.sleep(2000);
+          } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          }
+        }
+        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("code", code);
+        map.put("space", space);
+        map.put("project", project);
+        map.put("experiment", exp);
+        map.put("user", user);
+        map.put("type", type);
+        params.put(code, map);
+        openbis.ingest("DSS1", "register-sample-batch", params);
+        try {
+          Thread.sleep(100);
+        } catch (InterruptedException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
         }
       }
     };
@@ -401,6 +478,16 @@ public class WizardController {
             projects.add(p.getCode());
           }
           contextStep.setProjectCodes(projects);
+          if (space.endsWith("PCT")) {
+            protFracStep.filterDictionariesByPrefix("PCT");
+            pepFracStep.filterDictionariesByPrefix("PCT");
+          } else if (space.endsWith("MPC")) {
+            protFracStep.filterDictionariesByPrefix("MPC");
+            pepFracStep.filterDictionariesByPrefix("MPC");
+          } else {
+            protFracStep.filterDictionariesByPrefix("");
+            pepFracStep.filterDictionariesByPrefix("");
+          }
         }
         // updateContextOptions(projSelection, contextStep);
       }
@@ -569,8 +656,25 @@ public class WizardController {
         }
       }
     };
-    techStep.initTestStep(testPoolListener);
 
+    ValueChangeListener proteinListener = new ValueChangeListener() {
+
+      @Override
+      public void valueChange(ValueChangeEvent event) {
+        boolean containsProteins = false;
+        for (TestSampleInformation i : techStep.getAnalyteInformation()) {
+          String tech = i.getTechnology();
+          containsProteins |= tech.equals("PROTEINS");
+        }
+        if (containsProteins) {
+          // TODO probably not needed
+          // dataAggregator.prepareTestSamples();
+          // techStep.setProteinPreps(dataAggregator.getTests());
+        }
+      }
+    };
+
+    techStep.initTestStep(testPoolListener, proteinListener, steps);
 
     ValueChangeListener noMeasureListener = new ValueChangeListener() {
 
@@ -632,7 +736,7 @@ public class WizardController {
     RegexpValidator p = new RegexpValidator("Q[A-Xa-x0-9]{4}",
         "Project must have length of 5, start with Q and not contain Y or Z");
     vd.addValidator(p);
-    vd.addValidator(new ProjectNameValidator(openbis));
+    vd.addValidator(new SampleNameValidator(openbis));
     f.addValidator(vd);
     f.setImmediate(true);
     f.setValidationVisible(true);
@@ -725,38 +829,84 @@ public class WizardController {
         }
         // Test Setup Step
         if (event.getActivatedStep().equals(techStep)) {
-          testPoolsSet = false;
+          // dataAggregator.setHasFractionationExperiment(false);
+          testPoolsSet = false;// we have to reset this in the case someone goes back from pooling
           List<AOpenbisSample> extracts = tailoringStep2.getSamples();
           techStep.setTissueExtracts(extracts);
           List<AOpenbisSample> all = new ArrayList<AOpenbisSample>();
           all.addAll(extracts);
           all.addAll(dataAggregator.createPoolingSamples(poolStep1.getPools()));
+          logger.debug("setting extracts: " + all);
           dataAggregator.setExtracts(all);
         }
         // Test Pool Step
         if (event.getActivatedStep().equals(poolStep2)) {
-          dataAggregator.resetTests();
-          if (!testPoolsSet) {
+          if (!testPoolsSet) {// if we come from the analyte step the pools are reset, if we come
+                              // back from the next step they are not
             poolStep2.setSamples(dataAggregator.prepareTestSamples(), Steps.Test_Sample_Pooling);
             testPoolsSet = true;
           }
         }
+        // Protein Fractionation
+        if (event.getActivatedStep().equals(protFracStep)) {
+          // List<AOpenbisSample> analytes = new ArrayList<AOpenbisSample>();
+
+          if (!testPoolsSet) {// if pools aren't set at this point then there was no pooling
+                              // selected before
+            dataAggregator.prepareTestSamples();// we reset the analyte samples in case we come from
+                                                // the next step and prepare them anew
+          }
+          // we forward testsamples and potential pools directly to the fractionation step to sort
+          // them out
+          // they don't get barcodes either for now, in case we need to recreate them
+          protFracStep.setAnalyteSamples(dataAggregator.getTests(), poolStep2.getPools());
+        }
+        // Pooling after Protein Fractionation
+        // if (event.getActivatedStep().equals(afterProtFracPooling)) {
+        // afterProtFracPooling.setPreliminaryExperiments(protFracStep.getPreliminaryExperiments(),
+        // Steps.Protein_Fractionation_Pooling);
+        // }
+        // Peptide Fractionation
+        if (event.getActivatedStep().equals(pepFracStep)) {
+          // Map<String, Object> peptideMSInfos = techStep.getPeptideMSExperimentProperties();
+          // if (w.getSteps().contains(afterProtFracPooling)) {
+          // pepFracStep
+          // .setAnalyteSamplesAndExperiments(afterProtFracPooling.getPreliminarySamples());
+          // } else if
+          if (!protFracStep.hasRun()) {
+            protFracStep.createPreliminaryExperiments();
+          }
+          pepFracStep.setAnalyteSamplesAndExperiments(protFracStep.getResults());
+        }
+        // Pooling after Peptide Fractionation
+        // if (event.getActivatedStep().equals(afterPepFracPooling)) {
+        // afterPepFracPooling.setPreliminaryExperiments(pepFracStep.getPreliminaryExperiments(),
+        // Steps.Peptide_Fractionation_Pooling);
+        // }
         // TSV and Registration Step
         if (event.getActivatedStep().equals(regStep)) {
           regStep.enableDownloads(false);
           // Test samples were filled out
           if (w.getSteps().contains(steps.get(Steps.Test_Samples))) {
-            if (!testPoolsSet)
+            boolean afterMS = w.getSteps().contains(steps.get(Steps.Protein_Fractionation));
+            if (!testPoolsSet && !afterMS)
               dataAggregator.prepareTestSamples();
             if (techStep.hasMHCLigands())
               dataAggregator.prepareMHCExtractSamples();
             List<AOpenbisSample> all = new ArrayList<AOpenbisSample>();
-            all.addAll(dataAggregator.getTests());
-            all.addAll(dataAggregator.createPoolingSamples(poolStep2.getPools()));
-            dataAggregator.setTests(all);
+            if (!afterMS) {
+              all.addAll(dataAggregator.getTests());
+              all.addAll(dataAggregator.createPoolingSamples(poolStep2.getPools()));
+              dataAggregator.setTests(all);
+            }
+            if (containsFractionation()) {
+              dataAggregator
+                  .setFractionationExperimentsProperties(getFractionationPropertiesFromLastStep());
+              dataAggregator.createFractionationSamplesAndExperiments();
+            }
             createTSV();
             try {
-              prep.processTSV(dataAggregator.getTSV(), false);
+              prep.processTSV(dataAggregator.getTSV());
             } catch (IOException e) {
               e.printStackTrace();
             }
@@ -785,7 +935,7 @@ public class WizardController {
             }
             createTSV();
             try {
-              prep.processTSV(dataAggregator.getTSV(), false);
+              prep.processTSV(dataAggregator.getTSV());
             } catch (IOException e) {
               e.printStackTrace();
             }
@@ -825,6 +975,38 @@ public class WizardController {
           finishStep.setExperimentInfos(p.getSpaceCode(), proj, p.getDescription(),
               samplesByExperiment, openbis);
         }
+      }
+
+      private MSExperimentModel getFractionationPropertiesFromLastStep() {
+        WizardStep lastInput = w.getSteps().get(w.getSteps().size() - 2);// last step is
+                                                                         // registration itself
+        if (lastInput instanceof PoolingStep) {
+          return ((PoolingStep) lastInput).getPreliminarySamples();
+        } else if (lastInput instanceof MSAnalyteStep) {
+          MSAnalyteStep last = (MSAnalyteStep) lastInput;
+          last.createPreliminaryExperiments();
+          return last.getResults();
+        } else {
+          logger.error(
+              "Tried to fetch fractionation properties from wizard but the last step was neither of type Pooling or Fractionation. Step in question is: "
+                  + lastInput.toString());
+          logger.error("Wizard likely stopped working before registration. User was " + user);
+          Functions.notification("Error",
+              "Sorry, something went wrong. Please notify a QBiC contact person.",
+              NotificationType.ERROR);
+          return null;
+        }
+      }
+
+      private boolean containsFractionation() {
+        List<Steps> relevant = new ArrayList<Steps>(
+            Arrays.asList(Steps.Peptide_Fractionation, Steps.Peptide_Fractionation_Pooling,
+                Steps.Protein_Fractionation, Steps.Protein_Fractionation_Pooling));
+        boolean res = false;
+        for (Steps s : relevant) {
+          res |= w.getSteps().contains(steps.get(s));
+        }
+        return res;
       }
     };
     w.addListener(wl);

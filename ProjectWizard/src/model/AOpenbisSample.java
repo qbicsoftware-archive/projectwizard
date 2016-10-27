@@ -1,19 +1,17 @@
 /*******************************************************************************
- * QBiC Project Wizard enables users to create hierarchical experiments including different study conditions using factorial design.
- * Copyright (C) "2016"  Andreas Friedrich
+ * QBiC Project Wizard enables users to create hierarchical experiments including different study
+ * conditions using factorial design. Copyright (C) "2016" Andreas Friedrich
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with this program. If
+ * not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 package model;
 
@@ -43,6 +41,7 @@ public abstract class AOpenbisSample {
   private String Q_ADDITIONAL_NOTES;
   private String parent;
   private String Q_EXTERNALDB_ID;
+  private List<AOpenbisSample> parents;
 
   /**
    * Constructor of an abstract openbis sample
@@ -83,6 +82,7 @@ public abstract class AOpenbisSample {
   // this is the new version for all child samples
   AOpenbisSample(int tempID, List<AOpenbisSample> parents, String sampleType, String secondaryName,
       String externalID, List<Factor> newFactors, String additionalNotes) {
+    this.parents = parents;
     this.tempID = tempID;
     this.sampleType = sampleType;
     this.Q_SECONDARY_NAME = secondaryName;
@@ -90,8 +90,11 @@ public abstract class AOpenbisSample {
     this.Q_EXTERNALDB_ID = externalID;
     Map<String, Factor> oldFactors = new HashMap<String, Factor>();
     this.tempParentIDs = new ArrayList<Integer>();
+    this.parent = "";
     for (AOpenbisSample s : parents) {
       this.tempParentIDs.add(s.getTempID());
+      if (s.getCode() != null)
+        parent += s.getCode() + " ";
       for (Factor f : s.getFactors()) {
         String lab = f.getLabel();
         if (oldFactors.containsKey(lab)) {
@@ -103,12 +106,17 @@ public abstract class AOpenbisSample {
           oldFactors.put(lab, f);
       }
     }
+    this.parent = parent.trim();
     this.factors = new ArrayList<Factor>();
     if (parents.size() > 0) {
       for (String lab : parents.get(0).getFactorLabels())
         this.factors.add(oldFactors.get(lab));
     }
     this.factors.addAll(newFactors);
+  }
+
+  public List<AOpenbisSample> getParents() {
+    return parents;
   }
 
   public void setSampleType(String sampleType) {
@@ -242,7 +250,7 @@ public abstract class AOpenbisSample {
   }
 
   public String toString() {
-    return sampleType + " " + code + " " + Q_SECONDARY_NAME + " " + getValueMap();
+    return "<" + sampleType + " " + code + " " + Q_SECONDARY_NAME + ">";
   }
 
   public Integer getTempID() {

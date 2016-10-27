@@ -64,7 +64,7 @@ public class ExtractionStep implements WizardStep {
 
   private VerticalLayout main;
 
-  private OpenbisInfoComboBox tissue;
+  private ComboBox tissue;
   private ComboBox cellLine;
   private TextField otherTissue;
   private ConditionsPanel c;
@@ -117,15 +117,16 @@ public class ExtractionStep implements WizardStep {
     ArrayList<String> tissues = new ArrayList<String>();
     tissues.addAll(tissueMap.keySet());
     Collections.sort(tissues);
-    tissue = new OpenbisInfoComboBox("Tissue",
-        "If different tissues are a study variables, leave this empty", tissues);
-    tissue.getInnerComponent().setRequired(true);
+    tissue = new ComboBox("Tissue", tissues);
+    tissue.setRequired(true);
+    tissue.setStyleName(ProjectwizardUI.boxTheme);
+    if (ProjectwizardUI.testMode)
+      tissue.setValue("Blood");
     tissueNum = new OpenbisInfoTextField(
         "How many different tissue types are there in this sample extraction?", "", "50px", "2");
     tissueNum.getInnerComponent().setVisible(false);
     tissueNum.getInnerComponent().setEnabled(false);
-    c = new ConditionsPanel(suggestions, emptyFactor, "Tissue",
-        (ComboBox) tissue.getInnerComponent(), true, conditionsSet,
+    c = new ConditionsPanel(suggestions, emptyFactor, "Tissue", tissue, true, conditionsSet,
         (TextField) tissueNum.getInnerComponent());
     main.addComponent(c);
 
@@ -159,9 +160,9 @@ public class ExtractionStep implements WizardStep {
       }
     });
     main.addComponent(tissueNum.getInnerComponent());
-    main.addComponent(tissue.getInnerComponent());
+    main.addComponent(tissue);
 
-    tissue.getInnerComponent().addValueChangeListener(new ValueChangeListener() {
+    tissue.addValueChangeListener(new ValueChangeListener() {
 
       /**
        * 
@@ -232,8 +233,7 @@ public class ExtractionStep implements WizardStep {
   }
 
   private boolean tissueReady() {
-    String t = tissue.getValue();
-    return tissueIsFactor() || t != null;
+    return tissueIsFactor() || tissue.getValue() != null;
   }
 
   @Override
@@ -242,7 +242,7 @@ public class ExtractionStep implements WizardStep {
   }
 
   public boolean tissueIsFactor() {
-    return !tissue.getInnerComponent().isEnabled();
+    return !tissue.isEnabled();
   }
 
   public List<String> getFactors() {
@@ -254,9 +254,12 @@ public class ExtractionStep implements WizardStep {
   }
 
   public String getTissue() {
-    return tissue.getValue();
+    if (tissue.getValue() == null)
+      return null;
+    else
+      return tissue.getValue().toString();
   }
-  
+
   public String getSpecialTissue() {
     return otherTissue.getValue();
   }

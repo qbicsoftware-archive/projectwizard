@@ -231,7 +231,7 @@ public class ConditionInstanceStep implements WizardStep {
   public Map<Object, Integer> getPreSelection() {
     permutations = new LinkedHashMap<Object, Integer>();
     for (Object id : preview.getItemIds()) {
-      int amount = parseAmount(preview.getItem(id).getItemProperty("Amount").getValue());
+      int amount = parseAmount(preview.getItem(id).getItemProperty("Samples").getValue());
       permutations.put(id, amount);
     }
     return permutations;

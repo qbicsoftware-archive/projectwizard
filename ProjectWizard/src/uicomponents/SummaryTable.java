@@ -237,16 +237,22 @@ public class SummaryTable extends VerticalLayout {
 
       // Create the table row.
       List<Object> row = new ArrayList<Object>();
-      // row.add(id);
+
       TextField secNameField = new StandardTextField();
-      // secNameField.setData(id);
       secNameField.setImmediate(true);
-      secNameField.setValue(s.getQ_SECONDARY_NAME());
+      String secName = "";
+      if (s.getQ_SECONDARY_NAME() != null)
+        secName = s.getQ_SECONDARY_NAME();
+      secNameField.setValue(secName);
       row.add(secNameField);
+
       TextField extIDField = new StandardTextField();
       extIDField.setWidth("95px");
       extIDField.setImmediate(true);
-      extIDField.setValue(s.getQ_EXTERNALDB_ID());
+      String extID = "";
+      if (s.getQ_EXTERNALDB_ID() != null)
+        extID = s.getQ_EXTERNALDB_ID();
+      extIDField.setValue(extID);
       row.add(extIDField);
 
       if (isotopes) {

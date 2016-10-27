@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 import main.OpenBisClient;
 import main.ProjectwizardUI;
@@ -58,7 +59,7 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.themes.ValoTheme;
 
-import control.ProjectNameValidator;
+import control.SampleNameValidator;
 
 /**
  * Wizard Step to set the Context of the new experiment and sample creation
@@ -97,7 +98,7 @@ public class ProjectContextStep implements WizardStep {
    * @param newProjectCode
    */
   public ProjectContextStep(OpenBisClient openbis, List<String> openbisSpaces,
-      List<String> investigators) {
+      Set<String> investigators) {
     this.openbis = openbis;
     main = new VerticalLayout();
     main.setMargin(true);
@@ -180,7 +181,7 @@ public class ProjectContextStep implements WizardStep {
         new RegexpValidator("Q[A-Xa-x0-9]{4}",
             "Project must have length of 5, start with Q and not contain Y or Z");
     vd.addValidator(p);
-    vd.addValidator(new ProjectNameValidator(openbis));
+    vd.addValidator(new SampleNameValidator(openbis));
     f.addValidator(vd);
     f.setImmediate(true);
     f.setValidationVisible(true);

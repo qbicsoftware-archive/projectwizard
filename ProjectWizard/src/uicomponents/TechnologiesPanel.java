@@ -1,19 +1,17 @@
 /*******************************************************************************
- * QBiC Project Wizard enables users to create hierarchical experiments including different study conditions using factorial design.
- * Copyright (C) "2016"  Andreas Friedrich
+ * QBiC Project Wizard enables users to create hierarchical experiments including different study
+ * conditions using factorial design. Copyright (C) "2016" Andreas Friedrich
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with this program. If
+ * not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 package uicomponents;
 
@@ -46,7 +44,7 @@ public class TechnologiesPanel extends HorizontalLayout {
   List<TechChooser> choosers;
   Button.ClickListener buttonListener;
   ValueChangeListener poolListener;
-  ValueChangeListener proteinListener;
+  List<ValueChangeListener> proteinListeners;
   ValueChangeListener mhcLigandListener;
   GridLayout buttonGrid;
   Button add;
@@ -60,10 +58,11 @@ public class TechnologiesPanel extends HorizontalLayout {
    * @param techOptions List of different possible conditions
    * @param conditionsSet (empty) option group that makes it possible to listen to the conditions
    *        inside this component from the outside
-   * @param proteinListener
+   * @param proteinListeners
    */
   public TechnologiesPanel(List<String> techOptions, Set<String> persons, OptionGroup conditionsSet,
-      ValueChangeListener poolListener, ValueChangeListener proteinListener, ValueChangeListener mhcLigandListener) {
+      ValueChangeListener poolListener, ArrayList<ValueChangeListener> proteinListeners,
+      ValueChangeListener mhcLigandListener) {
     this.options = techOptions;
     this.persons = persons;
 
@@ -75,14 +74,15 @@ public class TechnologiesPanel extends HorizontalLayout {
     ProjectwizardUI.iconButton(remove, FontAwesome.MINUS_SQUARE);
     initListener();
     this.poolListener = poolListener;
-    this.proteinListener = proteinListener;
+    this.proteinListeners = proteinListeners;
     this.mhcLigandListener = mhcLigandListener;
-    
+
     choosers = new ArrayList<TechChooser>();
     TechChooser c = new TechChooser(techOptions, persons);
     c.setImmediate(true);
     c.addPoolListener(poolListener);
-    c.addProteinListener(proteinListener);
+    for (ValueChangeListener l : proteinListeners)
+      c.addProteinListener(l);
     c.addMHCListener(mhcLigandListener);
     choosers.add(c);
     addComponent(c);
@@ -134,7 +134,8 @@ public class TechnologiesPanel extends HorizontalLayout {
     choosers.get(choosers.size() - 1).hideHelpers();
     TechChooser c = new TechChooser(options, persons);
     c.addPoolListener(poolListener);
-    c.addProteinListener(proteinListener);
+    for (ValueChangeListener l : proteinListeners)
+      c.addProteinListener(l);
     c.addMHCListener(mhcLigandListener);
     choosers.add(c);
 
@@ -152,7 +153,8 @@ public class TechnologiesPanel extends HorizontalLayout {
       removeComponent(last);
       choosers.remove(last);
       last.removePoolListener(poolListener);
-      last.removeProteinListener(proteinListener);
+      for (ValueChangeListener l : proteinListeners)
+        last.removeProteinListener(l);
       last.removeMHCListener(mhcLigandListener);
       choosers.get(size - 2).showHelpers();
     }

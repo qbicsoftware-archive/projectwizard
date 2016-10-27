@@ -1,28 +1,29 @@
 /*******************************************************************************
- * QBiC Project Wizard enables users to create hierarchical experiments including different study conditions using factorial design.
- * Copyright (C) "2016"  Andreas Friedrich
+ * QBiC Project Wizard enables users to create hierarchical experiments including different study
+ * conditions using factorial design. Copyright (C) "2016" Andreas Friedrich
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with this program. If
+ * not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 package views;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang.WordUtils;
+
 import logging.Log4j2Logger;
 import main.SampleSummaryBean;
 import model.ISampleBean;
+import uicomponents.ExperimentSummaryTable;
 
 import com.vaadin.server.FontAwesome;
 import com.vaadin.ui.Button;
@@ -42,7 +43,7 @@ public class StandaloneTSVImport extends VerticalLayout implements IRegistration
   private Button register;
   private Label error;
   private Upload upload;
-  private Table summary;
+  private ExperimentSummaryTable summary;
   private List<List<ISampleBean>> samples;
   private Label registerInfo;
   private ProgressBar bar;
@@ -53,22 +54,16 @@ public class StandaloneTSVImport extends VerticalLayout implements IRegistration
     setMargin(true);
     setSpacing(true);
 
-    Label info =
-        new Label(
-            "Here you can upload (edited) spreadsheet files of a previously created project. "
-                + "Registering samples may take a few seconds.");
-    info.setIcon(FontAwesome.INFO);
-    info.setStyleName("info");
-    info.setWidth("250px");
-//    addComponent(info);
+//    Label info =
+//        new Label("Here you can upload (edited) spreadsheet files of a previously created project. "
+//            + "Registering samples may take a few seconds.");
+//    info.setIcon(FontAwesome.INFO);
+//    info.setStyleName("info");
+//    info.setWidth("250px");
+    // addComponent(info);
 
-    summary = new Table("Summary");
-    summary.setStyleName(ValoTheme.TABLE_SMALL);
-    summary.setPageLength(3);
+    summary = new ExperimentSummaryTable();
     summary.setVisible(false);
-    summary.setColumnHeader("ID_Range", "ID Range");
-    summary.setColumnHeader("amount", "Samples");
-    summary.setColumnHeader("type", "Sample Type");
     addComponent(summary);
 
     error = new Label();
@@ -107,36 +102,7 @@ public class StandaloneTSVImport extends VerticalLayout implements IRegistration
   }
 
   public void setSummary(ArrayList<SampleSummaryBean> beans) {
-    summary.setVisible(false);
-    summary.addContainerProperty("Type", String.class, null);
-    summary.addContainerProperty("Number of Samples", Integer.class, null);
-    summary.setStyleName(ValoTheme.TABLE_SMALL);
-    int i = 0;
-    for (SampleSummaryBean b : beans) {
-      i++;
-      int amount = Integer.parseInt(b.getAmount());
-      String sampleType = b.getType();
-      String type = sampleType;
-      if (b.isPool())
-        type = "Pooled/Multiplexed";
-      else {
-        switch (sampleType) {
-          case "Biological Source":
-            type = "Sample Sources";
-            break;
-          case "Extracted Samples":
-            type = "Sample Extracts";
-            break;
-          case "Prepared Samples":
-            type = "Sample Preparations";
-            break;
-          default:
-            break;
-        }
-      }
-      summary.addItem(new Object[] {type, amount}, i);
-    }
-    summary.setPageLength(i);
+    summary.setSamples(beans);
     summary.setVisible(true);
   }
 

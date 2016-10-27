@@ -58,13 +58,13 @@ public class EntityStep implements WizardStep {
 
   private VerticalLayout main;
 
-  private OpenbisInfoComboBox species;
+  private ComboBox species;
   private TextField specialSpecies;
   private ConditionsPanel c;
 
   private String emptyFactor = "Other (please specify)";
-  private List<String> suggestions = new ArrayList<String>(Arrays.asList("Age", "Genotype", "Health State",
-      "Phenotype", "Species", "Treatment", emptyFactor));
+  private List<String> suggestions = new ArrayList<String>(Arrays.asList("Age", "Genotype",
+      "Health State", "Phenotype", "Species", "Treatment", emptyFactor));
 
   private OpenbisInfoTextField speciesNum;
 
@@ -95,21 +95,22 @@ public class EntityStep implements WizardStep {
     ArrayList<String> openbisSpecies = new ArrayList<String>();
     openbisSpecies.addAll(speciesMap.keySet());
     Collections.sort(openbisSpecies);
-    species = new OpenbisInfoComboBox("Species",
-        "If there are samples of different species, leave this empty", openbisSpecies);
-    species.getInnerComponent().setRequired(true);
+    species = new ComboBox("Species", openbisSpecies);
+    species.setStyleName(ProjectwizardUI.boxTheme);
+    species.setRequired(true);
+    if (ProjectwizardUI.testMode)
+      species.setValue("Homo Sapiens");
     speciesNum = new OpenbisInfoTextField("How many different species are there in this project?",
         "", "50px", "2");
     speciesNum.getInnerComponent().setVisible(false);
     speciesNum.getInnerComponent().setEnabled(false);
-    c = new ConditionsPanel(suggestions, emptyFactor, "Species",
-        (ComboBox) species.getInnerComponent(), true, conditionsSet,
+    c = new ConditionsPanel(suggestions, emptyFactor, "Species", species, true, conditionsSet,
         (TextField) speciesNum.getInnerComponent());
     main.addComponent(c);
     main.addComponent(speciesNum.getInnerComponent());
-    main.addComponent(species.getInnerComponent());
-    
-    species.getInnerComponent().addValueChangeListener(new ValueChangeListener() {
+    main.addComponent(species);
+
+    species.addValueChangeListener(new ValueChangeListener() {
 
       /**
        * 
@@ -161,8 +162,8 @@ public class EntityStep implements WizardStep {
   }
 
   private boolean speciesReady() {
-    String s = species.getValue();
-    return speciesIsFactor() || (s != null && !species.getValue().isEmpty());
+    return speciesIsFactor()
+        || (species.getValue() != null && !species.getValue().toString().isEmpty());
   }
 
   @Override
@@ -171,14 +172,14 @@ public class EntityStep implements WizardStep {
   }
 
   public boolean speciesIsFactor() {
-    return !species.getInnerComponent().isEnabled();
+    return !species.isEnabled();
   }
 
   public void enableSpeciesFactor(boolean enable) {
     speciesNum.getInnerComponent().setEnabled(enable);
     speciesNum.getInnerComponent().setVisible(enable);
     if (enable)
-      species.getInnerComponent().setValue(null);
+      species.setValue(null);
   }
 
   public List<String> getFactors() {
@@ -190,7 +191,10 @@ public class EntityStep implements WizardStep {
   }
 
   public String getSpecies() {
-    return species.getValue();
+    if (species.getValue() == null)
+      return null;
+    else
+      return species.getValue().toString();
   }
 
   public String getSpecialSpecies() {

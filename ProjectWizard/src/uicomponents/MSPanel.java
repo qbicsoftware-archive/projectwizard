@@ -89,6 +89,7 @@ public class MSPanel extends VerticalLayout {
     device.setFilteringMode(FilteringMode.CONTAINS);
     // device.setNullSelectionAllowed(false);
     device.setStyleName(ProjectwizardUI.boxTheme);
+    device.setWidth("300px");
     chromType = new ComboBox("MS Chromatography Type", vocabs.getChromTypes());
     chromType.setFilteringMode(FilteringMode.CONTAINS);
     chromType.setStyleName(ProjectwizardUI.boxTheme);
@@ -97,6 +98,7 @@ public class MSPanel extends VerticalLayout {
     lcmsMethod = new ComboBox("MS LCMS Method", vocabs.getLcmsMethods());
     lcmsMethod.setFilteringMode(FilteringMode.CONTAINS);
     lcmsMethod.setStyleName(ProjectwizardUI.boxTheme);
+    lcmsMethod.setWidth("350px");
     lcmsSpecial = new TextArea("LCMS Method Name");
     lcmsSpecial.setStyleName(ProjectwizardUI.areaTheme);
     lcmsSpecial.setVisible(false);

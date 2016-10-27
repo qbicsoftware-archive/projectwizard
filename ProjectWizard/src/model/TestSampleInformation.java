@@ -25,9 +25,19 @@ public class TestSampleInformation {
   public int getReplicates() {
     return replicates;
   }
-  
+
   public String getPerson() {
     return person;
+  }
+
+  @Override
+  public String toString() {
+    String res = technology;
+    if (pool)
+      res += " (pooled)";
+    res += "\n" + Integer.toString(replicates) + " replicates";
+    res += "\n" + person;
+    return res;
   }
 
 }

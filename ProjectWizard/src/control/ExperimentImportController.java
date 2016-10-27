@@ -17,6 +17,7 @@ package control;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -27,6 +28,7 @@ import views.StandaloneTSVImport;
 import logging.Log4j2Logger;
 import main.OpenbisCreationController;
 import main.SamplePreparator;
+import model.OpenbisExperiment;
 import model.ProjectInfo;
 
 import com.vaadin.ui.Button;
@@ -46,7 +48,8 @@ public class ExperimentImportController {
 
   logging.Logger logger = new Log4j2Logger(ExperimentImportController.class);
 
-  public ExperimentImportController(StandaloneTSVImport tsvImport, OpenbisCreationController creator) {
+  public ExperimentImportController(StandaloneTSVImport tsvImport,
+      OpenbisCreationController creator) {
     view = tsvImport;
     this.openbisCreator = creator;
   }
@@ -83,7 +86,7 @@ public class ExperimentImportController {
             try {
               view.setRegEnabled(false);
               SamplePreparator prep = new SamplePreparator();
-              if (prep.processTSV(file, false)) {
+              if (prep.processTSV(file)) {
                 view.setSummary(prep.getSummary());
                 view.setProcessed(prep.getProcessed());
                 view.setRegEnabled(true);
@@ -124,14 +127,17 @@ public class ExperimentImportController {
         String src = event.getButton().getCaption();
         if (src.equals("Register All")) {
           view.getRegisterButton().setEnabled(false);
-          //TODO multiple ms experiments
+          // TODO multiple ms experiments
           Map<String, Object> msProps = null;
-          if(msProperties!=null)
+          if (msProperties != null) {
             msProps = msProperties.get(0);
+            logger.warn("MS properties could not be parsed due to new version. properties were: "
+                + msProps);
+          }
           openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(view.getSamples(),
-              projectInfo.getDescription(), projectInfo.getSecondaryName(), msProps, mhcProperties, view
-                  .getProgressBar(), view.getProgressLabel(), new RegisteredSamplesReadyRunnable(
-                  view), user);
+              projectInfo.getDescription(), projectInfo.getSecondaryName(),
+              new ArrayList<OpenbisExperiment>(), mhcProperties, view.getProgressBar(),
+              view.getProgressLabel(), new RegisteredSamplesReadyRunnable(view), user);
         }
       }
     };

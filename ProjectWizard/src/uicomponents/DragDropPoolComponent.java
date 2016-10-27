@@ -1,19 +1,17 @@
 /*******************************************************************************
- * QBiC Project Wizard enables users to create hierarchical experiments including different study conditions using factorial design.
- * Copyright (C) "2016"  Andreas Friedrich
+ * QBiC Project Wizard enables users to create hierarchical experiments including different study
+ * conditions using factorial design. Copyright (C) "2016" Andreas Friedrich
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with this program. If
+ * not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 package uicomponents;
 
@@ -23,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import properties.Factor;
-
+import steps.PoolingStep;
 import main.ProjectwizardUI;
 import model.AOpenbisSample;
 
@@ -37,6 +35,7 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Button.ClickEvent;
 
 import control.WizardController.Steps;
+import logging.Log4j2Logger;
 
 public class DragDropPoolComponent extends HorizontalSplitPanel {
 
@@ -50,6 +49,7 @@ public class DragDropPoolComponent extends HorizontalSplitPanel {
   private Button add;
   private Button remove;
   private List<String> factorLabels;
+  logging.Logger logger = new Log4j2Logger(DragDropPoolComponent.class);
 
   private TabSheet samples;
   private Table selectionTable;
@@ -85,8 +85,8 @@ public class DragDropPoolComponent extends HorizontalSplitPanel {
     samples = new TabSheet();
     initSelectionTables();
     addComponent(ProjectwizardUI.questionize(samples,
-        "These are the samples you prepared in the earlier steps. For convenience they are separated in unused samples " +
-        "and samples that are already in at least one pool.",
+        "These are the samples you prepared in the earlier steps. For convenience they are separated in unused samples "
+            + "and samples that are already in at least one pool.",
         "Target Pools"));
   }
 
@@ -192,6 +192,7 @@ public class DragDropPoolComponent extends HorizontalSplitPanel {
     }
   }
 
+  //
   public Map<String, List<AOpenbisSample>> getPools() {
     Map<String, List<AOpenbisSample>> res = new HashMap<String, List<AOpenbisSample>>();
     for (PoolingTable pt : tables) {

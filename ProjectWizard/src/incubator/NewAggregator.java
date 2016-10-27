@@ -19,6 +19,7 @@ package incubator;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -125,5 +126,61 @@ public class NewAggregator {
   public void createTSV() {
     // TODO Auto-generated method stub
 
+  }
+
+  public List<AOpenbisSample> getSampleLevel(int i) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  public void resetExtracts() {
+    // TODO Auto-generated method stub
+    
+  }
+
+  public void setSampleLevel(Object poolingSamples, int i) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  public void setExtracts(List<AOpenbisSample> all) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  public void resetTests() {
+    // TODO Auto-generated method stub
+    
+  }
+
+  public List<List<AOpenbisSample>> prepareTestSamples() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  public Collection<? extends AOpenbisSample> getTests() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  public Collection<? extends AOpenbisSample> createPoolingSamples(
+      Map<String, List<AOpenbisSample>> pools) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  public void setTests(List<AOpenbisSample> all) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  public void parseAll() {
+    // TODO Auto-generated method stub
+    
+  }
+
+  public String getProjectCode() {
+    // TODO Auto-generated method stub
+    return null;
   }
 }
