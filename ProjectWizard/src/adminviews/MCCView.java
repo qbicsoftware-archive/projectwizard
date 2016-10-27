@@ -31,6 +31,7 @@ import properties.Factor;
 import views.IRegistrationView;
 
 import logging.Log4j2Logger;
+import main.IOpenBisClient;
 import main.OpenBisClient;
 import main.OpenbisCreationController;
 import main.ProjectwizardUI;
@@ -69,7 +70,7 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
 
   logging.Logger logger = new Log4j2Logger(MCCView.class);
 
-  private OpenBisClient openbis;
+  private IOpenBisClient openbis;
   private OpenbisCreationController creator;
   private XMLParser p = new XMLParser();
   private String user;
@@ -96,7 +97,7 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
   private Set<String> cases;
   private SampleCounter counter;
 
-  public MCCView(OpenBisClient openbis, OpenbisCreationController creationController, String user) {
+  public MCCView(IOpenBisClient openbis, OpenbisCreationController creationController, String user) {
     this.openbis = openbis;
     this.creator = creationController;
     this.user = user;
