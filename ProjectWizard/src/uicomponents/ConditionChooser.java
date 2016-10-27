@@ -28,7 +28,7 @@ import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import componentwrappers.StandardTextField;
-import control.SampleNameValidator;
+import control.ProjectNameValidator;
 
 /**
  * Composite UI component to choose a single condition of an experiment

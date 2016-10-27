@@ -28,20 +28,13 @@ import java.util.Map;
 import logging.Log4j2Logger;
 import main.ProjectwizardUI;
 import model.AOpenbisSample;
-import model.ISampleBean;
 import model.MHCLigandExtractionProtocol;
 
 import com.vaadin.data.Item;
-import com.vaadin.server.FontAwesome;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.themes.ValoTheme;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.DateField;
-import com.vaadin.ui.GridLayout;
-import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Notification;
-import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
@@ -57,22 +50,16 @@ public class LigandExtractPanel extends VerticalLayout {
 
   private Map<String, String> antiBodies;
 
-  private List<LigandExtractAntibodyChooser> choosers;
-
   private Map<Integer, String> tableIdToBarcode;
 
   private Table extractionExperiments;
 
-  OptionGroup conditionsSet;
   logging.Logger logger = new Log4j2Logger(LigandExtractPanel.class);
 
-  public LigandExtractPanel(DBVocabularies vocabs, OptionGroup conditionsSet) {
+  public LigandExtractPanel(DBVocabularies vocabs) {
     this.setCaption("MHC Ligand Extraction");
     // this.vocabs = vocabs;
     this.antiBodies = vocabs.getAntibodies();
-
-    this.conditionsSet = conditionsSet;
-    this.conditionsSet.addItem("set");
     setSpacing(true);
 
     extractionExperiments = new Table();
