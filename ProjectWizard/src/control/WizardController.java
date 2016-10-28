@@ -426,11 +426,11 @@ public class WizardController {
       private void createAttachmentSample(String space, String project, String exp, String code,
           String type) {
         if (!openbis.expExists(space, project, exp)) {
-          System.out.println(space + project + exp + "does not exist, creating");
+          logger.debug(space + project + exp + "does not exist, creating");
           openbisCreator.registerExperiment(space, project, "Q_PROJECT_DETAILS", exp,
               new HashMap<String, Object>(), user);
           try {
-            System.out.println("waiting");
+            logger.debug("waiting");
             Thread.sleep(2000);
           } catch (InterruptedException e) {
             // TODO Auto-generated catch block

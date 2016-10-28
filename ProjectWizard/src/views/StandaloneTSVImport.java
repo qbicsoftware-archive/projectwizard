@@ -18,8 +18,6 @@ package views;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang.WordUtils;
-
 import logging.Log4j2Logger;
 import main.SampleSummaryBean;
 import model.ISampleBean;
@@ -29,10 +27,8 @@ import com.vaadin.server.FontAwesome;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.ProgressBar;
-import com.vaadin.ui.Table;
 import com.vaadin.ui.Upload;
 import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.themes.ValoTheme;
 
 public class StandaloneTSVImport extends VerticalLayout implements IRegistrationView {
 

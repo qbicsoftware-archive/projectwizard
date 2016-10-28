@@ -21,6 +21,10 @@ import java.util.List;
 
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.themes.ValoTheme;
+
+import logging.Log4j2Logger;
+import logging.Logger;
+
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.shared.Position;
@@ -32,6 +36,8 @@ import com.vaadin.shared.Position;
  * 
  */
 public class Functions {
+  
+  static Logger logger = new Log4j2Logger(Functions.class);
 
   public enum NotificationType {
     ERROR, SUCCESS, DEFAULT
@@ -98,7 +104,7 @@ public class Functions {
           return numCompare;
       }
     } catch (Exception e) {
-      System.out.println("Could not split code " + c1 + " or " + c2
+      logger.warn("Could not split code " + c1 + " or " + c2
           + ". Falling back to primitive lexicographical comparison.");
     }
     return c1.compareTo(c2);

@@ -121,7 +121,6 @@ public class OpenbisExperiment {
     String res = "";
     for (String key : properties.keySet()) {
       Object val = properties.get(key);
-      logger.debug(key + " : " + val);
       if (val instanceof List) {
         List<String> list = (List<String>) val;
         String listItems = "";
