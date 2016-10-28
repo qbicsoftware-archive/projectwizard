@@ -271,8 +271,9 @@ public class MSSampleMultiplicationTable extends VerticalLayout {
       i++;
       // multiply by number of fractions
       for (int j = 1; j <= tableIdToFractions.get(i); j++) {
-        boolean complexRow = (i == 1) && (j == 1); // the first row contains a combobox with added
-                                                   // button to copy
+        boolean complexRow = sampleTable.size() == 0; // the first row contains a combobox with
+                                                      // added
+                                                      // button to copy
         // its selection to the whole column
 
         String parentID = Integer.toString(i);

@@ -69,7 +69,6 @@ public class MSPanel extends VerticalLayout {
     this.setCaption("Mass Spectrometry");
     this.vocabs = vocabs;
     this.enzymes = vocabs.getEnzymes();
-
     this.conditionsSet = conditionsSet;
     this.conditionsSet.addItem("set");
     add = new Button();

@@ -20,7 +20,6 @@ public class MSExperimentModel {
     this.analytesPerStep = new ArrayList<List<ExperimentModel>>(base.analytesPerStep);
     this.msRunsPerStep = new ArrayList<List<ExperimentModel>>(base.msRunsPerStep);
     this.baseAnalytes = new ExperimentModel(base.baseAnalytes);
-    System.out.println(this.baseAnalytes);
     this.peptides = new ArrayList<ExperimentModel>(base.peptides);
   }
 
