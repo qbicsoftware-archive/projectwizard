@@ -208,7 +208,6 @@ public class DBManager {
   public int addExperimentToDB(String id) {
     int exists = isExpInDB(id);
     if (exists < 0) {
-      logger.info("Trying to add experiment " + id + " to the person DB");
       String sql = "INSERT INTO experiments (openbis_experiment_identifier) VALUES(?)";
       Connection conn = login();
       try (PreparedStatement statement =
@@ -218,12 +217,11 @@ public class DBManager {
         ResultSet rs = statement.getGeneratedKeys();
         if (rs.next()) {
           logout(conn);
-          logger.info("Successful.");
           return rs.getInt(1);
         }
       } catch (SQLException e) {
+        logger.error("Was trying to add experiment " + id + " to the person DB");
         logger.error("SQL operation unsuccessful: " + e.getMessage());
-        e.printStackTrace();
       }
       logout(conn);
       return -1;
