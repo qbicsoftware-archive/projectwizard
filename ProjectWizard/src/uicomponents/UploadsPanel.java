@@ -10,8 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.jetty.util.Scanner.Notification;
-
 import processes.AttachmentMover;
 import processes.MoveUploadsReadyRunnable;
 
@@ -130,7 +128,6 @@ public class UploadsPanel extends VerticalLayout {
     });
 
     setSpacing(true);
-    addListeners();
   }
 
   protected String createMetadataString(AttachmentInformation a) {
@@ -149,33 +146,6 @@ public class UploadsPanel extends VerticalLayout {
     toUpload.addContainerProperty("Remove", Button.class, null);
     addComponent(toUpload);
     toUpload.setVisible(false);
-  }
-
-  //
-  // private void updateTableItem(String file, String secondary, String context) {
-  // for (Object id : attachments.keySet()) {
-  // String name = attachments.get(id).getName();
-  // if (name.equals(file)) {
-  // toUpload.getContainerProperty(id, "Info").setValue(secondary);
-  // toUpload.getContainerProperty(id, "Context").setValue(context);
-  // attachments
-  // .put(id, new AttachmentInformation(name, secondary, userID, getBarcode(context)));
-  // }
-  // }
-  // }
-
-  private void addListeners() {
-
-    // ValueChangeListener infoChangeListener = new ValueChangeListener() {
-    //
-    // @Override
-    // public void valueChange(ValueChangeEvent event) {
-    // if (current != null)
-    // updateTableItem(current.getName(), fileInfo.getValue(), (String) context.getValue());
-    // }
-    // };
-    // context.addValueChangeListener(infoChangeListener);
-    // fileInfo.addValueChangeListener(infoChangeListener);
   }
 
   private String getBarcode() {
