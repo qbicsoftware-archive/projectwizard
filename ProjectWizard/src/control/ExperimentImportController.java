@@ -18,6 +18,7 @@ package control;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -28,6 +29,7 @@ import views.StandaloneTSVImport;
 import logging.Log4j2Logger;
 import main.OpenbisCreationController;
 import main.SamplePreparator;
+import main.SampleSummaryBean;
 import model.OpenbisExperiment;
 import model.ProjectInfo;
 
@@ -45,12 +47,17 @@ public class ExperimentImportController {
   private ProjectInfo projectInfo;
   private List<Map<String, Object>> msProperties;
   private Map<String, Map<String, Object>> mhcProperties;
+  private Map<String, String> taxMap;
 
   logging.Logger logger = new Log4j2Logger(ExperimentImportController.class);
 
   public ExperimentImportController(StandaloneTSVImport tsvImport,
-      OpenbisCreationController creator) {
+      OpenbisCreationController creator, Map<String, String> taxMap) {
     view = tsvImport;
+    this.taxMap = new HashMap<String, String>();
+    for (Map.Entry<String, String> entry : taxMap.entrySet()) {
+      this.taxMap.put(entry.getValue(), entry.getKey());
+    }
     this.openbisCreator = creator;
   }
 
@@ -87,7 +94,13 @@ public class ExperimentImportController {
               view.setRegEnabled(false);
               SamplePreparator prep = new SamplePreparator();
               if (prep.processTSV(file)) {
-                view.setSummary(prep.getSummary());
+                List<SampleSummaryBean> summaries = prep.getSummary();
+                for (SampleSummaryBean s : summaries) {
+                  String translation = taxMap.get(s.getSampleContent());
+                  if (translation != null)
+                    s.setSampleContent(translation);
+                }
+                view.setSummary(summaries);
                 view.setProcessed(prep.getProcessed());
                 view.setRegEnabled(true);
                 projectInfo = prep.getProjectInfo();

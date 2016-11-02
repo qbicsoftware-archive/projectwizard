@@ -97,7 +97,7 @@ public class StandaloneTSVImport extends VerticalLayout implements IRegistration
     return this.register;
   }
 
-  public void setSummary(ArrayList<SampleSummaryBean> beans) {
+  public void setSummary(List<SampleSummaryBean> beans) {
     summary.setSamples(beans);
     summary.setVisible(true);
   }

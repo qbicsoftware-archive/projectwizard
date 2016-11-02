@@ -36,6 +36,7 @@ import logging.Log4j2Logger;
 import main.IOpenBisClient;
 import main.OpenbisCreationController;
 import main.SamplePreparator;
+import main.SampleSummaryBean;
 import main.TSVSampleBean;
 import model.AOpenbisSample;
 import model.AttachmentConfig;
@@ -911,7 +912,16 @@ public class WizardController {
               e.printStackTrace();
             }
             armDownloadButtons(regStep.getDownloadButton(), regStep.getGraphButton());
-            regStep.setSummary(prep.getSummary());
+            List<SampleSummaryBean> summaries = prep.getSummary();
+            Map<String, String> taxMap = new HashMap<String, String>();
+            for (Map.Entry<String, String> entry : vocabularies.getTaxMap().entrySet())
+              taxMap.put(entry.getValue(), entry.getKey());
+            for (SampleSummaryBean s : summaries) {
+              String translation = taxMap.get(s.getSampleContent());
+              if (translation != null)
+                s.setSampleContent(translation);
+            }
+            regStep.setSummary(summaries);
             int investigator = -1;
             int contact = -1;
             if (!contextStep.getPrincipalInvestigator().equals(""))

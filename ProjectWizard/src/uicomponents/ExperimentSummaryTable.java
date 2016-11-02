@@ -7,7 +7,6 @@ import org.apache.commons.lang.WordUtils;
 
 import com.vaadin.data.Item;
 import com.vaadin.ui.Table;
-import com.vaadin.ui.TextField;
 import com.vaadin.ui.themes.ValoTheme;
 
 import main.SampleSummaryBean;
@@ -24,7 +23,7 @@ public class ExperimentSummaryTable extends Table {
     setPageLength(1);
   }
 
-  public void setSamples(ArrayList<SampleSummaryBean> beans) {
+  public void setSamples(List<SampleSummaryBean> beans) {
     removeAllItems();
     int i = 0;
     for (SampleSummaryBean b : beans) {

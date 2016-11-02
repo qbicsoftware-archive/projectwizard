@@ -52,7 +52,9 @@ import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Resource;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinServlet;
+import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.shared.ui.label.ContentMode;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
@@ -173,28 +175,71 @@ public class ProjectwizardUI extends UI {
   private final TabSheet tabs = new TabSheet();
   private boolean isAdmin = false;
 
-  // private HorizontalLayout getButtonBox() {
-  // ComboBox box = new ComboBox("", new ArrayList<String>(Arrays.asList("1", "2", "3")));
-  // box.setWidth("150px");
-  // box.setStyleName(boxTheme);
-  // HorizontalLayout complexComponent = new HorizontalLayout();
-  // complexComponent.addComponent(box);
-  // complexComponent.setWidth("300px");
-  // Button copy = new Button();
-  // copy.setIcon(FontAwesome.ARROW_CIRCLE_O_DOWN);
-  // copy.setWidth("10px");
-  // copy.setStyleName(ValoTheme.BUTTON_BORDERLESS_COLORED);
-  // VerticalLayout vBox = new VerticalLayout();
-  // vBox.addComponent(copy);
-  // complexComponent.addComponent(vBox);
-  // complexComponent.setComponentAlignment(vBox, Alignment.BOTTOM_RIGHT);
-  // return complexComponent;
-  // }
+  private Component test() {
+    VerticalLayout projDescriptionContent = new VerticalLayout();
+    VerticalLayout projDescription = new VerticalLayout();
+    HorizontalLayout horz = new HorizontalLayout();
+    horz.setStyleName(ValoTheme.BUTTON_FRIENDLY);
+    VerticalLayout vert = new VerticalLayout();
+
+    Label investigator = new Label("", ContentMode.PREFORMATTED);
+    investigator.setCaption("Investigator");
+
+    Label contactPerson = new Label("", ContentMode.PREFORMATTED);
+    contactPerson.setCaption("Contact Person");
+
+    Label descContent = new Label("", ContentMode.PREFORMATTED);
+    contactPerson.setCaption("Description");
+
+    Button edit = new Button("Edit Description");
+    edit.setIcon(FontAwesome.PENCIL);
+//    edit.setStyleName(ValoTheme.BUTTON_BORDERLESS_COLORED);
+    projDescriptionContent.setMargin(new MarginInfo(false, false, false, false));
+
+    investigator.setCaption("test1test1test1test1test1test1test1test1tes\n"
+        + "t1test1test1test1test1test1test1test1test1test1");
+    investigator.setStyleName(ValoTheme.LABEL_BOLD);
+    contactPerson.setCaption("test1test1test1test1test1test1test1test1test1\n"
+        + "test1test1test1test1test1test1test1test1test1test1test1");
+    descContent.setCaption("test1test1test1test1test1test1test1test1test1test1test1test1test1test1test1test1test1test1test1test1test1test1"
+        + "test1test1test1test1test1test1test1test1test1test1test1test1test1test1"
+        + "test1test1test1test1test1test1test1test1test1test1test1test1test1test1test1\n"
+        + "test1test1test1test1test1test1test1test1test1");
+
+    horz.setWidth("100%");
+    horz.addComponent(investigator);
+    horz.addComponent(contactPerson);
+    horz.addComponent(edit);
+    horz.setComponentAlignment(edit, Alignment.TOP_RIGHT);
+
+    horz.setExpandRatio(investigator, 0.4f);
+    horz.setExpandRatio(contactPerson, 0.4f);
+    horz.setExpandRatio(edit, 0.2f);
+
+    projDescription.addComponent(projDescriptionContent);
+    projDescriptionContent.setSpacing(true);
+    projDescription.setMargin(new MarginInfo(false, false, true, true));
+    projDescription.setWidth("100%");
+    projDescription.setSpacing(true);
+
+    vert.addComponent(projDescription);
+
+
+
+    projDescriptionContent.addComponent(horz);
+    projDescriptionContent.addComponent(descContent);
+    // projDescriptionContent.setExpandRatio(descContent, 0.8f);
+
+    return vert;
+  }
 
   @Override
   protected void init(VaadinRequest request) {
     tabs.addStyleName(ValoTheme.TABSHEET_FRAMED);
     VerticalLayout layout = new VerticalLayout();
+
+//    layout.addComponent(test());
+
     // read in the configuration file
     readConfig();
     layout.setMargin(true);
@@ -344,8 +389,9 @@ public class ProjectwizardUI extends UI {
     VerticalLayout wLayout = new VerticalLayout();
     wLayout.addComponent(w);
     wLayout.setMargin(true);
-//    wLayout.addComponent(addCommentLayout(EntityType.EXPERIMENT, "/CHICKEN_FARM/QANDI/QANDIE1", user));// TODO
-    
+    // wLayout.addComponent(addCommentLayout(EntityType.EXPERIMENT, "/CHICKEN_FARM/QANDI/QANDIE1",
+    // user));// TODO
+
     tabs.addTab(wLayout, "Create Project").setIcon(FontAwesome.FLASK);
     BarcodeConfig bcConf =
         new BarcodeConfig(barcodeScripts, tmpFolder, barcodeResultsFolder, pathVar);
@@ -364,7 +410,7 @@ public class ProjectwizardUI extends UI {
                                                                                           // openbis
                                                                                           // is down
 
-    ExperimentImportController uc = new ExperimentImportController(tsvImport, creationController);
+    ExperimentImportController uc = new ExperimentImportController(tsvImport, creationController, vocabularies.getTaxMap());
     uc.init(user);
     tabs.addTab(tsvImport, "Import Project").setIcon(FontAwesome.FILE);
     if (isAdmin) {
@@ -410,123 +456,123 @@ public class ProjectwizardUI extends UI {
     MSLabelingMethods = c.getVocabularyMSLabeling();
   }
 
-//  private JAXBElement<Notes> parseNotes(EntityType t, String id) {
-//    System.out.println(EntityType.EXPERIMENT);
-//    JAXBElement<Notes> notes = null;
-//    String xml = null;
-//    if (t.equals(ch.systemsx.cisd.openbis.generic.shared.dto.EventPE.EntityType.EXPERIMENT)) {
-//      List<Experiment> e = openbis.getExperimentById2(id);
-//      xml = e.get(0).getProperties().get("Q_NOTES");
-//    } else {
-//      java.util.EnumSet<SampleFetchOption> fetchOptions = EnumSet.of(SampleFetchOption.PROPERTIES);
-//      SearchCriteria sc = new SearchCriteria();
-//      sc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.CODE, id));
-//      List<Sample> samples = openbis.getOpenbisInfoService()
-//          .searchForSamplesOnBehalfOfUser(openbis.getSessionToken(), sc, fetchOptions, "admin");
-//      if (samples != null && samples.size() == 1) {
-//        Sample sample = samples.get(0);
-//        xml = sample.getProperties().get("Q_NOTES");
-//      }
-//    }
-//    try {
-//      if (xml != null) {
-//        notes = HistoryReader.parseNotes(xml);
-//      } else {
-//        notes = new JAXBElement<Notes>(new QName(""), Notes.class, new Notes());
-//      }
-//    } catch (java.lang.IndexOutOfBoundsException | JAXBException | NullPointerException e) {
-//      e.printStackTrace();
-//    }
-//    return notes;
-//  }
-//
-//  private VerticalLayout addCommentLayout(EntityType t, String id, String user) {
-//    VerticalLayout res = new VerticalLayout();
-//    Panel commentsPanel = new Panel();
-//    Grid comments = new Grid();
-//    comments.setWidth(100, Unit.PERCENTAGE);
-//    JAXBElement<Notes> notes = parseNotes(t, id);
-//    BeanItemContainer<Note> container = new BeanItemContainer<Note>(Note.class);
-//    container.addAll(notes.getValue().getNote());
-//    comments.setContainerDataSource(container);
-//    comments.setColumnOrder("time", "username", "comment");
-//    comments.setHeightMode(HeightMode.ROW);
-//
-//    VerticalLayout addComment = new VerticalLayout();
-//    addComment.setMargin(true);
-//    addComment.setWidth(100, Unit.PERCENTAGE);
-//    final TextArea newComments = new TextArea();
-//    newComments.setInputPrompt("Write your comment here...");
-//    newComments.setWidth(100, Unit.PERCENTAGE);
-//    newComments.setRows(2);
-//    Button sendComment = new Button("Add Comment");
-//    sendComment.addStyleName(ValoTheme.BUTTON_FRIENDLY);
-//    addComment.addComponent(newComments);
-//    addComment.addComponent(sendComment);
-//    sendComment.addClickListener(new ClickListener() {
-//
-//      @Override
-//
-//      public void buttonClick(ClickEvent event) {
-//        if ("".equals(newComments.getValue()))
-//          return;
-//
-//        String newComment = newComments.getValue();
-//        // reset comments
-//        newComments.setValue("");
-//        // use some date format
-//        Date dNow = new Date();
-//        SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-//
-//        Note note = new Note();
-//        note.setComment(newComment);
-//        note.setUsername(user);
-//        note.setTime(ft.format(dNow));
-//        writeNoteToOpenbis(id, note);
-//
-//        // show it now
-//        comments.getContainerDataSource().addItem(note);
-//
-//        Label commentsLabel = new Label(
-//            translateComments((BeanItemContainer<Note>) comments.getContainerDataSource(), user),
-//            ContentMode.HTML);
-//        commentsPanel.setContent(commentsLabel);
-//
-//      }
-//    });
-//    res.addComponent(addComment);
-//    res.addComponent(commentsPanel);
-//    return res;
-//  }
-//
-//  private void writeNoteToOpenbis(String id, Note note) {
-//    Map<String, Object> params = new HashMap<String, Object>();
-//    params.put("id", id);
-//    params.put("user", note.getUsername());
-//    params.put("comment", note.getComment());
-//    params.put("time", note.getTime());
-//    openbis.ingest("DSS1", "add-to-xml-note", params);
-//  }
-//
-//  public String translateComments(BeanItemContainer<Note> notes, String user) {
-//    String lastDay = "";
-//    String labelString = "";
-//    for (Iterator<Note> i = notes.getItemIds().iterator(); i.hasNext();) {
-//      Note noteBean = (Note) i.next();
-//      String date = noteBean.getTime();
-//      String[] datetime = date.split("T");
-//      String day = datetime[0];
-//      String time = datetime[1].split("\\.")[0];
-//      if (!lastDay.equals(day)) {
-//        lastDay = day;
-//        labelString += String.format("%s\n", "<u>" + day + "</u>");
-//      }
-//      labelString += String.format("%s\n%s %s\n", "<p><b>" + user + "</b>.</p>",
-//          noteBean.getComment(), "<p><i><small>" + time + "</small></i>.</p>");
-//    }
-//
-//    return labelString;
-//
-//  }
+  // private JAXBElement<Notes> parseNotes(EntityType t, String id) {
+  // System.out.println(EntityType.EXPERIMENT);
+  // JAXBElement<Notes> notes = null;
+  // String xml = null;
+  // if (t.equals(ch.systemsx.cisd.openbis.generic.shared.dto.EventPE.EntityType.EXPERIMENT)) {
+  // List<Experiment> e = openbis.getExperimentById2(id);
+  // xml = e.get(0).getProperties().get("Q_NOTES");
+  // } else {
+  // java.util.EnumSet<SampleFetchOption> fetchOptions = EnumSet.of(SampleFetchOption.PROPERTIES);
+  // SearchCriteria sc = new SearchCriteria();
+  // sc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.CODE, id));
+  // List<Sample> samples = openbis.getOpenbisInfoService()
+  // .searchForSamplesOnBehalfOfUser(openbis.getSessionToken(), sc, fetchOptions, "admin");
+  // if (samples != null && samples.size() == 1) {
+  // Sample sample = samples.get(0);
+  // xml = sample.getProperties().get("Q_NOTES");
+  // }
+  // }
+  // try {
+  // if (xml != null) {
+  // notes = HistoryReader.parseNotes(xml);
+  // } else {
+  // notes = new JAXBElement<Notes>(new QName(""), Notes.class, new Notes());
+  // }
+  // } catch (java.lang.IndexOutOfBoundsException | JAXBException | NullPointerException e) {
+  // e.printStackTrace();
+  // }
+  // return notes;
+  // }
+  //
+  // private VerticalLayout addCommentLayout(EntityType t, String id, String user) {
+  // VerticalLayout res = new VerticalLayout();
+  // Panel commentsPanel = new Panel();
+  // Grid comments = new Grid();
+  // comments.setWidth(100, Unit.PERCENTAGE);
+  // JAXBElement<Notes> notes = parseNotes(t, id);
+  // BeanItemContainer<Note> container = new BeanItemContainer<Note>(Note.class);
+  // container.addAll(notes.getValue().getNote());
+  // comments.setContainerDataSource(container);
+  // comments.setColumnOrder("time", "username", "comment");
+  // comments.setHeightMode(HeightMode.ROW);
+  //
+  // VerticalLayout addComment = new VerticalLayout();
+  // addComment.setMargin(true);
+  // addComment.setWidth(100, Unit.PERCENTAGE);
+  // final TextArea newComments = new TextArea();
+  // newComments.setInputPrompt("Write your comment here...");
+  // newComments.setWidth(100, Unit.PERCENTAGE);
+  // newComments.setRows(2);
+  // Button sendComment = new Button("Add Comment");
+  // sendComment.addStyleName(ValoTheme.BUTTON_FRIENDLY);
+  // addComment.addComponent(newComments);
+  // addComment.addComponent(sendComment);
+  // sendComment.addClickListener(new ClickListener() {
+  //
+  // @Override
+  //
+  // public void buttonClick(ClickEvent event) {
+  // if ("".equals(newComments.getValue()))
+  // return;
+  //
+  // String newComment = newComments.getValue();
+  // // reset comments
+  // newComments.setValue("");
+  // // use some date format
+  // Date dNow = new Date();
+  // SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+  //
+  // Note note = new Note();
+  // note.setComment(newComment);
+  // note.setUsername(user);
+  // note.setTime(ft.format(dNow));
+  // writeNoteToOpenbis(id, note);
+  //
+  // // show it now
+  // comments.getContainerDataSource().addItem(note);
+  //
+  // Label commentsLabel = new Label(
+  // translateComments((BeanItemContainer<Note>) comments.getContainerDataSource(), user),
+  // ContentMode.HTML);
+  // commentsPanel.setContent(commentsLabel);
+  //
+  // }
+  // });
+  // res.addComponent(addComment);
+  // res.addComponent(commentsPanel);
+  // return res;
+  // }
+  //
+  // private void writeNoteToOpenbis(String id, Note note) {
+  // Map<String, Object> params = new HashMap<String, Object>();
+  // params.put("id", id);
+  // params.put("user", note.getUsername());
+  // params.put("comment", note.getComment());
+  // params.put("time", note.getTime());
+  // openbis.ingest("DSS1", "add-to-xml-note", params);
+  // }
+  //
+  // public String translateComments(BeanItemContainer<Note> notes, String user) {
+  // String lastDay = "";
+  // String labelString = "";
+  // for (Iterator<Note> i = notes.getItemIds().iterator(); i.hasNext();) {
+  // Note noteBean = (Note) i.next();
+  // String date = noteBean.getTime();
+  // String[] datetime = date.split("T");
+  // String day = datetime[0];
+  // String time = datetime[1].split("\\.")[0];
+  // if (!lastDay.equals(day)) {
+  // lastDay = day;
+  // labelString += String.format("%s\n", "<u>" + day + "</u>");
+  // }
+  // labelString += String.format("%s\n%s %s\n", "<p><b>" + user + "</b>.</p>",
+  // noteBean.getComment(), "<p><i><small>" + time + "</small></i>.</p>");
+  // }
+  //
+  // return labelString;
+  //
+  // }
 
 }

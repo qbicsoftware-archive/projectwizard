@@ -126,8 +126,8 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
     main.addComponent(bar);
   }
 
-  public void setSummary(ArrayList<SampleSummaryBean> beans) {
-    summary.setSamples(beans);
+  public void setSummary(List<SampleSummaryBean> summaries) {
+    summary.setSamples(summaries);
     summaryComponent.setVisible(true);
     enableDownloads(true);
   }
