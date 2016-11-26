@@ -34,7 +34,7 @@ public class DBVocabularies {
   private Map<String, String> antibodies;
   private List<String> msProtocols;
   private List<String> lcmsMethods;
-  private List<String> chromTypes;
+  private Map<String, String> chromTypes;
   private List<String> fractionationTypes;
   private List<String> enrichmentTypes;
 
@@ -42,7 +42,7 @@ public class DBVocabularies {
       Map<String, String> cellLinesMap, List<String> measureTypes, List<String> spaces,
       Map<String, Integer> piMap, List<String> experimentTypes, List<String> enzymes,
       Map<String, String> antibodiesWithDescriptions, Map<String, String> deviceMap,
-      List<String> msProtocols, List<String> lcmsMethods, List<String> chromTypes,
+      List<String> msProtocols, List<String> lcmsMethods, Map<String, String> chromTypes2,
       List<String> fractionationTypes, List<String> enrichmentTypes, Map<String, String> purificationMethods) {
     this.taxMap = taxMap;
     this.tissueMap = tissueMap;
@@ -56,7 +56,7 @@ public class DBVocabularies {
     this.antibodies = antibodiesWithDescriptions;
     this.msProtocols = msProtocols;
     this.lcmsMethods = lcmsMethods;
-    this.chromTypes = chromTypes;
+    this.chromTypes = chromTypes2;
     this.fractionationTypes = fractionationTypes;
     this.enrichmentTypes = enrichmentTypes;
     this.proteinPurificationMethods = purificationMethods;
@@ -118,11 +118,11 @@ public class DBVocabularies {
     return lcmsMethods;
   }
 
-  public List<String> getChromTypes() {
+  public Map<String,String> getChromTypesMap() {
     return chromTypes;
   }
 
-  public Map<String, String> getAntibodies() {
+  public Map<String, String> getAntibodiesMap() {
     return antibodies;
   }
 
@@ -131,7 +131,7 @@ public class DBVocabularies {
   }
 
   public void setSpaces(List<String> userSpaces) {
-    this.spaces = spaces;
+    this.spaces = userSpaces;
   }
 
 }

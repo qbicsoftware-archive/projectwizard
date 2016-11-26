@@ -222,7 +222,11 @@ public class BarcodeController implements Observer {
         if (space != null) {
           List<String> projects = new ArrayList<String>();
           for (Project p : openbis.getProjectsOfSpace(space)) {
-            projects.add(p.getCode());
+            String code = p.getCode();
+            String name = dbManager.getProjectName("/" + space + "/" + code);
+            if (name != null && name.length() > 0)
+              code += " (" + name + ")";
+            projects.add(code);
           }
           view.setProjectCodes(projects);
         }
@@ -247,6 +251,8 @@ public class BarcodeController implements Observer {
         view.resetPrinters();
         view.enablePrep(projSelected());
         if (project != null) {
+          if (project.contains(" "))
+            project = project.split(" ")[0];
           reactToProjectSelection(project);
         }
       }
@@ -326,15 +332,14 @@ public class BarcodeController implements Observer {
       logger.debug(
           "Caught database exception when trying to fetch printers. Printing elsewhere won't be possible!");
     }
-    experimentsMap = new HashMap<String,Experiment>();
+    experimentsMap = new HashMap<String, Experiment>();
     String projectID = "/" + view.getSpaceCode() + "/" + project;
     logger.debug("fetch experiments of project");
-    for(Experiment e : openbis.getExperimentsForProject(projectID)) {
+    for (Experiment e : openbis.getExperimentsForProject(projectID)) {
       experimentsMap.put(e.getIdentifier(), e);
     }
     logger.debug("done");
-    for (Sample s : openbis.getSamplesWithParentsAndChildrenOfProjectBySearchService(
-        projectID)) {
+    for (Sample s : openbis.getSamplesWithParentsAndChildrenOfProjectBySearchService(projectID)) {
       String type = s.getSampleTypeCode();
       if (barcodeSamples.contains(type) && Functions.isQbicBarcode(s.getCode())) {
 

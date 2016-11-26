@@ -133,7 +133,7 @@ public class WizardBarcodeView extends HorizontalLayout {
 
     left.addComponent(ProjectwizardUI.questionize(spaceBox, "Name of the project", "Project Name"));
     left.addComponent(
-        ProjectwizardUI.questionize(projectBox, "QBiC 5 letter project code", "Sub-Project"));
+        ProjectwizardUI.questionize(projectBox, "QBiC project code and project name", "Sub-Project"));
 
     initExperimentTable();
     left.addComponent(ProjectwizardUI.questionize(experimentTable,

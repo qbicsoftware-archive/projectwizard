@@ -476,7 +476,11 @@ public class WizardController {
         if (space != null) {
           List<String> projects = new ArrayList<String>();
           for (Project p : openbis.getProjectsOfSpace(space)) {
-            projects.add(p.getCode());
+            String code = p.getCode();
+            String name = dbm.getProjectName("/" + space + "/" + code);
+            if (name != null && name.length() > 0)
+              code += " (" + name + ")";
+            projects.add(code);
           }
           contextStep.setProjectCodes(projects);
           if (space.endsWith("PCT")) {
@@ -1076,6 +1080,8 @@ public class WizardController {
         // known project selected, will deactivate generation
         projSelection.tryEnableCustomProject("");
         String project = existingProject;
+        if (project.contains(" "))
+          project = project.split(" ")[0];
         contextStep.enableNewContextOption(true);
         contextStep.makeContextVisible();
         boolean hasBioEntities = projectHasBioEntities(space, project);

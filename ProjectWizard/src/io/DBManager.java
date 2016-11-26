@@ -68,6 +68,25 @@ public class DBManager {
     return conn;
   }
 
+  public String getProjectName(String projectIdentifier) {
+    String sql = "SELECT short_title from projects WHERE openbis_project_identifier = ?";
+    String res = "";
+    Connection conn = login();
+    try {
+      PreparedStatement statement = conn.prepareStatement(sql);
+      statement.setString(1, projectIdentifier);
+      ResultSet rs = statement.executeQuery();
+      if (rs.next()) {
+        res = rs.getString(1);
+      }
+    } catch (SQLException e) {
+      logger.error("SQL operation unsuccessful: " + e.getMessage());
+      e.printStackTrace();
+    }
+    logout(conn);
+    return res;
+  }
+
   public void addOrChangeSecondaryNameForProject(String projectCode, String secondaryName) {
     logger
         .info("Adding/Updating secondary name of project " + projectCode + " to " + secondaryName);
