@@ -15,16 +15,10 @@
  *******************************************************************************/
 package sorters;
 
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
 
 import logging.Log4j2Logger;
 import model.IBarcodeBean;
-import model.NewModelBarcodeBean;
 
 /**
  * Compares IBarcodeBeans by sample ID

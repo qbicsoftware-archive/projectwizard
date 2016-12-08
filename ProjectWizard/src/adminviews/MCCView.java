@@ -32,13 +32,12 @@ import views.IRegistrationView;
 
 import logging.Log4j2Logger;
 import main.IOpenBisClient;
-import main.OpenBisClient;
 import main.OpenbisCreationController;
 import main.ProjectwizardUI;
 import main.TSVSampleBean;
 import model.ISampleBean;
 import model.MCCPatient;
-
+import model.OpenbisExperiment;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
 
@@ -84,8 +83,8 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
   private Table existingPatients;
 
   private TabSheet editView;
-  private Table samples;
-  private Table metaData;
+   private Table samples;
+   private Table metaData;
 
   private ProgressBar bar;
   private Label registerInfo;
@@ -97,7 +96,8 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
   private Set<String> cases;
   private SampleCounter counter;
 
-  public MCCView(IOpenBisClient openbis, OpenbisCreationController creationController, String user) {
+  public MCCView(IOpenBisClient openbis, OpenbisCreationController creationController,
+      String user) {
     this.openbis = openbis;
     this.creator = creationController;
     this.user = user;
@@ -139,24 +139,24 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
     // existingPatients.setSelectable(true);
     // existingPatients.setImmediate(true);
     existingPatients.setPageLength(1);
-    existingPatients.setColumnHeader("urineAliquots", "aliquots (urine)");
-    existingPatients.setColumnHeader("plasmaAliquots", "aliquots (plasma)");
-    existingPatients.setColumnHeader("cryovials", "cryovials (sm. mol.)");
+    // existingPatients.setColumnHeader("urineAliquots", "aliquots (urine)");
+    // existingPatients.setColumnHeader("plasmaAliquots", "aliquots (plasma)");
+    // existingPatients.setColumnHeader("cryovials", "cryovials (sm. mol.)");
 
     editView = new TabSheet();
     editView.addStyleName(ValoTheme.TABSHEET_FRAMED);
 
-    samples = new Table("Samples");
-    samples.setStyleName(ProjectwizardUI.tableTheme);
-    samples.setPageLength(1);
-
-    metaData = new Table();
-    metaData.setEditable(true);
-    metaData.setStyleName(ProjectwizardUI.tableTheme);
-
-    editView.addTab(samples, "Overview");
-    editView.addTab(metaData, "Change Metadata");
-    editView.setVisible(false);
+     samples = new Table("Samples");
+     samples.setStyleName(ProjectwizardUI.tableTheme);
+     samples.setPageLength(1);
+    
+     metaData = new Table();
+     metaData.setEditable(true);
+     metaData.setStyleName(ProjectwizardUI.tableTheme);
+    
+     editView.addTab(samples, "Overview");
+     editView.addTab(metaData, "Change Metadata");
+     editView.setVisible(false);
 
     registerInfo = new Label();
     bar = new ProgressBar();
@@ -251,65 +251,7 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
 
       @Override
       public void valueChange(ValueChangeEvent event) {
-        addSamples.setEnabled(true);
-        if (mccProjects.getValue() == null) {
-          newProject.setEnabled(true);
-          treatment.setEnabled(true);
-          addSamples.setEnabled(false);
-        } else {
-          newProject.setEnabled(false);
-        }
-        entities = new ArrayList<Sample>();
-        cases = new HashSet<String>();
-        if (newProject.getValue().isEmpty())
-          counter = new SampleCounter((String) mccProjects.getValue());
-        else
-          counter = new SampleCounter(newProject.getValue());
-        String treatment = "";
-        boolean wrongFormat = false;
-        for (Sample s : openbis.getSamplesWithParentsAndChildrenOfProjectBySearchService(
-            "/" + mccSpace + "/" + (String) mccProjects.getValue())) {
-          counter.increment(s);
-          String id = s.getProperties().get("Q_EXTERNALDB_ID");
-          if (s.getSampleTypeCode().equals("Q_BIOLOGICAL_ENTITY")) {
-            entities.add(s);
-            patients.add(id);
-          } else {
-            if (treatment.isEmpty()) {
-              for (Factor f : parseXMLFactors(s)) {
-                if (f.getLabel().equals("treatment")) {
-                  treatment = f.getValue();
-                  getView().treatment.setValue(treatment);
-                  getView().treatment.setEnabled(false);
-                }
-              }
-            }
-            try {
-              cases.add(id.substring(0, 6));
-            } catch (NullPointerException e) {
-              wrongFormat = true;
-            }
-          }
-        }
-        addSamples.setEnabled(allValid());
-        if (wrongFormat) {
-          logger.warn(
-              "MCCView found samples with unexpected/empty External ID. Probably no problem...");
-          // Functions.notification("Wrong format",
-          // "Project doesn't fit the expected layout. Please choose another project.",
-          // NotificationType.ERROR);
-          // addSamples.setEnabled(false);
-        }
-        BeanItemContainer<MCCPatient> c = new BeanItemContainer<MCCPatient>(MCCPatient.class);
-        for (String id : cases) {
-          System.out.println(id);
-          String[] idSplit = id.split(":");
-          MCCPatient p = new MCCPatient(idSplit[1], treatment, idSplit[2]);
-          c.addBean(p);
-        }
-        existingPatients.setContainerDataSource(c);
-        existingPatients.setPageLength(c.size());
-        existingPatients.sort(new Object[] {"ID", "timepoint"}, new boolean[] {true});
+        projectBoxChanged();
       }
     });
 
@@ -329,10 +271,72 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
             logger.debug("Created samples: " + s);
         addSamples.setEnabled(false);
         creator.prepareXMLProps(samps);
-        creator.registerProjectWithExperimentsAndSamplesBatchWise(samps, null, null, null, null,
-            bar, registerInfo, new RegisteredSamplesReadyRunnable(getView()), user);
+        creator.registerProjectWithExperimentsAndSamplesBatchWise(samps, null, null,
+            new ArrayList<OpenbisExperiment>(), null, bar, registerInfo,
+            new RegisteredSamplesReadyRunnable(getView()), user);
       }
     });
+  }
+
+  protected void projectBoxChanged() {
+    addSamples.setEnabled(true);
+    if (mccProjects.getValue() == null) {
+      newProject.setEnabled(true);
+      treatment.setEnabled(true);
+      addSamples.setEnabled(false);
+    } else {
+      newProject.setEnabled(false);
+    }
+    entities = new ArrayList<Sample>();
+    cases = new HashSet<String>();
+    if (newProject.getValue().isEmpty())
+      counter = new SampleCounter((String) mccProjects.getValue());
+    else
+      counter = new SampleCounter(newProject.getValue());
+    String treatment = "";
+    boolean wrongFormat = false;
+    for (Sample s : openbis.getSamplesWithParentsAndChildrenOfProjectBySearchService(
+        "/" + mccSpace + "/" + (String) mccProjects.getValue())) {
+      counter.increment(s);
+      String id = s.getProperties().get("Q_EXTERNALDB_ID");
+      if (s.getSampleTypeCode().equals("Q_BIOLOGICAL_ENTITY")) {
+        entities.add(s);
+        patients.add(id);
+      } else {
+        if (treatment.isEmpty()) {
+          for (Factor f : parseXMLFactors(s)) {
+            if (f.getLabel().equals("treatment")) {
+              treatment = f.getValue();
+              getView().treatment.setValue(treatment);
+              getView().treatment.setEnabled(false);
+            }
+          }
+        }
+        try {
+          cases.add(id.substring(0, 6));
+        } catch (NullPointerException e) {
+          wrongFormat = true;
+        }
+      }
+    }
+    addSamples.setEnabled(allValid());
+    if (wrongFormat) {
+      logger
+          .warn("MCCView found samples with unexpected/empty External ID. Probably no problem...");
+      // Functions.notification("Wrong format",
+      // "Project doesn't fit the expected layout. Please choose another project.",
+      // NotificationType.ERROR);
+      // addSamples.setEnabled(false);
+    }
+    BeanItemContainer<MCCPatient> c = new BeanItemContainer<MCCPatient>(MCCPatient.class);
+    for (String id : cases) {
+      String[] idSplit = id.split(":");
+      MCCPatient p = new MCCPatient(idSplit[1], treatment, idSplit[2]);
+      c.addBean(p);
+    }
+    existingPatients.setContainerDataSource(c);
+    existingPatients.setPageLength(Math.min(10, c.size()));
+    existingPatients.sort(new Object[] {"ID", "timepoint"}, new boolean[] {true});
   }
 
   @SuppressWarnings("unchecked")
@@ -448,10 +452,9 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
 
   @Override
   public void registrationDone() {
-    logger.info("Registration complete!");
-    Notification n = new Notification("Registration of patient complete.");
-    n.setStyleName(ValoTheme.NOTIFICATION_CLOSABLE);
-    n.setDelayMsec(-1);
-    n.show(UI.getCurrent().getPage());
+    logger.info("Registration complete, reloading patient table.");
+    Functions.notification("Registration complete!", "Registration of patient complete.",
+        NotificationType.SUCCESS);
+    projectBoxChanged();
   }
 }

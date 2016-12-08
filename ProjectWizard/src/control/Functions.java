@@ -85,6 +85,10 @@ public class Functions {
     return System.currentTimeMillis();
   }
 
+  public static void main(String[] args) {
+    System.out.println(compareSampleCodes("QABCD003AB", "QABCD002AC"));
+  }
+  
   public static int compareSampleCodes(String c1, String c2) {
     if (!c1.startsWith("Q") || c1.contains("ENTITY") || !c2.startsWith("Q")
         || c2.contains("ENTITY"))
@@ -213,11 +217,6 @@ public class Functions {
       i += 7;
     }
     return (char) i;
-  }
-
-  public static void main(String[] args) {
-    String test = "QMELA005A";
-    System.out.println(checksum(test));
   }
 
   public static float getPercentageStep(int max) {
