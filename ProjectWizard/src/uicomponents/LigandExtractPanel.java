@@ -59,7 +59,7 @@ public class LigandExtractPanel extends VerticalLayout {
   public LigandExtractPanel(DBVocabularies vocabs) {
     this.setCaption("MHC Ligand Extraction");
     // this.vocabs = vocabs;
-    this.antiBodies = vocabs.getAntibodies();
+    this.antiBodies = vocabs.getAntibodiesMap();
     setSpacing(true);
 
     extractionExperiments = new Table();

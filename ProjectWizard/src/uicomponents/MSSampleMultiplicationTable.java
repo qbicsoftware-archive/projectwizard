@@ -438,7 +438,7 @@ public class MSSampleMultiplicationTable extends VerticalLayout {
         ExperimentModel peptideExp =
             new ExperimentModel(item, new ArrayList<AOpenbisSample>(Arrays.asList(pepSample)));
         String enzymes = StringUtils.join(enzymeList, ", ");
-        peptideExp.addProperty("Q_ADDITIONAL_INFO", enzymes);
+        peptideExp.addProperty("Q_ADDITIONAL_INFO", enzymes+" digestion");
         peptides.add(peptideExp);
       }
       if (fractHelper.containsKey(ids[0])) {
@@ -459,7 +459,7 @@ public class MSSampleMultiplicationTable extends VerticalLayout {
             logger.error("Unknown AnalyteMultiplicationType: " + type);
             break;
         }
-        fractHelper.put(ids[0], fractionExp);// TODO x
+        fractHelper.put(ids[0], fractionExp);
         if (sampleType.equals("PEPTIDES"))
           peptides.add(fractionExp);
         else

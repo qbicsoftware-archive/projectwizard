@@ -53,7 +53,7 @@ public class GeneralMSInfoPanel extends VerticalLayout {
     this.setCaption(name);
     this.vocabs = vocabs;
 
-    List<String> chromTypes = (vocabs.getChromTypes());
+    List<String> chromTypes = new ArrayList<String>(vocabs.getChromTypesMap().keySet());
     Collections.sort(chromTypes);
 
     deviceBox = new ComboBox("MS Device");
@@ -97,10 +97,20 @@ public class GeneralMSInfoPanel extends VerticalLayout {
 
   public Map<String, Object> getExperimentalProperties() {
     Map<String, Object> res = new HashMap<String, Object>();
-    res.put("Q_MS_DEVICE", vocabs.getDeviceMap().get(deviceBox.getValue()));
-    res.put("Q_MS_LCMS_METHOD", lcmsMethodBox.getValue());
-    res.put("Q_CHROMATOGRAPHY_TYPE", chromType.getValue());
-    res.put("Q_MS_LCMS_METHOD_INFO", lcmsSpecial.getValue());
+
+    if (deviceBox.getValue() != null)
+      res.put("Q_MS_DEVICE", vocabs.getDeviceMap().get(deviceBox.getValue()));
+    if (lcmsMethodBox.getValue() != null)
+      res.put("Q_MS_LCMS_METHOD", lcmsMethodBox.getValue());
+    if (chromType.getValue() != null)
+      res.put("Q_CHROMATOGRAPHY_TYPE", vocabs.getChromTypesMap().get(chromType.getValue()));
+    if (!lcmsSpecial.getValue().isEmpty())
+      res.put("Q_MS_LCMS_METHOD_INFO", lcmsSpecial.getValue());
+
+    // res.put("Q_MS_DEVICE", vocabs.getDeviceMap().get(deviceBox.getValue()));
+    // res.put("Q_MS_LCMS_METHOD", lcmsMethodBox.getValue());
+    // res.put("Q_CHROMATOGRAPHY_TYPE", chromType.getValue());
+    // res.put("Q_MS_LCMS_METHOD_INFO", lcmsSpecial.getValue());
     List<String> remove = new ArrayList<String>();
     for (String key : res.keySet()) {
       String val = (String) res.get(key);
