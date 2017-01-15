@@ -11,7 +11,6 @@ import com.vaadin.ui.Button.ClickEvent;
 
 import main.ProjectwizardUI;
 
-@Deprecated
 public class EnzymePanel extends VerticalLayout {
 
   private List<String> enzymes;
@@ -21,8 +20,8 @@ public class EnzymePanel extends VerticalLayout {
   private Button remove;
   private Button.ClickListener buttonListener;
 
-  @Deprecated
-  public EnzymePanel() {
+  public EnzymePanel(List<String> enzymes) {
+    this.enzymes = enzymes;
     add = new Button();
     remove = new Button();
     ProjectwizardUI.iconButton(add, FontAwesome.PLUS_SQUARE);
