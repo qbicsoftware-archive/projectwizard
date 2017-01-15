@@ -17,9 +17,7 @@ package uicomponents;
 
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import properties.Factor;
 
@@ -55,6 +53,7 @@ public class SummaryTable extends VerticalLayout {
   private boolean isotopes = false;
   private LabelingMethod labelingMethod;
   private HorizontalLayout deleteNames;
+  private List<String> addedCols;
 
   public SummaryTable(String name) {
     setSpacing(true);
@@ -153,6 +152,7 @@ public class SummaryTable extends VerticalLayout {
     table.addContainerProperty("External DB ID", TextField.class, null);
     table.setColumnWidth("External DB ID", 106);
     table.setImmediate(true);
+    table.setCaption(samples.size() + " " + name);
 
     if (isotopes)
       table.addContainerProperty(labelingMethod.getName(), ComboBox.class, null);
@@ -273,6 +273,12 @@ public class SummaryTable extends VerticalLayout {
         row.add("");
       row.add(delete);
       table.addItem(row.toArray(new Object[row.size()]), s);
+    }
+  }
+
+  public void resetChanges() {
+    for (String col : addedCols ) {
+      table.removeContainerProperty(col);
     }
   }
 }
