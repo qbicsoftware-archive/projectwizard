@@ -38,15 +38,10 @@ import com.vaadin.shared.ui.combobox.FilteringMode;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.Notification;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.TextField;
-import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.themes.ValoTheme;
-import componentwrappers.OpenbisInfoComboBox;
 import componentwrappers.OpenbisInfoTextField;
 import control.Functions;
 import control.Functions.NotificationType;
@@ -68,34 +63,21 @@ public class ExtractionStep implements WizardStep {
   private ComboBox cellLine;
   private TextField otherTissue;
   private ConditionsPanel c;
+  private TextField expName;
 
-  String emptyFactor = "Other (please specify)";
-  List<String> suggestions = new ArrayList<String>(Arrays.asList("Extraction time", "Tissue",
+  private String emptyFactor = "Other (please specify)";
+  private List<String> suggestions = new ArrayList<String>(Arrays.asList("Extraction time", "Tissue",
       "Growth Medium", "Radiation", "Treatment", emptyFactor));
-  CheckBox isotopes;
-  ComboBox isotopeTypes;
+  private CheckBox isotopes;
+  private ComboBox isotopeTypes;
 
-  OpenbisInfoTextField tissueNum;
-  ComboBox person;
+  private OpenbisInfoTextField tissueNum;
+  private ComboBox person;
 
-  OpenbisInfoTextField extractReps;
+  private OpenbisInfoTextField extractReps;
   private List<LabelingMethod> labelingMethods;
 
-  public ConditionsPanel getCondPanel() {
-    return c;
-  }
-
-  public OptionGroup conditionsSet() {
-    return conditionsSet;
-  }
-
-  public String getPerson() {
-    if (person.getValue() != null)
-      return person.getValue().toString();
-    else
-      return null;
-  }
-
+  
   /**
    * Create a new Extraction step for the wizard
    * 
@@ -126,6 +108,11 @@ public class ExtractionStep implements WizardStep {
         "How many different tissue types are there in this sample extraction?", "", "50px", "2");
     tissueNum.getInnerComponent().setVisible(false);
     tissueNum.getInnerComponent().setEnabled(false);
+    
+    expName = new TextField("Experimental Step Name");
+    expName.setStyleName(ProjectwizardUI.fieldTheme);
+    main.addComponent(expName);
+    
     c = new ConditionsPanel(suggestions, emptyFactor, "Tissue", tissue, true, conditionsSet,
         (TextField) tissueNum.getInnerComponent());
     main.addComponent(c);
@@ -200,6 +187,25 @@ public class ExtractionStep implements WizardStep {
             + "Technical replicates are added later!",
         "50px", "1");
     main.addComponent(extractReps.getInnerComponent());
+  }
+  
+  public ConditionsPanel getCondPanel() {
+    return c;
+  }
+
+  public OptionGroup conditionsSet() {
+    return conditionsSet;
+  }
+
+  public String getPerson() {
+    if (person.getValue() != null)
+      return person.getValue().toString();
+    else
+      return null;
+  }
+
+  public TextField getExpNameField() {
+    return expName;
   }
 
   private List<LabelingMethod> initLabelingMethods() {

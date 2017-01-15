@@ -29,18 +29,12 @@ import uicomponents.ConditionsPanel;
 
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
-import com.vaadin.shared.ui.combobox.FilteringMode;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.Notification;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.TextField;
-import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.themes.ValoTheme;
-import componentwrappers.OpenbisInfoComboBox;
 import componentwrappers.OpenbisInfoTextField;
 import control.Functions;
 import control.Functions.NotificationType;
@@ -58,6 +52,7 @@ public class EntityStep implements WizardStep {
 
   private VerticalLayout main;
 
+  private TextField expName;
   private ComboBox species;
   private TextField specialSpecies;
   private ConditionsPanel c;
@@ -106,6 +101,9 @@ public class EntityStep implements WizardStep {
     speciesNum.getInnerComponent().setEnabled(false);
     c = new ConditionsPanel(suggestions, emptyFactor, "Species", species, true, conditionsSet,
         (TextField) speciesNum.getInnerComponent());
+    expName = new TextField("Experimental Step Name");
+    expName.setStyleName(ProjectwizardUI.fieldTheme);
+    main.addComponent(expName);
     main.addComponent(c);
     main.addComponent(speciesNum.getInnerComponent());
     main.addComponent(species);
@@ -136,6 +134,10 @@ public class EntityStep implements WizardStep {
     main.addComponent(bioReps.getInnerComponent());
   }
 
+  public TextField getExpNameField() {
+    return expName;
+  }
+  
   @Override
   public String getCaption() {
     return "Sample Sources";
