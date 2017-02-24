@@ -17,7 +17,7 @@
  *******************************************************************************/
 package componentwrappers;
 
-import main.ProjectwizardUI;
+import uicomponents.Styles;
 
 import com.vaadin.ui.AbstractTextField;
 import com.vaadin.ui.TextField;
@@ -34,18 +34,18 @@ public class OpenbisInfoTextField extends AOpenbisInfoComponent {
 
   public OpenbisInfoTextField(String label, String description) {
     super(description, new StandardTextField(label));
-    inner.setStyleName(ProjectwizardUI.fieldTheme);
+    inner.setStyleName(Styles.fieldTheme);
 
   }
 
   public OpenbisInfoTextField(String label, String description, String width) {
     super(description, new StandardTextField(label), width);
-    inner.setStyleName(ProjectwizardUI.fieldTheme);
+    inner.setStyleName(Styles.fieldTheme);
   }
 
   public OpenbisInfoTextField(String label, String description, String width, String value) {
     super(description, new StandardTextField(label, value), width);
-    inner.setStyleName(ProjectwizardUI.fieldTheme);
+    inner.setStyleName(Styles.fieldTheme);
   }
 
   public void setValue(String s) {

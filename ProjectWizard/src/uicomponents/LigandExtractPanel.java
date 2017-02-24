@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 import logging.Log4j2Logger;
-import main.ProjectwizardUI;
+import uicomponents.Styles;
 import model.AOpenbisSample;
 import model.MHCLigandExtractionProtocol;
 
@@ -63,7 +63,7 @@ public class LigandExtractPanel extends VerticalLayout {
     setSpacing(true);
 
     extractionExperiments = new Table();
-    extractionExperiments.setStyleName(ProjectwizardUI.tableTheme);
+    extractionExperiments.setStyleName(Styles.tableTheme);
     extractionExperiments.addContainerProperty("Sample", String.class, null);
     extractionExperiments.addContainerProperty("Mass [mg]", TextField.class, null);
     extractionExperiments.addContainerProperty("Date", DateField.class, null);
@@ -148,7 +148,7 @@ public class LigandExtractPanel extends VerticalLayout {
     ComboBox b = new ComboBox();
     b.setWidth("100px");
     b.addItems(this.antiBodies.keySet());
-    b.setStyleName(ProjectwizardUI.boxTheme);
+    b.setStyleName(Styles.boxTheme);
     return b;
   }
 
@@ -167,7 +167,7 @@ public class LigandExtractPanel extends VerticalLayout {
       DateField date = new DateField();
       date.setDateFormat("dd.MM.yy");
       date.setWidth("110px");
-      date.setStyleName(ProjectwizardUI.fieldTheme);
+      date.setStyleName(Styles.fieldTheme);
       row.add(date);
       row.add(generateTableAntibodyBox());
       row.add(generateTableIntegerInput());

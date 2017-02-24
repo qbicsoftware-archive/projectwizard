@@ -25,7 +25,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -49,18 +48,9 @@ import views.WizardBarcodeView;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.VaadinServletConfiguration;
 import com.vaadin.server.FontAwesome;
-import com.vaadin.server.Resource;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinServlet;
-import com.vaadin.shared.ui.MarginInfo;
-import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.PopupView;
-import com.vaadin.ui.PopupView.Content;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.SelectedTabChangeListener;
 import com.vaadin.ui.UI;
@@ -68,12 +58,9 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.TabSheet.SelectedTabChangeEvent;
 import com.vaadin.ui.themes.ValoTheme;
 
-import componentwrappers.CustomVisibilityComponent;
-
 import control.BarcodeController;
 import control.ExperimentImportController;
 import control.SampleFilterGenerator;
-import control.VisibilityChangeListener;
 import control.WizardController;
 import de.uni_tuebingen.qbic.main.LiferayAndVaadinUtils;
 
@@ -87,161 +74,35 @@ public class ProjectwizardUI extends UI {
   public static class Servlet extends VaadinServlet {
   }
 
-  logging.Logger logger = new Log4j2Logger(ProjectwizardUI.class);
-  private String version = "Version 1.23, 27.10.16";
+  public static boolean testMode = false;// TODO
+  public static String MSLabelingMethods;
+  public static String tmpFolder;
 
-  public static String boxTheme = ValoTheme.COMBOBOX_SMALL;
-  public static String fieldTheme = ValoTheme.TEXTFIELD_SMALL;
-  public static String areaTheme = ValoTheme.TEXTAREA_SMALL;
-  public static String tableTheme = ValoTheme.TABLE_SMALL;
-  public static boolean testMode = false;
-  // hardcoded stuff (experiment types mainly used in the wizard)
+  // hardcoded stuff (main experiment types used in the wizard)
   List<String> expTypes = new ArrayList<String>(
       Arrays.asList("Q_EXPERIMENTAL_DESIGN", "Q_SAMPLE_EXTRACTION", "Q_SAMPLE_PREPARATION"));
 
-  public static void iconButton(Button b, Resource icon) {
-    b.setStyleName(ValoTheme.BUTTON_BORDERLESS);
-    b.setIcon(icon);
-    b.setWidth("10px");
-  }
 
-  public static HorizontalLayout questionize(Component c, final String info, final String header) {
-    final HorizontalLayout res = new HorizontalLayout();
-    res.setSpacing(true);
-    if (c instanceof CustomVisibilityComponent) {
-      CustomVisibilityComponent custom = (CustomVisibilityComponent) c;
-      c = custom.getInnerComponent();
-      custom.addListener(new VisibilityChangeListener() {
+  logging.Logger logger = new Log4j2Logger(ProjectwizardUI.class);
+  private String version = "Version 1.29, 15.02.17";
 
-        @Override
-        public void setVisible(boolean b) {
-          res.setVisible(b);
-        }
-      });
-    }
-
-    res.setVisible(c.isVisible());
-    res.setCaption(c.getCaption());
-    c.setCaption(null);
-    res.addComponent(c);
-
-    PopupView pv = new PopupView(new Content() {
-
-      @Override
-      public Component getPopupComponent() {
-        Label l = new Label(info, ContentMode.HTML);
-        l.setCaption(header);
-        l.setIcon(FontAwesome.INFO);
-        l.setWidth("350px");
-        l.addStyleName("info");
-        return new VerticalLayout(l);
-      }
-
-      @Override
-      public String getMinimizedValueAsHTML() {
-        return "[?]";
-      }
-    });
-    pv.setHideOnMouseOut(false);
-
-    res.addComponent(pv);
-
-    return res;
-  }
-
-  public static String tmpFolder;
-  public static String MSLabelingMethods;
-  private String dataSourceUser;
-  private String dataSourcePass;
-  private String dataSourceURL;
-
-  private String mysqlHost;
-  private String mysqlPort;
-  private String mysqlDB;
-  private String mysqlUser;
-  private String mysqlPass;
-
-  private String barcodeScripts;
-  private String barcodeResultsFolder;
-  private String pathVar;
-
-  private String attachmentSize;
-  private String attachmentURI;
-  private String attachmentUser;
-  private String attachmentPass;
+  private ConfigurationManager config;
 
   private IOpenBisClient openbis;
 
   private final TabSheet tabs = new TabSheet();
   private boolean isAdmin = false;
 
-  private Component test() {
-    VerticalLayout projDescriptionContent = new VerticalLayout();
-    VerticalLayout projDescription = new VerticalLayout();
-    HorizontalLayout horz = new HorizontalLayout();
-    horz.setStyleName(ValoTheme.BUTTON_FRIENDLY);
-    VerticalLayout vert = new VerticalLayout();
-
-    Label investigator = new Label("", ContentMode.PREFORMATTED);
-    investigator.setCaption("Investigator");
-
-    Label contactPerson = new Label("", ContentMode.PREFORMATTED);
-    contactPerson.setCaption("Contact Person");
-
-    Label descContent = new Label("", ContentMode.PREFORMATTED);
-    contactPerson.setCaption("Description");
-
-    Button edit = new Button("Edit Description");
-    edit.setIcon(FontAwesome.PENCIL);
-//    edit.setStyleName(ValoTheme.BUTTON_BORDERLESS_COLORED);
-    projDescriptionContent.setMargin(new MarginInfo(false, false, false, false));
-
-    investigator.setCaption("test1test1test1test1test1test1test1test1tes\n"
-        + "t1test1test1test1test1test1test1test1test1test1");
-    investigator.setStyleName(ValoTheme.LABEL_BOLD);
-    contactPerson.setCaption("test1test1test1test1test1test1test1test1test1\n"
-        + "test1test1test1test1test1test1test1test1test1test1test1");
-    descContent.setCaption("test1test1test1test1test1test1test1test1test1test1test1test1test1test1test1test1test1test1test1test1test1test1"
-        + "test1test1test1test1test1test1test1test1test1test1test1test1test1test1"
-        + "test1test1test1test1test1test1test1test1test1test1test1test1test1test1test1\n"
-        + "test1test1test1test1test1test1test1test1test1");
-
-    horz.setWidth("100%");
-    horz.addComponent(investigator);
-    horz.addComponent(contactPerson);
-    horz.addComponent(edit);
-    horz.setComponentAlignment(edit, Alignment.TOP_RIGHT);
-
-    horz.setExpandRatio(investigator, 0.4f);
-    horz.setExpandRatio(contactPerson, 0.4f);
-    horz.setExpandRatio(edit, 0.2f);
-
-    projDescription.addComponent(projDescriptionContent);
-    projDescriptionContent.setSpacing(true);
-    projDescription.setMargin(new MarginInfo(false, false, true, true));
-    projDescription.setWidth("100%");
-    projDescription.setSpacing(true);
-
-    vert.addComponent(projDescription);
-
-
-
-    projDescriptionContent.addComponent(horz);
-    projDescriptionContent.addComponent(descContent);
-    // projDescriptionContent.setExpandRatio(descContent, 0.8f);
-
-    return vert;
-  }
-
   @Override
   protected void init(VaadinRequest request) {
     tabs.addStyleName(ValoTheme.TABSHEET_FRAMED);
     VerticalLayout layout = new VerticalLayout();
 
-//    layout.addComponent(test());
-
     // read in the configuration file
-    readConfig();
+    config = ConfigurationManagerFactory.getInstance();
+    tmpFolder = config.getTmpFolder();
+    MSLabelingMethods = config.getVocabularyMSLabeling();
+
     layout.setMargin(true);
     setContent(layout);
     String userID = "";
@@ -265,7 +126,8 @@ public class ProjectwizardUI extends UI {
     if (!isDevelopment() || !testMode) {
       try {
         logger.debug("trying to connect to openbis");
-        this.openbis = new OpenBisClient(dataSourceUser, dataSourcePass, dataSourceURL);
+        this.openbis = new OpenBisClient(config.getDataSourceUser(), config.getDataSourcePassword(),
+            config.getDataSourceUrl());
         this.openbis.login();
       } catch (Exception e) {
         success = false;
@@ -277,7 +139,8 @@ public class ProjectwizardUI extends UI {
     }
     if (isDevelopment() && testMode) {
       logger.error("No connection to openBIS. Trying mock version for testing.");
-      this.openbis = new OpenBisClientMock(dataSourceUser, dataSourcePass, dataSourceURL);
+      this.openbis = new OpenBisClientMock(config.getDataSourceUser(),
+          config.getDataSourcePassword(), config.getDataSourceUrl());
       layout.addComponent(new Label(
           "openBIS could not be reached. Resuming with mock version. Some options might be non-functional. Reload to retry."));
     }
@@ -287,6 +150,8 @@ public class ProjectwizardUI extends UI {
       Map<String, String> tissueMap = openbis.getVocabCodesAndLabelsForVocab("Q_PRIMARY_TISSUES");
       Map<String, String> deviceMap = openbis.getVocabCodesAndLabelsForVocab("Q_MS_DEVICES");
       Map<String, String> cellLinesMap = openbis.getVocabCodesAndLabelsForVocab("Q_CELL_LINES");
+      Map<String, String> chromTypes =
+          openbis.getVocabCodesAndLabelsForVocab("Q_CHROMATOGRAPHY_TYPES");
       List<String> sampleTypes = openbis.getVocabCodesForVocab("Q_SAMPLE_TYPES");
       Map<String, String> purificationMethods =
           openbis.getVocabCodesAndLabelsForVocab("Q_PROTEIN_PURIFICATION_METHODS");
@@ -298,20 +163,20 @@ public class ProjectwizardUI extends UI {
           openbis.getVocabCodesAndLabelsForVocab("Q_ANTIBODY");
       List<String> msProtocols = openbis.getVocabCodesForVocab("Q_MS_PROTOCOLS");
       List<String> lcmsMethods = openbis.getVocabCodesForVocab("Q_MS_LCMS_METHODS");
-      List<String> chromTypes = openbis.getVocabCodesForVocab("Q_CHROMATOGRAPHY_TYPES");
       final List<String> spaces = openbis.getUserSpaces(userID);
       isAdmin = openbis.isUserAdmin(userID);
       // stuff from mysql database
-      DBConfig mysqlConfig = new DBConfig(mysqlHost, mysqlPort, mysqlDB, mysqlUser, mysqlPass);
+      DBConfig mysqlConfig = new DBConfig(config.getMysqlHost(), config.getMysqlPort(),
+          config.getMysqlDB(), config.getMysqlUser(), config.getMysqlPass());
       DBManager dbm = new DBManager(mysqlConfig);
-      Map<String, Integer> peopleMap = fetchPeople(dbm);
+      Map<String, Integer> peopleMap = dbm.fetchPeople();
       DBVocabularies vocabs = new DBVocabularies(taxMap, tissueMap, cellLinesMap, sampleTypes,
           spaces, peopleMap, expTypes, enzymes, antibodiesWithLabels, deviceMap, msProtocols,
           lcmsMethods, chromTypes, fractionationTypes, enrichmentTypes, purificationMethods);
       // initialize the View with sample types, spaces and the dictionaries of tissues and species
       initView(dbm, vocabs, userID);
       layout.addComponent(tabs);
-
+//      layout.addComponent(new TSVCreationComponent(openbis));
     }
     if (LiferayAndVaadinUtils.isLiferayPortlet())
       try {
@@ -328,16 +193,6 @@ public class ProjectwizardUI extends UI {
       layout.addComponent(new Label(version));
       layout.addComponent(new Label("User: " + userID));
     }
-  }
-
-  private Map<String, Integer> fetchPeople(DBManager dbm) {
-    Map<String, Integer> map = new HashMap<String, Integer>();
-    try {
-      map = dbm.getPrincipalInvestigatorsWithIDs();
-    } catch (NullPointerException e) {
-      map.put("No Connection", -1);
-    }
-    return map;
   }
 
   boolean isDevelopment() {
@@ -357,8 +212,9 @@ public class ProjectwizardUI extends UI {
 
   private void initView(final DBManager dbm, final DBVocabularies vocabularies, final String user) {
     tabs.removeAllComponents();
-    AttachmentConfig attachConfig = new AttachmentConfig(Integer.parseInt(attachmentSize),
-        attachmentURI, attachmentUser, attachmentPass);
+    AttachmentConfig attachConfig =
+        new AttachmentConfig(Integer.parseInt(config.getAttachmentMaxSize()),
+            config.getAttachmentURI(), config.getAttachmentUser(), config.getAttachmenPassword());
     WizardController c = new WizardController(openbis, dbm, vocabularies, attachConfig);
     c.init(user);
     Wizard w = c.getWizard();
@@ -372,14 +228,14 @@ public class ProjectwizardUI extends UI {
 
       @Override
       public void wizardCompleted(WizardCompletedEvent event) {
-        vocabularies.setPeople(fetchPeople(dbm));
+        vocabularies.setPeople(dbm.fetchPeople());
         vocabularies.setSpaces(openbis.getUserSpaces(user));
         initView(dbm, vocabularies, user);
       }
 
       @Override
       public void wizardCancelled(WizardCancelledEvent event) {
-        vocabularies.setPeople(fetchPeople(dbm));
+        vocabularies.setPeople(dbm.fetchPeople());
         vocabularies.setSpaces(openbis.getUserSpaces(user));
         initView(dbm, vocabularies, user);
       }
@@ -389,12 +245,10 @@ public class ProjectwizardUI extends UI {
     VerticalLayout wLayout = new VerticalLayout();
     wLayout.addComponent(w);
     wLayout.setMargin(true);
-    // wLayout.addComponent(addCommentLayout(EntityType.EXPERIMENT, "/CHICKEN_FARM/QANDI/QANDIE1",
-    // user));// TODO
 
     tabs.addTab(wLayout, "Create Project").setIcon(FontAwesome.FLASK);
-    BarcodeConfig bcConf =
-        new BarcodeConfig(barcodeScripts, tmpFolder, barcodeResultsFolder, pathVar);
+    BarcodeConfig bcConf = new BarcodeConfig(config.getBarcodeScriptsFolder(), tmpFolder,
+        config.getBarcodeResultsFolder(), config.getBarcodePathVariable());
     SampleFilterGenerator gen = new SampleFilterGenerator();
     BarcodeController bc = new BarcodeController(openbis, bcConf, dbm);
     gen.addObserver(bc);
@@ -410,7 +264,8 @@ public class ProjectwizardUI extends UI {
                                                                                           // openbis
                                                                                           // is down
 
-    ExperimentImportController uc = new ExperimentImportController(tsvImport, creationController, vocabularies.getTaxMap());
+    ExperimentImportController uc =
+        new ExperimentImportController(tsvImport, creationController, vocabularies.getTaxMap());
     uc.init(user);
     tabs.addTab(tsvImport, "Import Project").setIcon(FontAwesome.FILE);
     if (isAdmin) {
@@ -429,150 +284,5 @@ public class ProjectwizardUI extends UI {
       }
     });
   }
-
-  private void readConfig() {
-    ConfigurationManager c = ConfigurationManagerFactory.getInstance();
-
-    tmpFolder = c.getTmpFolder();
-    dataSourceUser = c.getDataSourceUser();
-    dataSourcePass = c.getDataSourcePassword();
-    dataSourceURL = c.getDataSourceUrl();
-
-    barcodeScripts = c.getBarcodeScriptsFolder();
-    barcodeResultsFolder = c.getBarcodeResultsFolder();
-    pathVar = c.getBarcodePathVariable();
-
-    mysqlHost = c.getMysqlHost();
-    mysqlDB = c.getMysqlDB();
-    mysqlPort = c.getMysqlPort();
-    mysqlUser = c.getMysqlUser();
-    mysqlPass = c.getMysqlPass();
-
-    attachmentSize = c.getAttachmentMaxSize();
-    attachmentURI = c.getAttachmentURI();
-    attachmentUser = c.getAttachmentUser();
-    attachmentPass = c.getAttachmenPassword();
-
-    MSLabelingMethods = c.getVocabularyMSLabeling();
-  }
-
-  // private JAXBElement<Notes> parseNotes(EntityType t, String id) {
-  // System.out.println(EntityType.EXPERIMENT);
-  // JAXBElement<Notes> notes = null;
-  // String xml = null;
-  // if (t.equals(ch.systemsx.cisd.openbis.generic.shared.dto.EventPE.EntityType.EXPERIMENT)) {
-  // List<Experiment> e = openbis.getExperimentById2(id);
-  // xml = e.get(0).getProperties().get("Q_NOTES");
-  // } else {
-  // java.util.EnumSet<SampleFetchOption> fetchOptions = EnumSet.of(SampleFetchOption.PROPERTIES);
-  // SearchCriteria sc = new SearchCriteria();
-  // sc.addMatchClause(MatchClause.createAttributeMatch(MatchClauseAttribute.CODE, id));
-  // List<Sample> samples = openbis.getOpenbisInfoService()
-  // .searchForSamplesOnBehalfOfUser(openbis.getSessionToken(), sc, fetchOptions, "admin");
-  // if (samples != null && samples.size() == 1) {
-  // Sample sample = samples.get(0);
-  // xml = sample.getProperties().get("Q_NOTES");
-  // }
-  // }
-  // try {
-  // if (xml != null) {
-  // notes = HistoryReader.parseNotes(xml);
-  // } else {
-  // notes = new JAXBElement<Notes>(new QName(""), Notes.class, new Notes());
-  // }
-  // } catch (java.lang.IndexOutOfBoundsException | JAXBException | NullPointerException e) {
-  // e.printStackTrace();
-  // }
-  // return notes;
-  // }
-  //
-  // private VerticalLayout addCommentLayout(EntityType t, String id, String user) {
-  // VerticalLayout res = new VerticalLayout();
-  // Panel commentsPanel = new Panel();
-  // Grid comments = new Grid();
-  // comments.setWidth(100, Unit.PERCENTAGE);
-  // JAXBElement<Notes> notes = parseNotes(t, id);
-  // BeanItemContainer<Note> container = new BeanItemContainer<Note>(Note.class);
-  // container.addAll(notes.getValue().getNote());
-  // comments.setContainerDataSource(container);
-  // comments.setColumnOrder("time", "username", "comment");
-  // comments.setHeightMode(HeightMode.ROW);
-  //
-  // VerticalLayout addComment = new VerticalLayout();
-  // addComment.setMargin(true);
-  // addComment.setWidth(100, Unit.PERCENTAGE);
-  // final TextArea newComments = new TextArea();
-  // newComments.setInputPrompt("Write your comment here...");
-  // newComments.setWidth(100, Unit.PERCENTAGE);
-  // newComments.setRows(2);
-  // Button sendComment = new Button("Add Comment");
-  // sendComment.addStyleName(ValoTheme.BUTTON_FRIENDLY);
-  // addComment.addComponent(newComments);
-  // addComment.addComponent(sendComment);
-  // sendComment.addClickListener(new ClickListener() {
-  //
-  // @Override
-  //
-  // public void buttonClick(ClickEvent event) {
-  // if ("".equals(newComments.getValue()))
-  // return;
-  //
-  // String newComment = newComments.getValue();
-  // // reset comments
-  // newComments.setValue("");
-  // // use some date format
-  // Date dNow = new Date();
-  // SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-  //
-  // Note note = new Note();
-  // note.setComment(newComment);
-  // note.setUsername(user);
-  // note.setTime(ft.format(dNow));
-  // writeNoteToOpenbis(id, note);
-  //
-  // // show it now
-  // comments.getContainerDataSource().addItem(note);
-  //
-  // Label commentsLabel = new Label(
-  // translateComments((BeanItemContainer<Note>) comments.getContainerDataSource(), user),
-  // ContentMode.HTML);
-  // commentsPanel.setContent(commentsLabel);
-  //
-  // }
-  // });
-  // res.addComponent(addComment);
-  // res.addComponent(commentsPanel);
-  // return res;
-  // }
-  //
-  // private void writeNoteToOpenbis(String id, Note note) {
-  // Map<String, Object> params = new HashMap<String, Object>();
-  // params.put("id", id);
-  // params.put("user", note.getUsername());
-  // params.put("comment", note.getComment());
-  // params.put("time", note.getTime());
-  // openbis.ingest("DSS1", "add-to-xml-note", params);
-  // }
-  //
-  // public String translateComments(BeanItemContainer<Note> notes, String user) {
-  // String lastDay = "";
-  // String labelString = "";
-  // for (Iterator<Note> i = notes.getItemIds().iterator(); i.hasNext();) {
-  // Note noteBean = (Note) i.next();
-  // String date = noteBean.getTime();
-  // String[] datetime = date.split("T");
-  // String day = datetime[0];
-  // String time = datetime[1].split("\\.")[0];
-  // if (!lastDay.equals(day)) {
-  // lastDay = day;
-  // labelString += String.format("%s\n", "<u>" + day + "</u>");
-  // }
-  // labelString += String.format("%s\n%s %s\n", "<p><b>" + user + "</b>.</p>",
-  // noteBean.getComment(), "<p><i><small>" + time + "</small></i>.</p>");
-  // }
-  //
-  // return labelString;
-  //
-  // }
 
 }

@@ -9,7 +9,7 @@ import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Button.ClickEvent;
 
-import main.ProjectwizardUI;
+import uicomponents.Styles;
 
 public class EnzymePanel extends VerticalLayout {
 
@@ -24,8 +24,8 @@ public class EnzymePanel extends VerticalLayout {
     this.enzymes = enzymes;
     add = new Button();
     remove = new Button();
-    ProjectwizardUI.iconButton(add, FontAwesome.PLUS_SQUARE);
-    ProjectwizardUI.iconButton(remove, FontAwesome.MINUS_SQUARE);
+    Styles.iconButton(add, FontAwesome.PLUS_SQUARE);
+    Styles.iconButton(remove, FontAwesome.MINUS_SQUARE);
     initListener();
 
     choosers = new ArrayList<EnzymeChooser>();

@@ -20,7 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import logging.Log4j2Logger;
-import main.ProjectwizardUI;
+import uicomponents.Styles;
 import model.SampleToBarcodeFieldTranslator;
 
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
@@ -109,13 +109,13 @@ public class BarcodePreviewComponent extends VerticalLayout {
         new ArrayList<String>(Arrays.asList("Tissue/Extr. Material", "Secondary Name", "QBiC ID",
             "Lab ID", "MHC Type", "Used Antibody"));
     select1 = new ComboBox("First Info", options);
-    select1.setStyleName(ProjectwizardUI.boxTheme);
+    select1.setStyleName(Styles.boxTheme);
     select1.setImmediate(true);
     select1.select("Tissue/Extr. Material");
     select2 = new ComboBox("Second Info", options);
     select2.select("Secondary Name");
     select2.setImmediate(true);
-    select2.setStyleName(ProjectwizardUI.boxTheme);
+    select2.setStyleName(Styles.boxTheme);
 
     ValueChangeListener vc = new ValueChangeListener() {
 

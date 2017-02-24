@@ -24,6 +24,7 @@ import java.util.Map;
 
 import logging.Log4j2Logger;
 import main.ProjectwizardUI;
+import uicomponents.Styles;
 import model.AttachmentInformation;
 
 import com.vaadin.data.Property.ValueChangeEvent;
@@ -82,7 +83,7 @@ public class WizardUploadsPanel extends VerticalLayout {
     context = new ComboBox("Attach to...");
     context.setVisible(false);
     context.setNullSelectionAllowed(false);
-    context.setStyleName(ProjectwizardUI.boxTheme);
+    context.setStyleName(Styles.boxTheme);
     context.addItems(expOptions);
     context.addItem("General Infos");
     addComponent(context);
@@ -110,7 +111,7 @@ public class WizardUploadsPanel extends VerticalLayout {
 
   private void initTable() {
     toUpload = new Table("Files to Upload");
-    toUpload.setStyleName(ProjectwizardUI.tableTheme);
+    toUpload.setStyleName(Styles.tableTheme);
     toUpload.setWidth("400px");
     toUpload.addContainerProperty("Info", String.class, null);
     toUpload.addContainerProperty("Context", String.class, null);
@@ -139,7 +140,7 @@ public class WizardUploadsPanel extends VerticalLayout {
       @Override
       public void buttonClick(ClickEvent event) {
         Button delete = new Button();
-        ProjectwizardUI.iconButton(delete, FontAwesome.UNDO);
+        Styles.iconButton(delete, FontAwesome.UNDO);
 
         Object itemId = toUpload.addItem();
 

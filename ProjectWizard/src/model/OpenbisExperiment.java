@@ -57,25 +57,11 @@ public class OpenbisExperiment {
    * @param name Name of the experiment
    * @param type Experiment type
    */
-  public OpenbisExperiment(String name, ExperimentType type, int person) {
+  public OpenbisExperiment(String name, ExperimentType type, int person, Map<String, Object> props) {
+    this.properties = props;
     this.openbisName = name;
     this.type = type;
     this.personID = person;
-  }
-
-  /**
-   * Creates a new Openbis Experiment
-   * 
-   * @param name Name of the experiment
-   * @param type Experiment type
-   * @param secondaryName Secondary name of the experiment
-   * @param additionalNotes Free text additonal notes concerning the experiment
-   */
-  OpenbisExperiment(String openbisName, ExperimentType type, String secondaryName,
-      String additionalNotes) {
-    this(openbisName, type, -1);
-    this.Q_ADDITIONAL_NOTES = additionalNotes;
-    this.Q_SECONDARY_NAME = secondaryName;
   }
 
   public String getOpenbisName() {

@@ -17,7 +17,7 @@ package componentwrappers;
 
 import java.util.List;
 
-import main.ProjectwizardUI;
+import uicomponents.Styles;
 
 import com.vaadin.shared.ui.combobox.FilteringMode;
 import com.vaadin.ui.ComboBox;
@@ -37,7 +37,7 @@ public class OpenbisInfoComboBox extends AOpenbisInfoComponent {
 
   public OpenbisInfoComboBox(String label, String description, List<String> data) {
     super(description, new ComboBox(label, data));
-    inner.setStyleName(ProjectwizardUI.boxTheme);
+    inner.setStyleName(Styles.boxTheme);
     ((ComboBox) inner).setFilteringMode(FilteringMode.CONTAINS);
   }
 }

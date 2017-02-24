@@ -54,7 +54,7 @@ public class MSExperimentModel {
     return peptides;
   }
 
-  public void addPeptideExperiments(List<ExperimentModel> exps) {
+  public void addDigestionExperiment(List<ExperimentModel> exps) {
     this.peptides.addAll(exps);
   }
 

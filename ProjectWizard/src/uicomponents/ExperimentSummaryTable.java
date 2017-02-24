@@ -17,7 +17,7 @@ public class ExperimentSummaryTable extends Table {
     super();
     setCaption("Summary");
     addContainerProperty("Type", String.class, null);
-    addContainerProperty("Content", String.class, null);
+    addContainerProperty("Content", String.class, null);//TODO more width
     addContainerProperty("Samples", Integer.class, null);
     setStyleName(ValoTheme.TABLE_SMALL);
     setPageLength(1);

@@ -1,19 +1,17 @@
 /*******************************************************************************
- * QBiC Project Wizard enables users to create hierarchical experiments including different study conditions using factorial design.
- * Copyright (C) "2016"  Andreas Friedrich
+ * QBiC Project Wizard enables users to create hierarchical experiments including different study
+ * conditions using factorial design. Copyright (C) "2016" Andreas Friedrich
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with this program. If
+ * not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 package uicomponents;
 
@@ -22,18 +20,21 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 
-import main.ProjectwizardUI;
+import uicomponents.Styles;
 
 import properties.Factor;
+import steps.MSAnalyteStep;
 
+import com.gargoylesoftware.htmlunit.WebConsole.Logger;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.validator.NullValidator;
-import com.vaadin.ui.AbstractField;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.VerticalLayout;
+
+import logging.Log4j2Logger;
 
 /**
  * Composite UI component to input values of Property instances and their units
@@ -44,10 +45,11 @@ import com.vaadin.ui.VerticalLayout;
 public class ConditionPropertyPanel extends VerticalLayout {
 
   private static final long serialVersionUID = 3320102983685470217L;
-  String condition;
-  OptionGroup type;
-  TextArea values;
-  ComboBox unit;
+  private String condition;
+  private OptionGroup type;
+  private TextArea values;
+  private ComboBox unit;
+  private logging.Logger logger = new Log4j2Logger(ConditionPropertyPanel.class);
 
   /**
    * Create a new Condition Property Panel
@@ -58,18 +60,19 @@ public class ConditionPropertyPanel extends VerticalLayout {
   public ConditionPropertyPanel(String condition, EnumSet<properties.Unit> units) {
     this.condition = condition;
     type = new OptionGroup("", new ArrayList<String>(Arrays.asList("Continuous", "Categorical")));
-//    type = new CustomVisibilityComponent(new OptionGroup("", new ArrayList<String>(Arrays.asList("Continuous", "Categorical"))));
+    // type = new CustomVisibilityComponent(new OptionGroup("", new
+    // ArrayList<String>(Arrays.asList("Continuous", "Categorical"))));
 
     values = new TextArea("Values");
     values.setWidth("300px");
-    values.setInputPrompt("Please input different occurrences of the condition "+condition+",\n" +
-    		"one per row.");
+    values.setInputPrompt("Please input different occurrences of the condition " + condition + ",\n"
+        + "one per row.");
     values.setImmediate(true);
     values.setRequired(true);
     values.setRequiredError("Please input at least one condition.");
 
     unit = new ComboBox("Unit", units);
-    unit.setStyleName(ProjectwizardUI.boxTheme);
+    unit.setStyleName(Styles.boxTheme);
     unit.setEnabled(false);
     unit.setVisible(false);
     unit.setNullSelectionAllowed(false);
@@ -80,8 +83,10 @@ public class ConditionPropertyPanel extends VerticalLayout {
 
     initListener();
     addComponent(values);
-    addComponent(ProjectwizardUI.questionize(type,"Continuous variables can be measured and have units, " +
-    		"e.g. discrete time points, categorical variables don't, e.g. different genotypes.","Variable Type"));
+    addComponent(Styles.questionize(type,
+        "Continuous variables can be measured and have units, "
+            + "e.g. discrete time points, categorical variables don't, e.g. different genotypes.",
+        "Variable Type"));
     addComponent(unit);
     setSpacing(true);
   }
@@ -113,13 +118,16 @@ public class ConditionPropertyPanel extends VerticalLayout {
    * @return
    */
   public List<Factor> getFactors() {
+    logger.debug("debugging input of conditions: ");
     List<Factor> res = new ArrayList<Factor>();
     String unitVal = "";
     if (unit.getValue() != null)
       unitVal = ((properties.Unit) unit.getValue()).getValue();
+    logger.debug("whole string:>" + values.getValue() + "<end");
     for (String val : values.getValue().split("\n")) {
-      res.add(new Factor(condition.toLowerCase(), val, unitVal));
+      res.add(new Factor(condition.toLowerCase().replace(" ", "_"), val, unitVal));
     }
+    logger.debug("resulting list: " + res);
     return res;
   }
 

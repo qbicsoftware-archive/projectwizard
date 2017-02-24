@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import main.ProjectwizardUI;
+import uicomponents.Styles;
 import model.SampleToBarcodeFieldTranslator;
 import model.SortBy;
 
@@ -52,7 +52,7 @@ public class SheetOptionComponent extends VerticalLayout {
     StandardTextField firstCol = new StandardTextField("First Column");
     firstCol.setValue("QBiC Barcode");
     firstCol.setEnabled(false);
-    addComponent(ProjectwizardUI
+    addComponent(Styles
         .questionize(
             firstCol,
             "Choose which columns will be in the spread sheet containing your samples and how they will be sorted. "
@@ -60,11 +60,11 @@ public class SheetOptionComponent extends VerticalLayout {
             "Design your Sample Sheet"));
     firstOption = new ComboBox("Second Column", options);
     firstOption.setNullSelectionAllowed(false);
-    firstOption.setStyleName(ProjectwizardUI.boxTheme);
+    firstOption.setStyleName(Styles.boxTheme);
     firstOption.setValue("Secondary Name");
     secondOption = new ComboBox("Third Column", options);
     secondOption.setNullSelectionAllowed(false);
-    secondOption.setStyleName(ProjectwizardUI.boxTheme);
+    secondOption.setStyleName(Styles.boxTheme);
     secondOption.setValue("Parent Samples (Source)");
 //    sortby = new OptionGroup("Sort Sheet By");
 //    sortby.addItems(SortBy.values()); TODO old version

@@ -19,7 +19,7 @@ package uicomponents;
 
 import java.util.List;
 
-import main.ProjectwizardUI;
+import uicomponents.Styles;
 
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.validator.CompositeValidator;
@@ -61,7 +61,7 @@ public class ConditionChooser extends VerticalLayout {
     this.other = other;
     this.special = special;
     chooser = new ComboBox("Experimental Variable", options);
-    chooser.setStyleName(ProjectwizardUI.boxTheme);
+    chooser.setStyleName(Styles.boxTheme);
     chooser.setImmediate(true);
     chooser.setNullSelectionAllowed(nullSelectionAllowed);
     addComponent(chooser);
@@ -82,7 +82,7 @@ public class ConditionChooser extends VerticalLayout {
       if (val.equals(other)) {
         freetext = new TextField();
         freetext.setRequired(true);
-        freetext.setStyleName(ProjectwizardUI.fieldTheme);
+        freetext.setStyleName(Styles.fieldTheme);
         RegexpValidator factorLabelValidator =
             new RegexpValidator(
                 "[A-Za-z][_A-Za-z0-9]*",

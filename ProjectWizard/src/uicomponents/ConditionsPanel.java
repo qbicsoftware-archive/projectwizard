@@ -20,7 +20,7 @@ package uicomponents;
 import java.util.ArrayList;
 import java.util.List;
 
-import main.ProjectwizardUI;
+import uicomponents.Styles;
 
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -97,8 +97,8 @@ public class ConditionsPanel extends HorizontalLayout {
     buttonGrid.setSpacing(true);
     add = new Button();
     remove = new Button();
-    ProjectwizardUI.iconButton(add, FontAwesome.PLUS_SQUARE);
-    ProjectwizardUI.iconButton(remove, FontAwesome.MINUS_SQUARE);
+    Styles.iconButton(add, FontAwesome.PLUS_SQUARE);
+    Styles.iconButton(remove, FontAwesome.MINUS_SQUARE);
     buttonGrid.addComponent(add);
     buttonGrid.addComponent(remove);
     add.addClickListener(buttonListener);
@@ -106,7 +106,7 @@ public class ConditionsPanel extends HorizontalLayout {
     buttonGridComp = new HorizontalLayout();
     buttonGridComp.addComponent(buttonGrid);
     buttonGridComp =
-        ProjectwizardUI.questionize(buttonGridComp,
+        Styles.questionize(buttonGridComp,
             "Choose (optional) experimental variables for this level of your experiment. "
                 + "You can add or remove variables using " + FontAwesome.PLUS_SQUARE.getHtml()
                 + " and " + FontAwesome.MINUS_SQUARE.getHtml() + ".", "Experimental Variables");

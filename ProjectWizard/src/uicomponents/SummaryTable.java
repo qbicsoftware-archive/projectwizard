@@ -21,7 +21,7 @@ import java.util.List;
 
 import properties.Factor;
 
-import main.ProjectwizardUI;
+import uicomponents.Styles;
 import model.AOpenbisSample;
 
 import com.vaadin.server.FontAwesome;
@@ -127,7 +127,7 @@ public class SummaryTable extends VerticalLayout {
     // map = new HashMap<String, AOpenbisSample>();
     table = new Table(name);
     addComponent(table);
-    addComponent(ProjectwizardUI.questionize(deleteNames,
+    addComponent(Styles.questionize(deleteNames,
         "If you don't want to keep any of the proposed secondary names you can use this button to delete all of them.",
         "Clear Secondary Names"));
   }
@@ -145,7 +145,7 @@ public class SummaryTable extends VerticalLayout {
       this.labelingMethod = labelingMethod;
       isotopes = true;
     }
-    table.setStyleName(ProjectwizardUI.tableTheme);
+    table.setStyleName(Styles.tableTheme);
     // table.addContainerProperty("ID", String.class, null);
     // table.setColumnWidth("ID", 35);
     table.addContainerProperty("Secondary Name", TextField.class, null);
@@ -198,7 +198,7 @@ public class SummaryTable extends VerticalLayout {
 
       // Create a button and handle its click.
       Button delete = new Button();
-      ProjectwizardUI.iconButton(delete, FontAwesome.TRASH_O);
+      Styles.iconButton(delete, FontAwesome.TRASH_O);
       // delete.setWidth("15px");
       // delete.setHeight("30px");
       delete.setData(s);

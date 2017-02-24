@@ -19,7 +19,7 @@ package uicomponents;
 
 import java.util.List;
 
-import main.ProjectwizardUI;
+import uicomponents.Styles;
 
 import com.vaadin.shared.ui.combobox.FilteringMode;
 import com.vaadin.ui.ComboBox;
@@ -41,7 +41,7 @@ public class EnzymeChooser extends VerticalLayout {
     chooser.addItems(options);
     chooser.setFilteringMode(FilteringMode.CONTAINS);
 //    chooser.setNullSelectionAllowed(false);
-    chooser.setStyleName(ProjectwizardUI.boxTheme);
+    chooser.setStyleName(Styles.boxTheme);
     addComponent(chooser);
     setSpacing(true);
   }

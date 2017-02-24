@@ -16,7 +16,7 @@ import processes.MoveUploadsReadyRunnable;
 import logging.Log4j2Logger;
 import main.OpenBisClient;
 import main.OpenbisCreationController;
-import main.ProjectwizardUI;
+import uicomponents.Styles;
 import main.TSVSampleBean;
 import model.AttachmentConfig;
 import model.AttachmentInformation;
@@ -82,7 +82,7 @@ public class UploadsPanel extends VerticalLayout {
     attachments = new HashMap<Object, AttachmentInformation>();
 
     fileInfo = new TextField("Description");
-    fileInfo.setStyleName(ProjectwizardUI.fieldTheme);
+    fileInfo.setStyleName(Styles.fieldTheme);
     fileInfo.setRequired(true);
     fileInfo.setImmediate(true);
     fileInfo.setTextChangeEventMode(TextChangeEventMode.EAGER);
