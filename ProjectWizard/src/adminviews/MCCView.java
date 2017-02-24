@@ -27,13 +27,13 @@ import javax.xml.bind.JAXBException;
 import parser.XMLParser;
 import processes.RegisteredSamplesReadyRunnable;
 import properties.Factor;
-
+import uicomponents.Styles;
 import views.IRegistrationView;
 
 import logging.Log4j2Logger;
 import main.IOpenBisClient;
 import main.OpenbisCreationController;
-import main.ProjectwizardUI;
+import uicomponents.Styles;
 import main.TSVSampleBean;
 import model.ISampleBean;
 import model.MCCPatient;
@@ -109,7 +109,7 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
     List<String> projects = new ArrayList<String>();
     for (Project p : openbis.getProjectsOfSpace(mccSpace))
       projects.add(p.getCode());
-    mccProjects.addStyleName(ProjectwizardUI.boxTheme);
+    mccProjects.addStyleName(Styles.boxTheme);
     mccProjects.addItems(projects);
     mccProjects.setImmediate(true);
 
@@ -135,24 +135,19 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
     paramTab.addComponent(timepoint);
 
     existingPatients = new Table("Existing Patients");
-    existingPatients.setStyleName(ProjectwizardUI.tableTheme);
-    // existingPatients.setSelectable(true);
-    // existingPatients.setImmediate(true);
+    existingPatients.setStyleName(Styles.tableTheme);
     existingPatients.setPageLength(1);
-    // existingPatients.setColumnHeader("urineAliquots", "aliquots (urine)");
-    // existingPatients.setColumnHeader("plasmaAliquots", "aliquots (plasma)");
-    // existingPatients.setColumnHeader("cryovials", "cryovials (sm. mol.)");
 
     editView = new TabSheet();
     editView.addStyleName(ValoTheme.TABSHEET_FRAMED);
 
      samples = new Table("Samples");
-     samples.setStyleName(ProjectwizardUI.tableTheme);
+     samples.setStyleName(Styles.tableTheme);
      samples.setPageLength(1);
     
      metaData = new Table();
      metaData.setEditable(true);
-     metaData.setStyleName(ProjectwizardUI.tableTheme);
+     metaData.setStyleName(Styles.tableTheme);
     
      editView.addTab(samples, "Overview");
      editView.addTab(metaData, "Change Metadata");
@@ -163,7 +158,7 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
     addSamples = new Button("Add Samples");
     addSamples.setEnabled(false);
     initMCCListeners();
-    addComponent(ProjectwizardUI.questionize(projectTab,
+    addComponent(Styles.questionize(projectTab,
         "Samples can only be added if Timepoint, Treatment, Project and Patient Number "
             + "are filled in and they don't already exist in the current project. E.g. you can add a new timepoint for the same patient and "
             + "treatment but not the same timepoint.",
