@@ -19,6 +19,8 @@ package control;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.themes.ValoTheme;
 
@@ -36,11 +38,64 @@ import com.vaadin.shared.Position;
  * 
  */
 public class Functions {
-  
+
   static Logger logger = new Log4j2Logger(Functions.class);
 
   public enum NotificationType {
     ERROR, SUCCESS, DEFAULT
+  }
+  
+  /**
+   * natural order comparison (a1 < a2 < a10)
+   * @param a
+   * @param b
+   * @return
+   */
+  public static int compareNatural(String a, String b) {
+    int la = a.length();
+    int lb = b.length();
+    int ka = 0;
+    int kb = 0;
+    while (true) {
+      if (ka == la)
+        return kb == lb ? 0 : -1;
+      if (kb == lb)
+        return 1;
+      if (a.charAt(ka) >= '0' && a.charAt(ka) <= '9' && b.charAt(kb) >= '0'
+          && b.charAt(kb) <= '9') {
+        int na = 0;
+        int nb = 0;
+        while (ka < la && a.charAt(ka) == '0')
+          ka++;
+        while (ka + na < la && a.charAt(ka + na) >= '0' && a.charAt(ka + na) <= '9')
+          na++;
+        while (kb < lb && b.charAt(kb) == '0')
+          kb++;
+        while (kb + nb < lb && b.charAt(kb + nb) >= '0' && b.charAt(kb + nb) <= '9')
+          nb++;
+        if (na > nb)
+          return 1;
+        if (nb > na)
+          return -1;
+        if (ka == la)
+          return kb == lb ? 0 : -1;
+        if (kb == lb)
+          return 1;
+
+      }
+      if (a.charAt(ka) != b.charAt(kb))
+        return a.charAt(ka) - b.charAt(kb);
+      ka++;
+      kb++;
+    }
+  }
+
+  public static double compareStringsJaroWinkler(String stringA, String stringB) {
+    return StringUtils.getJaroWinklerDistance(stringA, stringB);
+  }
+
+  public static int compareStringsLevenshtein(String stringA, String stringB) {
+    return StringUtils.getLevenshteinDistance(stringA, stringB);
   }
 
   public static void notification(String title, String description, NotificationType type) {
@@ -85,10 +140,6 @@ public class Functions {
     return System.currentTimeMillis();
   }
 
-  public static void main(String[] args) {
-    System.out.println(compareSampleCodes("QABCD003AB", "QABCD002AC"));
-  }
-  
   public static int compareSampleCodes(String c1, String c2) {
     if (!c1.startsWith("Q") || c1.contains("ENTITY") || !c2.startsWith("Q")
         || c2.contains("ENTITY"))
@@ -204,7 +255,7 @@ public class Functions {
     }
     return mapToChar(sum % 34);
   }
-  
+
   /**
    * Maps an integer to a char representation. This can be used for computing the checksum.
    * 
@@ -222,7 +273,7 @@ public class Functions {
   public static float getPercentageStep(int max) {
     return new Float(1.0 / max);
   }
-  
+
   /**
    * Parses a whole String list to integers and returns them in another list.
    * 

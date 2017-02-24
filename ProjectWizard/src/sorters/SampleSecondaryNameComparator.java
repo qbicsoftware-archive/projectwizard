@@ -20,6 +20,7 @@ package sorters;
 
 import java.util.Comparator;
 
+import control.Functions;
 import model.IBarcodeBean;
 
 /**
@@ -40,7 +41,9 @@ public class SampleSecondaryNameComparator implements Comparator<IBarcodeBean> {
 
   @Override
   public int compare(IBarcodeBean o1, IBarcodeBean o2) {
-    return o1.getSecondaryName().compareTo(o2.getSecondaryName());
+    String a = o1.getSecondaryName();
+    String b = o2.getSecondaryName();
+    return Functions.compareNatural(a, b);
   }
 
 }
