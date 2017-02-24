@@ -29,7 +29,7 @@ import uicomponents.BarcodePreviewComponent;
 import uicomponents.SheetOptionComponent;
 
 import logging.Log4j2Logger;
-import main.ProjectwizardUI;
+import uicomponents.Styles;
 import model.ExperimentBarcodeSummary;
 import model.Printer;
 import model.Printer.PrinterType;
@@ -120,23 +120,23 @@ public class WizardBarcodeView extends HorizontalLayout {
     this.isAdmin = isAdmin;
 
     spaceBox = new ComboBox("Project", spaces);
-    spaceBox.setStyleName(ProjectwizardUI.boxTheme);
+    spaceBox.setStyleName(Styles.boxTheme);
     spaceBox.setFilteringMode(FilteringMode.CONTAINS);
     spaceBox.setNullSelectionAllowed(false);
     spaceBox.setImmediate(true);
 
     projectBox = new ComboBox("Sub-Project");
-    projectBox.setStyleName(ProjectwizardUI.boxTheme);
+    projectBox.setStyleName(Styles.boxTheme);
     projectBox.setEnabled(false);
     projectBox.setImmediate(true);
     projectBox.setNullSelectionAllowed(false);
 
-    left.addComponent(ProjectwizardUI.questionize(spaceBox, "Name of the project", "Project Name"));
-    left.addComponent(
-        ProjectwizardUI.questionize(projectBox, "QBiC project code and project name", "Sub-Project"));
+    left.addComponent(Styles.questionize(spaceBox, "Name of the project", "Project Name"));
+    left.addComponent(Styles.questionize(projectBox, "QBiC project code and project name",
+        "Sub-Project"));
 
     initExperimentTable();
-    left.addComponent(ProjectwizardUI.questionize(experimentTable,
+    left.addComponent(Styles.questionize(experimentTable,
         "This table gives an overview of tissue samples and extracted materials"
             + " for which barcodes can be printed. You can select one or multiple rows.",
         "Sample Overview"));
@@ -155,7 +155,7 @@ public class WizardBarcodeView extends HorizontalLayout {
     tabs.addTab(tubePreview, "Barcode Stickers");
     tabsTab = new CustomVisibilityComponent(tabs);
     tabsTab.setVisible(false);
-    left.addComponent(ProjectwizardUI.questionize(tabsTab,
+    left.addComponent(Styles.questionize(tabsTab,
         "Prepare an A4 sample sheet or barcodes for sample tubes.", "Barcode Preparation"));
 
     info = new Label();
@@ -171,7 +171,7 @@ public class WizardBarcodeView extends HorizontalLayout {
     printerSelection = new ComboBox("Printer");
     printerSelection.setVisible(isAdmin);
     printerSelection.setWidth("300px");
-    printerSelection.setStyleName(ProjectwizardUI.boxTheme);
+    printerSelection.setStyleName(Styles.boxTheme);
     printerSelection.setVisible(false);
     printerSelection.setNullSelectionAllowed(false);
     left.addComponent(printerSelection);
@@ -259,7 +259,10 @@ public class WizardBarcodeView extends HorizontalLayout {
   }
 
   public String getProjectCode() {
-    return (String) projectBox.getValue();
+    String res = (String) projectBox.getValue();
+    if (res!=null && res.contains(" "))
+      res = res.split(" ")[0];
+    return res;
   }
 
   public ComboBox getSpaceBox() {

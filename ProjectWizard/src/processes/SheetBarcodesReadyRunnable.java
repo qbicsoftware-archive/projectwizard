@@ -19,6 +19,7 @@ import java.util.List;
 
 import main.BarcodeCreator;
 import model.IBarcodeBean;
+import model.Person;
 
 import com.vaadin.server.FileDownloader;
 import com.vaadin.server.FileResource;
@@ -35,18 +36,28 @@ import views.WizardBarcodeView;
 public class SheetBarcodesReadyRunnable implements Runnable {
 
   private WizardBarcodeView view;
+  private String projectCode;
+  private String projectName;
+  private Person investigator;
+  private Person contact;
   private List<IBarcodeBean> barcodeBeans;
   private BarcodeCreator creator;
 
-  public SheetBarcodesReadyRunnable(WizardBarcodeView view, BarcodeCreator creator,
+  public SheetBarcodesReadyRunnable(String projectCode, String projectName, Person investigator,
+      Person contact, WizardBarcodeView view, BarcodeCreator creator,
       List<IBarcodeBean> barcodeBeans) {
     this.view = view;
+    this.projectCode = projectCode;
+    this.projectName = projectName;
+    this.investigator = investigator;
+    this.contact = contact;
     this.barcodeBeans = barcodeBeans;
     this.creator = creator;
   }
 
   private void attachDownloadToButton() {
-    FileResource sheetSource = creator.createAndDLSheet(barcodeBeans, view.getHeaders());
+    FileResource sheetSource = creator.createAndDLSheet(projectCode, projectName, investigator,
+        contact, barcodeBeans, view.getHeaders());
     FileDownloader sheetDL = new FileDownloader(sheetSource);
     sheetDL.extend(view.getDownloadButton());
   }
