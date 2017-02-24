@@ -17,6 +17,7 @@ package uicomponents;
 
 import io.DBVocabularies;
 import logging.Log4j2Logger;
+import main.ProjectwizardUI;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,7 +30,7 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 
-import main.ProjectwizardUI;
+import uicomponents.Styles;
 import model.AOpenbisSample;
 import model.ExperimentModel;
 import model.MSExperimentModel;
@@ -60,7 +61,9 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
+import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 
 public class MSSampleMultiplicationTable extends VerticalLayout {
 
@@ -71,14 +74,15 @@ public class MSSampleMultiplicationTable extends VerticalLayout {
   private List<String> enzymes;
   private AnalyteMultiplicationType type;
   private boolean aboutPeptides;
-  private List<EnzymeChooser> choosers;
-  private Button.ClickListener buttonListener;
-  private VerticalLayout enzymePane;
-  private GridLayout buttonGrid;
-  private Button add;
-  private Button remove;
+//  private List<EnzymeChooser> choosers;
+//  private Button.ClickListener buttonListener;
+//  private VerticalLayout enzymePane;
+//  private GridLayout buttonGrid;
+//  private Button add;
+//  private Button remove;
 
   private Map<String, AOpenbisSample> tableIdToParent;
+  private HashMap<String, List<String>> enzymeMap;
   private Table sampleTable;
   private CheckBox poolSamples;
 
@@ -95,30 +99,33 @@ public class MSSampleMultiplicationTable extends VerticalLayout {
     this.enzymes = vocabs.getEnzymes();
     Collections.sort(enzymes);
 
-    choosers = new ArrayList<EnzymeChooser>();
-    EnzymeChooser c = new EnzymeChooser(enzymes);
-    choosers.add(c);
+//    choosers = new ArrayList<EnzymeChooser>();
+//    EnzymeChooser c = new EnzymeChooser(enzymes);
+//    choosers.add(c);
 
     setSpacing(true);
 
     sampleTable = new Table();
-    sampleTable.setWidth("640px");
+    sampleTable.setWidth("775px");
     sampleTable.setCaption("Resulting " + type + "s");
-    sampleTable.setStyleName(ProjectwizardUI.tableTheme);
+    sampleTable.setStyleName(Styles.tableTheme);
     sampleTable.addContainerProperty("Base Sample", Label.class, null);
     sampleTable.addContainerProperty(type, Label.class, null);
     sampleTable.addContainerProperty(type + " Name", TextField.class, null);
     sampleTable.addContainerProperty(type + " Lab ID", TextField.class, null);
     sampleTable.addContainerProperty("Process", Component.class, null);
+    sampleTable.addContainerProperty("Enzyme", Component.class, null);
 
     sampleTable.setColumnWidth("Base Sample", 110);
     sampleTable.setColumnWidth(type, 65);
     sampleTable.setColumnWidth(type + " Name", 210);
     sampleTable.setColumnWidth(type + " Lab ID", 110);
     sampleTable.setColumnWidth("Process", 130);
+    sampleTable.setColumnWidth("Enzyme", 135);
     if (peptides) {
       sampleTable.setColumnCollapsingAllowed(true);
       sampleTable.setColumnCollapsed("Process", true);
+      sampleTable.setColumnCollapsed("Enzyme", true);
     }
     addComponent(sampleTable);
 
@@ -134,45 +141,52 @@ public class MSSampleMultiplicationTable extends VerticalLayout {
       info = "Create one pool of all peptide " + type
           + " per original sample. They will be measured using the same MS properties used for each single "
           + type + " (see selection below).";
-    addComponent(ProjectwizardUI.questionize(poolSamples, info, "Pool All " + type + "s"));
+    addComponent(Styles.questionize(poolSamples, info, "Pool All " + type + "s"));
 
     if (!peptides) {
-      add = new Button();
-      remove = new Button();
-      ProjectwizardUI.iconButton(add, FontAwesome.PLUS_SQUARE);
-      ProjectwizardUI.iconButton(remove, FontAwesome.MINUS_SQUARE);
+//      add = new Button();
+//      remove = new Button();
+//      Styles.iconButton(add, FontAwesome.PLUS_SQUARE);
+//      Styles.iconButton(remove, FontAwesome.MINUS_SQUARE);
       initListener();
 
-      enzymePane = new VerticalLayout();
-      enzymePane.setCaption(type + " Digestion Enzymes");
-      enzymePane.addComponent(c);
-      enzymePane.setVisible(false);
-      addComponent(enzymePane);
-      buttonGrid = new GridLayout(2, 1);
-      buttonGrid.setSpacing(true);
-      buttonGrid.addComponent(add);
-      buttonGrid.addComponent(remove);
-      buttonGrid.setVisible(false);
-      addComponent(buttonGrid);
+//      enzymePane = new VerticalLayout();
+//      enzymePane.setCaption(type + " Digestion Enzymes");
+//      enzymePane.addComponent(c);
+//      enzymePane.setVisible(false);
+//      addComponent(enzymePane);
+//      buttonGrid = new GridLayout(2, 1);
+//      buttonGrid.setSpacing(true);
+//      buttonGrid.addComponent(add);
+//      buttonGrid.addComponent(remove);
+//      buttonGrid.setVisible(false);
+//      addComponent(buttonGrid);
     }
   }
 
   private void pasteSelectionToColumn(String propertyName, Object selection) {
     for (Object id : sampleTable.getItemIds()) {
+      // should always be ID = 1
       ComboBox b = parseBoxRow(id, propertyName);
-      b.setValue(selection);
+      if (selection != null && selection.equals("Custom") && propertyName.equals("Enzyme")) {
+        String i = (String) id;
+        enzymeMap.put(i, enzymeMap.get(1));
+        b.addItem("Custom");
+      }
+      if (b.isEnabled())// check if this value should be set
+        b.setValue(selection);
     }
   }
 
   private Object createComplexCellComponent(ComboBox contentBox, String propertyName,
-      final String id) {
+      final Object i) {
     HorizontalLayout complexComponent = new HorizontalLayout();
     complexComponent.setWidth(contentBox.getWidth() + 10, contentBox.getWidthUnits());
     complexComponent.addComponent(contentBox);
     complexComponent.setExpandRatio(contentBox, 1);
 
     Button copy = new Button();
-    ProjectwizardUI.iconButton(copy, FontAwesome.ARROW_CIRCLE_O_DOWN);
+    Styles.iconButton(copy, FontAwesome.ARROW_CIRCLE_O_DOWN);
     copy.setStyleName(ValoTheme.BUTTON_BORDERLESS_COLORED);
     VerticalLayout vBox = new VerticalLayout();
     vBox.setWidth("15px");
@@ -183,7 +197,7 @@ public class MSSampleMultiplicationTable extends VerticalLayout {
 
       @Override
       public void buttonClick(ClickEvent event) {
-        ComboBox b = parseBoxRow(id, propertyName);
+        ComboBox b = parseBoxRow(i, propertyName);
         Object selection = b.getValue();
         pasteSelectionToColumn(propertyName, selection);
       }
@@ -192,80 +206,81 @@ public class MSSampleMultiplicationTable extends VerticalLayout {
   }
 
   private void initListener() {
-    buttonListener = new Button.ClickListener() {
-
-      private static final long serialVersionUID = 2240224129259577437L;
-
-      @Override
-      public void buttonClick(ClickEvent event) {
-        if (event.getButton().equals(add))
-          add();
-        else
-          remove();
-      }
-    };
-    add.addClickListener(buttonListener);
-    remove.addClickListener(buttonListener);
+//    buttonListener = new Button.ClickListener() {
+//
+//      private static final long serialVersionUID = 2240224129259577437L;
+//
+//      @Override
+//      public void buttonClick(ClickEvent event) {
+//        if (event.getButton().equals(add))
+//          add();
+//        else
+//          remove();
+//      }
+//    };
+//    add.addClickListener(buttonListener);
+//    remove.addClickListener(buttonListener);
   }
 
-  public List<String> getEnzymes() {
-    List<String> res = new ArrayList<String>();
-    for (EnzymeChooser c : choosers) {
-      if (c.isSet())
-        res.add(c.getEnzyme());
-    }
-    return res;
-  }
+//  public List<String> getEnzymes() {
+//    List<String> res = new ArrayList<String>();
+//    for (EnzymeChooser c : choosers) {
+//      if (c.isSet())
+//        res.add(c.getEnzyme());
+//    }
+//    return res;
+//  }
 
-  private void add() {
-    if (choosers.size() < 4) {
-      EnzymeChooser c = new EnzymeChooser(enzymes);
-      choosers.add(c);
+//  private void add() {
+//    if (choosers.size() < 4) {
+//      EnzymeChooser c = new EnzymeChooser(enzymes);
+//      choosers.add(c);
+//
+//      removeComponent(buttonGrid);
+////      enzymePane.addComponent(c);
+//      addComponent(buttonGrid);
+//    }
+//  }
+//
+//  private void remove() {
+//    int size = choosers.size();
+//    if (size > 1) {
+//      EnzymeChooser last = choosers.get(size - 1);
+//      last.reset();
+////      enzymePane.removeComponent(last);
+//      choosers.remove(last);
+//    }
+//  }
 
-      removeComponent(buttonGrid);
-      enzymePane.addComponent(c);
-      addComponent(buttonGrid);
-    }
-  }
-
-  private void remove() {
-    int size = choosers.size();
-    if (size > 1) {
-      EnzymeChooser last = choosers.get(size - 1);
-      last.reset();
-      enzymePane.removeComponent(last);
-      choosers.remove(last);
-    }
-  }
-
-  public void resetInputs() {
-    for (EnzymeChooser c : choosers) {
-      c.reset();
-    }
-  }
+//  public void resetInputs() {
+//    for (EnzymeChooser c : choosers) {
+//      c.reset();
+//    }
+//  }
 
   private ComboBox generateTableBox(Collection<String> entries, String width) {
     ComboBox b = new ComboBox();
     b.addItems(entries);
     b.setWidth(width);
     b.setFilteringMode(FilteringMode.CONTAINS);
-    b.setStyleName(ProjectwizardUI.boxTheme);
+    b.setStyleName(Styles.boxTheme);
     return b;
   }
 
   private TextField generateTableTextInput(String width) {
     TextField tf = new TextField();
-    tf.setStyleName(ProjectwizardUI.fieldTheme);
+    tf.setStyleName(Styles.fieldTheme);
     tf.setImmediate(true);
     tf.setWidth(width);
     tf.setValidationVisible(true);
     return tf;
   }
 
-  public void setProteinSamples(List<AOpenbisSample> proteins,
+  public void setAnalyteSamples(List<AOpenbisSample> proteins,
       HashMap<Integer, Integer> tableIdToFractions, boolean peptides) {
     sampleTable.removeAllItems();
     tableIdToParent = new HashMap<String, AOpenbisSample>();
+    enzymeMap = new HashMap<String, List<String>>();
     int i = 0;
     for (AOpenbisSample s : proteins) {
       i++;
@@ -318,7 +333,45 @@ public class MSSampleMultiplicationTable extends VerticalLayout {
           }
         });
 
+        Collections.sort(enzymes);
+        ComboBox enzymeBox = generateTableBox(enzymes, "105px");
+        enzymeBox.removeAllItems();
+        enzymeBox.addItem("[Multiple]");
+        enzymeBox.addItems(enzymes);
+        enzymeBox.setEnabled(false);
+        enzymeBox.setFilteringMode(FilteringMode.CONTAINS);
+        if (complexRow)
+          row.add(createComplexCellComponent(enzymeBox, "Enzyme", id));
+        else
+          row.add(enzymeBox);
+        final String rowNum = id;
+        enzymeBox.addValueChangeListener(new ValueChangeListener() {
+
+          @Override
+          public void valueChange(ValueChangeEvent event) {
+            Object newVal = enzymeBox.getValue();
+            if (newVal.equals("[Multiple]"))
+              createEnzymeSelectionWindow(rowNum);
+            else if (!newVal.equals("Custom"))
+              enzymeBox.removeItem("Custom");
+          }
+        });
+
         sampleTable.addItem(row.toArray(new Object[row.size()]), id);
+
+        processBox.addValueChangeListener(new ValueChangeListener() {
+
+          @Override
+          public void valueChange(ValueChangeEvent event) {
+            String value = (String) processBox.getValue();
+            boolean enableEnzyme = value.equals("Digest") || value.equals("Both");
+            parseBoxRow(id, "Enzyme").setEnabled(enableEnzyme);
+//            boolean enableMS = value.equals("Measure") || value.equals("Both");
+//            parseBoxRow(item, "Chr. Type").setEnabled(enableMS);
+//            parseBoxRow(item, "LCMS Method").setEnabled(enableMS);
+//            parseBoxRow(item, "MS Device").setEnabled(enableMS);
+          }
+        });
       }
     }
     int pagelength = 0;
@@ -330,20 +383,62 @@ public class MSSampleMultiplicationTable extends VerticalLayout {
     checkFractionMeasured();
   }
 
+  protected void createEnzymeSelectionWindow(String row) {
+    Window subWindow = new Window(" Enzyme selection");
+    subWindow.setWidth("400px");
+
+    VerticalLayout layout = new VerticalLayout();
+    layout.setSpacing(true);
+    layout.setMargin(true);
+    EnzymePanel pan = new EnzymePanel(enzymes);
+    Button ok = new Button("Okay.");
+    ok.addClickListener(new ClickListener() {
+
+      @Override
+      public void buttonClick(ClickEvent event) {
+        List<String> enzymes = pan.getEnzymes();
+        ComboBox b = parseBoxRow(row, "Enzyme");
+        if (enzymes.isEmpty()) {
+          Functions.notification("No enzymes selected", "Please select at least one enzyme!",
+              NotificationType.ERROR);
+        } else if (enzymes.size() == 1) {
+          b.setValue(enzymes.get(0));
+          subWindow.close();
+        } else {
+          b.addItem("Custom");
+          b.setValue("Custom");
+          enzymeMap.put(row, enzymes);
+          subWindow.close();
+        }
+      }
+    });
+    layout.addComponent(pan);
+    layout.addComponent(ok);
+
+    subWindow.setContent(layout);
+    // Center it in the browser window
+    subWindow.center();
+    subWindow.setModal(true);
+    subWindow.setIcon(FontAwesome.FLASK);
+    subWindow.setResizable(false);
+    ProjectwizardUI ui = (ProjectwizardUI) UI.getCurrent();
+    ui.addWindow(subWindow);
+  }
+
   protected void checkFractionMeasured() {
-    boolean digest = false;
+//    boolean digest = false;
     boolean measure = false;
     for (Object i : sampleTable.getItemIds()) {
       ComboBox processBox = parseBoxRow(i, "Process");
       String process = processBox.getValue().toString();
-      digest |= process.equals("Both") || process.equals("Digest");
+//      digest |= process.equals("Both") || process.equals("Digest");
       measure |= process.equals("Both") || process.equals("Measure") || aboutPeptides;
     }
-    boolean hasSamples = sampleTable.size() > 0;
-    if (!aboutPeptides) {
-      enzymePane.setVisible(digest && hasSamples);
-      buttonGrid.setVisible(digest && hasSamples);
-    }
+//    boolean hasSamples = sampleTable.size() > 0;
+//    if (!aboutPeptides) {
+//      enzymePane.setVisible(digest && hasSamples);
+//      buttonGrid.setVisible(digest && hasSamples);
+//    }
     generalFractionMSInfo.setVisible(measure);
   }
 
@@ -394,6 +489,18 @@ public class MSSampleMultiplicationTable extends VerticalLayout {
       return true;
   }
 
+  private List<String> getEnzymesFromSampleRow(Object i) {
+    if (parseBoxRow(i, "Enzyme").getValue() == null)
+      return null;
+    else {
+      String entry = parseBoxRow(i, "Enzyme").getValue().toString();
+      if (entry.equals("Custom"))
+        return enzymeMap.get(i);
+      else
+        return new ArrayList<String>(Arrays.asList(entry));
+    }
+  }
+
   public MSExperimentModel getFractionsWithMSProperties(MSExperimentModel model, String sampleType,
       String method) {
     Map<String, ExperimentModel> fractHelper = new HashMap<String, ExperimentModel>();
@@ -402,8 +509,14 @@ public class MSSampleMultiplicationTable extends VerticalLayout {
     List<ExperimentModel> peptides = new ArrayList<ExperimentModel>();
 
     Map<String, Object> props = generalFractionMSInfo.getExperimentalProperties();
-    List<String> enzymeList = getEnzymes();
     // there can be one ms measurement experiment per protein/peptide sample measured (fractions)
+    // new ms experiment
+    ExperimentModel msExp = new ExperimentModel(0, new ArrayList<AOpenbisSample>());
+    msExp.setProperties(props);
+    
+    Map<String, List<AOpenbisSample>> peptidesPerDigestion =
+        new HashMap<String, List<AOpenbisSample>>();
+    // collect samples
     for (Object i : sampleTable.getItemIds()) {
       String item = (String) i;
       String[] ids = item.split("-");
@@ -424,22 +537,23 @@ public class MSSampleMultiplicationTable extends VerticalLayout {
         OpenbisMSSample msSample =
             new OpenbisMSSample(-1, new ArrayList<AOpenbisSample>(Arrays.asList(fractionSample)),
                 secondaryName + " run", extID + " run", new ArrayList<Factor>(), "");
-        // new ms experiment
-        ExperimentModel msExp =
-            new ExperimentModel(item, new ArrayList<AOpenbisSample>(Arrays.asList(msSample)));
-        msExp.setProperties(props);
-        msExperiments.add(msExp);
+        msExp.addSample(msSample);
+        // if we have at least one ms measurement, the experiment gets added to the experiment list
+        if (msExperiments.isEmpty())
+          msExperiments.add(msExp);
       }
       if (option.equals("Both") || option.equals("Digest")) {
         OpenbisTestSample pepSample =
             new OpenbisTestSample(-1, new ArrayList<AOpenbisSample>(Arrays.asList(fractionSample)),
                 "PEPTIDES", fractionSample.getQ_SECONDARY_NAME() + " digested",
                 fractionSample.getQ_EXTERNALDB_ID(), new ArrayList<Factor>(), "");
-        ExperimentModel peptideExp =
-            new ExperimentModel(item, new ArrayList<AOpenbisSample>(Arrays.asList(pepSample)));
-        String enzymes = StringUtils.join(enzymeList, ", ");
-        peptideExp.addProperty("Q_ADDITIONAL_INFO", enzymes+" digestion");
-        peptides.add(peptideExp);
+        List<String> enzymes = getEnzymesFromSampleRow(i);
+        String digestion = StringUtils.join(enzymes, ", ");
+        if (peptidesPerDigestion.containsKey(digestion))
+          peptidesPerDigestion.get(digestion).add(pepSample);
+        else
+          peptidesPerDigestion.put(digestion,
+              new ArrayList<AOpenbisSample>(Arrays.asList(pepSample)));
       }
       if (fractHelper.containsKey(ids[0])) {
         fractHelper.get(ids[0]).addSample(fractionSample);
@@ -466,12 +580,19 @@ public class MSSampleMultiplicationTable extends VerticalLayout {
           fractionations.add(fractionExp);
       }
     }
+    // one digestion experiment per unique enzyme set used
+    for (String digestion : peptidesPerDigestion.keySet()) {
+      ExperimentModel peptideExp = new ExperimentModel("", peptidesPerDigestion.get(digestion));
+      peptideExp.addProperty("Q_ADDITIONAL_INFO", "Digestion: " + digestion);
+      peptides.add(peptideExp);
+    }
+    
     if (fractionations.size() > 0)
       model.addAnalyteStepExperiments(fractionations);
     if (msExperiments.size() > 0)
       model.addMSRunStepExperiments(msExperiments);
     if (peptides.size() > 0)
-      model.addPeptideExperiments(peptides);
+      model.addDigestionExperiment(peptides);
     if (poolSamples.getValue()) {
       List<AOpenbisSample> pools = new ArrayList<AOpenbisSample>();
       int i = 0;
@@ -485,20 +606,18 @@ public class MSSampleMultiplicationTable extends VerticalLayout {
         pools.add(pool);
 
         if (sampleType.equals("PEPTIDES")) {
-          ExperimentModel msExp =
+          ExperimentModel msExpPool =
               new ExperimentModel(2, new ArrayList<AOpenbisSample>(Arrays.asList(pool)));
           msExp.setProperties(props);
-          model.getLastStepMsRuns().add(msExp);
+          model.getLastStepMsRuns().add(msExpPool);
         } else {
           OpenbisTestSample pepSample =
               new OpenbisTestSample(-1, new ArrayList<AOpenbisSample>(Arrays.asList(pool)),
                   "PEPTIDES", pool.getQ_SECONDARY_NAME() + " digested", pool.getQ_EXTERNALDB_ID(),
                   new ArrayList<Factor>(), "");
-          ExperimentModel peptideExp =
+          ExperimentModel peptideExpPool =
               new ExperimentModel(1, new ArrayList<AOpenbisSample>(Arrays.asList(pepSample)));
-          String enzymes = StringUtils.join(enzymeList, ", ");
-          peptideExp.addProperty("Q_ADDITIONAL_INFO", enzymes + " digestion");
-          model.getPeptideExperiments().add(peptideExp);
+          model.getPeptideExperiments().add(peptideExpPool);
         }
       }
 

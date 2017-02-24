@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import main.ProjectwizardUI;
+import uicomponents.Styles;
 
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -58,25 +58,25 @@ public class GeneralMSInfoPanel extends VerticalLayout {
 
     deviceBox = new ComboBox("MS Device");
     deviceBox.setFilteringMode(FilteringMode.CONTAINS);
-    deviceBox.setStyleName(ProjectwizardUI.boxTheme);
+    deviceBox.setStyleName(Styles.boxTheme);
     deviceBox.setWidth("300px");
     chromType = new ComboBox("MS Chromatography Type", chromTypes);
     chromType.setFilteringMode(FilteringMode.CONTAINS);
-    chromType.setStyleName(ProjectwizardUI.boxTheme);
+    chromType.setStyleName(Styles.boxTheme);
     lcmsMethodBox = new ComboBox("MS LCMS Method");
     lcmsMethodBox.setFilteringMode(FilteringMode.CONTAINS);
-    lcmsMethodBox.setStyleName(ProjectwizardUI.boxTheme);
+    lcmsMethodBox.setStyleName(Styles.boxTheme);
     lcmsMethodBox.setWidth("350px");
 
     lcmsSpecial = new TextArea("LCMS Method Name");
-    lcmsSpecial.setStyleName(ProjectwizardUI.areaTheme);
+    lcmsSpecial.setStyleName(Styles.areaTheme);
     lcmsSpecial.setVisible(false);
-    addComponent(ProjectwizardUI.questionize(deviceBox,
+    addComponent(Styles.questionize(deviceBox,
         "The MS device that is used to conduct the experiment.", "MS Device"));
-    addComponent(ProjectwizardUI.questionize(chromType,
+    addComponent(Styles.questionize(chromType,
         "Specifies the kind of chromatography that is coupled to the mass spectrometer.",
         "Chromatography Type"));
-    addComponent(ProjectwizardUI.questionize(lcmsMethodBox,
+    addComponent(Styles.questionize(lcmsMethodBox,
         "Labratory specific parameters for LCMS measurements.", "LCMS Method"));
     addComponent(lcmsSpecial);
 
