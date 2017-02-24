@@ -1,37 +1,47 @@
 /*******************************************************************************
- * QBiC Project Wizard enables users to create hierarchical experiments including different study conditions using factorial design.
- * Copyright (C) "2016"  Andreas Friedrich
+ * QBiC Project Wizard enables users to create hierarchical experiments including different study
+ * conditions using factorial design. Copyright (C) "2016" Andreas Friedrich
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with this program. If
+ * not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 package steps;
 
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
-import main.ProjectwizardUI;
+import uicomponents.Styles;
 import model.AOpenbisSample;
 
 import org.vaadin.teemu.wizards.WizardStep;
 
 import uicomponents.LabelingMethod;
 import uicomponents.SummaryTable;
-
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.Upload;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Upload.FinishedEvent;
+import com.vaadin.ui.Upload.FinishedListener;
+
+import au.com.bytecode.opencsv.CSVReader;
+import control.Functions;
+import control.Functions.NotificationType;
+import control.Uploader;
+import logging.Log4j2Logger;
 
 /**
  * Wizard Step that shows a SummaryTable of the prepared samples and can be used to edit and delete
@@ -42,10 +52,11 @@ import com.vaadin.ui.VerticalLayout;
  */
 public class TailoringStep implements WizardStep {
 
+  logging.Logger logger = new Log4j2Logger(TailoringStep.class);
   boolean skip = false;
 
   private VerticalLayout main;
-  private SummaryTable tab;
+  private SummaryTable table;
 
   // Pooling
   private CheckBox poolSelect;
@@ -60,36 +71,118 @@ public class TailoringStep implements WizardStep {
     main.setSpacing(true);
     main.setMargin(true);
     Label header = new Label(name + " Tailoring");
-    main.addComponent(ProjectwizardUI.questionize(header, "Here you can delete " + name
-        + " that are not part of the"
-        + " experiment. You can change the secondary name to something"
-        + " more intuitive - experimental variables will be saved in additional columns.", name
-        + " Tailoring"));
+//    upload = new CheckBox("Prototype: upload " + name + " tsv");
+//    upload.addValueChangeListener(new ValueChangeListener() {
+//
+//      @Override
+//      public void valueChange(ValueChangeEvent event) {
+//        uploadPanel.setVisible(upload.getValue());
+//      }
+//    });
+//    main.addComponent(ProjectwizardUI.questionize(upload,
+//        "Upload a tab-separated values file containing more information about " + name
+//            + "s. It needs to contain a column matching it to existing information you put in.",
+//        "Upload " + name + " information"));
+//    initUpload();
+    main.addComponent(Styles.questionize(header,
+        "Here you can delete " + name + " that are not part of the"
+            + " experiment. You can change the secondary name to something"
+            + " more intuitive - experimental variables will be saved in additional columns.",
+        name + " Tailoring"));
 
     if (pooling)
       initPooling(name);
-    tab = new SummaryTable("Samples");
-    tab.setVisible(false);
+    table = new SummaryTable("Samples");
+    table.setVisible(false);
+  }
+
+  private void initUpload() {
+    final Uploader uploader = new Uploader();
+    Upload upload = new Upload("Upload a tsv here", uploader);
+    upload.setButtonCaption("Upload");
+    // Listen for events regarding the success of upload.
+    upload.addFailedListener(uploader);
+    upload.addSucceededListener(uploader);
+    FinishedListener uploadFinListener = new FinishedListener() {
+      /**
+       * 
+       */
+      private static final long serialVersionUID = -8413963075202260180L;
+
+      public void uploadFinished(FinishedEvent event) {
+        String error = uploader.getError();
+        File file = uploader.getFile();
+        table.resetChanges();
+        if (file.getPath().endsWith("up_")) {
+          String msg = "No file selected.";
+          logger.warn(msg);
+          Functions.notification("Something went wrong...", msg, NotificationType.ERROR);
+          if (!file.delete())
+            logger.error(
+                "uploaded metadata file " + file.getAbsolutePath() + " could not be deleted!");
+        } else {
+          if (error == null || error.isEmpty()) {
+            String msg = "Metadata tsv upload successful!";
+            logger.info(msg);
+            Functions.notification("Upload successful", msg, NotificationType.SUCCESS);
+            try {
+              processMetadataUpload(file);
+            } catch (IOException e) {
+              // TODO Auto-generated catch block
+              e.printStackTrace();
+            }
+          } else {
+            logger.error(error);
+            Functions.notification("Something went wrong...", error, NotificationType.ERROR);
+            if (!file.delete())
+              logger
+                  .error("uploaded tmp file " + file.getAbsolutePath() + " could not be deleted!");
+          }
+        }
+      }
+    };
+    upload.addFinishedListener(uploadFinListener);
+  }
+
+  protected void processMetadataUpload(File tsv) throws IOException {
+    CSVReader reader = new CSVReader(new FileReader(tsv));
+    String error = "";
+    ArrayList<String[]> data = new ArrayList<String[]>();
+    String[] nextLine;
+    int i = 0;
+    while ((nextLine = reader.readNext()) != null) {
+      if (data.isEmpty() || nextLine.length == data.get(0).length) {
+        data.add(nextLine);
+      } else {
+        error = "Wrong number of columns in row " + i
+            + " Please make sure every row fits the header row.";
+        Functions.notification("Parsing Error", error, NotificationType.ERROR);
+      }
+    }
+    reader.close();
+    String[] header = data.get(0);
+    data.remove(0);
   }
 
   private void initPooling(String name) {
     poolSelect = new CheckBox();
     poolSelect.setCaption("Pool " + name);
-    main.addComponent(ProjectwizardUI.questionize(poolSelect,
+    main.addComponent(Styles.questionize(poolSelect,
         "Select if multiple tissue extracts are pooled into a single sample "
-            + "before measurement.", "Pooling"));
+            + "before measurement.",
+        "Pooling"));
   }
 
   public void setSamples(List<AOpenbisSample> samples, LabelingMethod labelingMethod) {
-    tab.removeAllItems();
-    tab.initTable(samples, labelingMethod);
-    tab.setVisible(true);
-    tab.setPageLength(samples.size());
-    main.addComponent(tab);
+    table.removeAllItems();
+    table.initTable(samples, labelingMethod);
+    table.setVisible(true);
+    table.setPageLength(samples.size());
+    main.addComponent(table);
   }
 
   public List<AOpenbisSample> getSamples() {
-    return tab.getSamples();
+    return table.getSamples();
   }
 
   @Override
