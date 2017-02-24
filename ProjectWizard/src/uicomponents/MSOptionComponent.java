@@ -17,10 +17,9 @@ package uicomponents;
 
 import io.DBVocabularies;
 import logging.Log4j2Logger;
-import main.ProjectwizardUI;
+import uicomponents.Styles;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -64,7 +63,7 @@ public class MSOptionComponent extends VerticalLayout {
     addComponent(purification);
     purificationMethods = new ComboBox("Purification Method");
     purificationMethods.setNullSelectionAllowed(false);
-    purificationMethods.setStyleName(ProjectwizardUI.boxTheme);
+    purificationMethods.setStyleName(Styles.boxTheme);
     purificationMethods.setVisible(false);
     List<String> methods =
         new ArrayList<String>(vocabs.getProteinPurificationMethodsMap().values());
@@ -79,7 +78,6 @@ public class MSOptionComponent extends VerticalLayout {
         purificationMethods.setVisible(purification.getValue());
       }
     });
-
     addComponent(shortGel);
     addComponent(proteinPooling);
     addComponent(measurePeptides);
@@ -128,6 +126,26 @@ public class MSOptionComponent extends VerticalLayout {
 
   public boolean hasProteinPoolBeforeFractionation() {
     return proteinPooling.getValue();
+  }
+
+  public void selectMeasurePeptides(boolean select) {
+    measurePeptides.setValue(select);
+  }
+
+  public void selectUseShortGel(boolean select) {
+    shortGel.setValue(select);
+  }
+
+  public void selectProteinPurification(String option) {
+    if(option.isEmpty()) {
+      purification.setValue(false);
+      purificationMethods.setNullSelectionAllowed(true);
+      purificationMethods.setValue(purificationMethods.getNullSelectionItemId());
+      purificationMethods.setNullSelectionAllowed(false);
+    } else {
+      purification.setValue(true);
+      purificationMethods.setValue(option);
+    }
   }
 
 }
