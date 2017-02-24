@@ -19,7 +19,7 @@ package uicomponents;
 import java.util.List;
 import java.util.Set;
 
-import main.ProjectwizardUI;
+import uicomponents.Styles;
 
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.validator.StringLengthValidator;
@@ -44,84 +44,93 @@ public class ProjectInformationComponent extends VerticalLayout {
   private static final long serialVersionUID = 3467663055161160735L;
   private CustomVisibilityComponent projectBox;
   private TextField project;
-  private Button reload;
+  private Button reloadProjects;
   private TextField expName;
   private CustomVisibilityComponent personBox;
   private ComboBox piBox;
   private ComboBox contactBox;
-  
+  private ComboBox managerBox;
+  private Button reloadPeople;
+
   TextArea description;
 
   ValueChangeListener projectSelectListener;
 
-  public ProjectInformationComponent(Set<String> set) {
+  public ProjectInformationComponent(Set<String> people) {
     setSpacing(true);
     ComboBox prBox = new ComboBox("Sub-Project");
-    prBox.setStyleName(ProjectwizardUI.boxTheme);
+    prBox.setStyleName(Styles.boxTheme);
     projectBox = new CustomVisibilityComponent(prBox);
-    projectBox.setStyleName(ProjectwizardUI.boxTheme);
+    projectBox.setStyleName(Styles.boxTheme);
     projectBox.setImmediate(true);
-    addComponent(ProjectwizardUI.questionize(projectBox, "QBiC 5 letter project code", "Project"));
+    addComponent(Styles.questionize(projectBox, "QBiC 5 letter project code", "Project"));
 
     project = new StandardTextField();
-    project.setStyleName(ProjectwizardUI.fieldTheme);
+    project.setStyleName(Styles.fieldTheme);
     project.setMaxLength(5);
     project.setWidth("90px");
     project.setEnabled(false);
     project.setValidationVisible(true);
 
-    reload = new Button();
-    ProjectwizardUI.iconButton(reload, FontAwesome.REFRESH);
+    reloadProjects = new Button();
+    Styles.iconButton(reloadProjects, FontAwesome.REFRESH);
 
     HorizontalLayout proj = new HorizontalLayout();
     proj.setCaption("New Sub-Project");
     proj.addComponent(project);
-    proj.addComponent(reload);
+    proj.addComponent(reloadProjects);
     CustomVisibilityComponent newProj = new CustomVisibilityComponent(proj);
 
-    addComponent(ProjectwizardUI
-        .questionize(
-            newProj,
-            "Automatically create an unused QBiC project code or fill in your own. "
-                + "The code consists of 5 characters, must start with Q and not contain Y or Z. You can create a random unused code by clicking "
-                + FontAwesome.REFRESH.getHtml() + ".", "New Sub-Project"));
+    addComponent(Styles.questionize(newProj,
+        "Automatically create an unused QBiC project code or fill in your own. "
+            + "The code consists of 5 characters, must start with Q and not contain Y or Z. You can create a random unused code by clicking "
+            + FontAwesome.REFRESH.getHtml() + ".",
+        "New Sub-Project"));
     expName = new StandardTextField("Short name");
     expName.setWidth("200px");
-//    expName.setRequired(true);
+    // expName.setRequired(true);
     expName.setVisible(false);
     expName.setInputPrompt("Name of sub project");
     addComponent(expName);
 
+    HorizontalLayout persBoxH = new HorizontalLayout();
+    persBoxH.setCaption("Principal Investigator");
     VerticalLayout persBox = new VerticalLayout();
 
-    piBox = new ComboBox("Principal Investigator", set);
+    piBox = new ComboBox();
+    piBox.addItems(people);
     piBox.setFilteringMode(FilteringMode.CONTAINS);
-    contactBox = new ComboBox("Contact Person", set);
+    piBox.setStyleName(Styles.boxTheme);
+    contactBox = new ComboBox("Contact Person", people);
     contactBox.setFilteringMode(FilteringMode.CONTAINS);
-    piBox.setStyleName(ProjectwizardUI.boxTheme);
-    contactBox.setStyleName(ProjectwizardUI.boxTheme);
+    contactBox.setStyleName(Styles.boxTheme);
+    managerBox = new ComboBox("Project Manager", people);
+    managerBox.setFilteringMode(FilteringMode.CONTAINS);
+    managerBox.setStyleName(Styles.boxTheme);
     persBox.addComponent(piBox);
     persBox.addComponent(contactBox);
+    persBox.addComponent(managerBox);
 
-    piBox.setStyleName(ProjectwizardUI.boxTheme);
-    personBox = new CustomVisibilityComponent(persBox);
+    reloadPeople = new Button();
+    Styles.iconButton(reloadPeople, FontAwesome.REFRESH);
+    persBoxH.addComponent(persBox);
+    persBoxH.addComponent(reloadPeople);
+
+    personBox = new CustomVisibilityComponent(persBoxH);
     personBox.setVisible(false);
-    addComponent(ProjectwizardUI
-        .questionize(
-            personBox,
-            "Investigator and contact person of this project. Please contact us if additional people need to be added.",
-            "Contacts"));
+    addComponent(Styles.questionize(personBox,
+        "Investigator and contact person of this project. Please contact us if additional people need to be added. Press refresh button to show newly added people.",
+        "Contacts"));
 
     description = new TextArea("Description");
     description.setRequired(true);
-    description.setStyleName(ProjectwizardUI.fieldTheme);
+    description.setStyleName(Styles.fieldTheme);
     description.setInputPrompt("Sub-Project description, maximum of 2000 symbols.");
     description.setWidth("100%");
     description.setHeight("110px");
     description.setVisible(false);
-    StringLengthValidator lv =
-        new StringLengthValidator(
-            "Description is only allowed to contain a maximum of 2000 letters.", 0, 2000, true);
+    StringLengthValidator lv = new StringLengthValidator(
+        "Description is only allowed to contain a maximum of 2000 letters.", 0, 2000, true);
     description.addValidator(lv);
     description.setImmediate(true);
     description.setValidationVisible(true);
@@ -141,12 +150,30 @@ public class ProjectInformationComponent extends VerticalLayout {
     personBox.setVisible(choseNewProject);
   }
 
+  public void updatePeople(Set<String> people) {
+    String pi = getInvestigator();
+    String contact = getContactPerson();
+    String manager = getProjectManager();
+    piBox.removeAllItems();
+    contactBox.removeAllItems();
+    managerBox.removeAllItems();
+    piBox.addItems(people);
+    contactBox.addItems(people);
+    managerBox.addItems(people);
+    if (pi != null && !pi.isEmpty())
+      piBox.select(pi);
+    if (contact != null && !contact.isEmpty())
+      contactBox.select(contact);
+    if (manager != null && !manager.isEmpty())
+      managerBox.select(manager);
+  }
+
   private boolean selectionNull() {
     return projectBox.getValue() == null;
   }
 
   public Button getCodeButton() {
-    return reload;
+    return reloadProjects;
   }
 
   public ComboBox getProjectBox() {
@@ -158,7 +185,11 @@ public class ProjectInformationComponent extends VerticalLayout {
   }
 
   public Button getProjectReloadButton() {
-    return reload;
+    return reloadProjects;
+  }
+
+  public Button getPeopleReloadButton() {
+    return reloadPeople;
   }
 
   public String getSelectedProject() {
@@ -167,14 +198,19 @@ public class ProjectInformationComponent extends VerticalLayout {
         return project.getValue();
       else
         return "";
-    else
-      return projectBox.getValue().toString();
+    else {
+      String project = projectBox.getValue().toString();
+      if (project.contains(" "))
+        // remove alternative name
+        project = project.split(" ")[0];
+      return project;
+    }
   }
 
   public String getProjectDescription() {
     return description.getValue();
   }
-  
+
   public String getSecondaryName() {
     return expName.getValue();
   }
@@ -196,13 +232,17 @@ public class ProjectInformationComponent extends VerticalLayout {
   public TextField getExpNameField() {
     return expName;
   }
-  
+
   public String getInvestigator() {
     return (String) piBox.getValue();
   }
 
   public String getContactPerson() {
     return (String) contactBox.getValue();
+  }
+
+  public String getProjectManager() {
+    return (String) managerBox.getValue();
   }
 
 }
