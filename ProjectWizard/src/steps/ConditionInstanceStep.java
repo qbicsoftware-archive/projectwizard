@@ -23,9 +23,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import main.ProjectwizardUI;
 import properties.Factor;
 import uicomponents.ConditionPropertyPanel;
+import uicomponents.Styles;
 import componentwrappers.CustomVisibilityComponent;
 import componentwrappers.StandardTextField;
 import control.Functions;
@@ -82,14 +82,14 @@ public class ConditionInstanceStep implements WizardStep {
     preview = new Table();
     preview.addContainerProperty("Factors", String.class, null);
     preview.addContainerProperty("Samples", TextField.class, null);
-    preview.setStyleName(ProjectwizardUI.tableTheme);
+    preview.setStyleName(Styles.tableTheme);
     VerticalLayout frame = new VerticalLayout();
     frame.setCaption("Preview of Combinations");
     frame.addComponent(preview);
     previewFrame = new CustomVisibilityComponent(frame);
     previewFrame.setVisible(false);
 
-    main.addComponent(ProjectwizardUI.questionize(previewFrame,
+    main.addComponent(Styles.questionize(previewFrame,
         "This table shows a preview of the number and type of samples "
             + "that will be created in the next step. You can change the number of samples for each "
             + "group of samples. For example, if one variable combination is not in the experiment at all, set it to 0.",
@@ -146,11 +146,11 @@ public class ConditionInstanceStep implements WizardStep {
     VerticalLayout optionBox = new VerticalLayout();
     for (int i = 1; i <= amount; i++) {
       ComboBox b = new ComboBox(optionName + " " + i, options);
-      b.setStyleName(ProjectwizardUI.boxTheme);
+      b.setStyleName(Styles.boxTheme);
       optionInstances.add(b);
       optionBox.addComponent(b);
     }
-    HorizontalLayout helpBox = ProjectwizardUI.questionize(optionBox,
+    HorizontalLayout helpBox = Styles.questionize(optionBox,
         "To continue, fill in the different " + optionName + " in this experiment.", optionName);
     helpBox.setMargin(true);
     instances.addTab(helpBox, optionName);
@@ -237,7 +237,15 @@ public class ConditionInstanceStep implements WizardStep {
     return permutations;
   }
 
+  public static void main(String[] args) {
+    Integer.parseInt("");
+  }
+
   private int parseAmount(Object o) {
-    return Integer.parseInt(((TextField) o).getValue());
+    String val = ((TextField) o).getValue();
+    if (val.isEmpty())
+      return 0;
+    else
+      return Integer.parseInt(val);
   }
 }
