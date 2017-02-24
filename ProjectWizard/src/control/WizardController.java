@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 import javax.xml.bind.JAXBException;
 
@@ -46,6 +47,7 @@ import model.ISampleBean;
 import model.MSExperimentModel;
 import model.NewSampleModelBean;
 import model.OpenbisExperiment;
+import model.RegistrationMode;
 import model.TestSampleInformation;
 import model.notes.Note;
 
@@ -109,10 +111,10 @@ public class WizardController {
   private boolean extractFactorInstancesSet = false;
   private boolean extractPoolsSet = false;
   private boolean testPoolsSet = false;
+  private boolean copyMode = false;
   private DBVocabularies vocabularies;
   private DBManager dbm;
   private FileDownloader tsvDL;
-  private FileDownloader graphDL;
   SamplePreparator prep = new SamplePreparator();
   protected List<String> designExperimentTypes;
 
@@ -172,6 +174,13 @@ public class WizardController {
 
   private void setTestsPooling() {
     w.addStep(steps.get(Steps.Test_Sample_Pooling));
+    setRegStep();
+  }
+
+  private void setTailoringStepsOnly() {
+    w.addStep(steps.get(Steps.Entity_Tailoring));
+    w.addStep(steps.get(Steps.Extract_Tailoring));
+    w.addStep(steps.get(Steps.Test_Samples)); // test samples first step
     setRegStep();
   }
 
@@ -280,7 +289,8 @@ public class WizardController {
         new ProjectInformationComponent(vocabularies.getPeople().keySet());
     final ProjectContextStep contextStep =
         new ProjectContextStep(vocabularies.getSpaces(), projSelection);
-    final EntityStep entStep = new EntityStep(vocabularies.getTaxMap());
+    final EntityStep entStep =
+        new EntityStep(vocabularies.getTaxMap(), vocabularies.getPeople().keySet());
     final ConditionInstanceStep entCondInstStep =
         new ConditionInstanceStep(vocabularies.getTaxMap().keySet(), "Species", "Biol. Variables");
     final TailoringStep tailoringStep1 = new TailoringStep("Sample Sources", false);
@@ -360,6 +370,27 @@ public class WizardController {
     };
     projSelection.getProjectReloadButton().addClickListener(projCL);
 
+    Button.ClickListener peopleCL = new Button.ClickListener() {
+
+      /**
+       * 
+       */
+      private static final long serialVersionUID = -6646294420820222646L;
+
+      @Override
+      public void buttonClick(ClickEvent event) {
+        vocabularies.setPeople(dbm.fetchPeople());
+        Set<String> people = vocabularies.getPeople().keySet();
+        projSelection.updatePeople(people);
+        entStep.updatePeople(people);
+        extrStep.updatePeople(people);
+        techStep.updatePeople(people);
+      }
+    };
+    projSelection.getPeopleReloadButton().addClickListener(peopleCL);
+    entStep.getPeopleReloadButton().addClickListener(peopleCL);
+    extrStep.getPeopleReloadButton().addClickListener(peopleCL);
+
     Button.ClickListener cl = new Button.ClickListener() {
       /**
        * 
@@ -375,7 +406,41 @@ public class WizardController {
           logger.debug("register empty project");
           registerProjectOnly(desc, altTitle, user, regStep);
         }
-        if (src.equals("Register All")) {
+        if (src.equals("Send Project to QBiC")) {
+          String tsv = dataAggregator.getTSVContent();
+          String space = contextStep.getSpaceCode();
+          String project = contextStep.getProjectCode();
+          String altTitle = contextStep.getExpSecondaryName();
+          List<Note> notes = new ArrayList<Note>();
+          boolean afterMS = w.getSteps().contains(steps.get(Steps.Protein_Fractionation));
+          if (afterMS) {
+            List<String> infos = new ArrayList<String>();
+            String protInfo = protFracStep.getAdditionalInfo();
+            if (protInfo != null && !protInfo.isEmpty()) {
+              infos.add(protInfo);
+            }
+            String pepInfo = pepFracStep.getAdditionalInfo();
+            if (pepInfo != null && !pepInfo.isEmpty()) {
+              infos.add(pepInfo);
+            }
+            if (!infos.isEmpty()) {
+              Date now = new Date();
+              SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+              for (String comment : infos) {
+                Note note = new Note();
+                note.setComment(comment);
+                note.setUsername(user);
+                note.setTime(ft.format(now));
+                notes.add(note);
+              }
+            }
+          }
+          sendInquiry(space, project, altTitle, tsv, user, notes);
+          Functions.notification("Project inquiry sent.",
+              "Your Project inquiry was successfully sent to QBiC. We will contact you.",
+              NotificationType.SUCCESS);
+        }
+        if (src.equals("Register All Samples")) {
           regStep.getRegisterButton().setEnabled(false);
           ProjectContextStep contextStep = (ProjectContextStep) steps.get(Steps.Project_Context);
           String desc = contextStep.getDescription();
@@ -424,39 +489,24 @@ public class WizardController {
         }
       }
 
-      private void createAttachmentSample(String space, String project, String exp, String code,
-          String type) {
-        if (!openbis.expExists(space, project, exp)) {
-          logger.debug(space + project + exp + "does not exist, creating");
-          openbisCreator.registerExperiment(space, project, "Q_PROJECT_DETAILS", exp,
-              new HashMap<String, Object>(), user);
-          try {
-            logger.debug("waiting");
-            Thread.sleep(2000);
-          } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-          }
-        }
-        Map<String, Object> params = new HashMap<String, Object>();
-        Map<String, Object> map = new HashMap<String, Object>();
-        map.put("code", code);
-        map.put("space", space);
-        map.put("project", project);
-        map.put("experiment", exp);
-        map.put("user", user);
-        map.put("type", type);
-        params.put(code, map);
-        openbis.ingest("DSS1", "register-sample-batch", params);
-        try {
-          Thread.sleep(100);
-        } catch (InterruptedException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        }
+      private void sendInquiry(String space, String project, String altTitle, String tsv,
+          String user, List<Note> notes) {
+        Map<String, Object> parameters = new HashMap<String, Object>();
+        parameters.put("project", project);
+        parameters.put("space", space);
+        parameters.put("user", user);
+        parameters.put("project-tsv", tsv);
+
+        String comments = "";
+        for (Note n : notes)
+          comments += n.getComment() + "\n";
+        parameters.put("alt-name", altTitle);
+        parameters.put("notes", comments);// TODO do something with this
+
+        openbis.triggerIngestionService("mail-project-inquiry", parameters);
       }
+
     };
-    // regStep.getDownloadButton().addClickListener(cl);
     regStep.getRegisterButton().addClickListener(cl);
 
     /**
@@ -478,8 +528,11 @@ public class WizardController {
           for (Project p : openbis.getProjectsOfSpace(space)) {
             String code = p.getCode();
             String name = dbm.getProjectName("/" + space + "/" + code);
-            if (name != null && name.length() > 0)
+            if (name != null && name.length() > 0) {
+              if (name.length() >= 80)
+                name = name.substring(0, 80) + "...";
               code += " (" + name + ")";
+            }
             projects.add(code);
           }
           contextStep.setProjectCodes(projects);
@@ -494,7 +547,6 @@ public class WizardController {
             pepFracStep.filterDictionariesByPrefix("");
           }
         }
-        // updateContextOptions(projSelection, contextStep);
       }
 
     };
@@ -562,8 +614,8 @@ public class WizardController {
       @Override
       public void valueChange(ValueChangeEvent event) {
         // contextStep.enableExpName(false);
+        copyMode = false;
         if (contextStep.getProjectContext().getValue() != null) {
-          regStep.setEmptyProject(false);
           resetNextSteps();
           OptionGroup projectContext = contextStep.getProjectContext();
           List<String> contextOptions = contextStep.getContextOptions();
@@ -596,16 +648,22 @@ public class WizardController {
             dataAggregator.setInheritEntities(false);
             dataAggregator.setInheritExtracts(false);
             contextStep.hideExperiments();
-            // contextStep.enableExpName(true);
           }
-          // copy context
-          // if (contextOptions.get(3).equals(context)) {
-          // beans.addAll(context);
-          // setRegStep();
-          // }
+          regStep.setRegistrationMode(RegistrationMode.RegisterSamples);
           if (contextOptions.get(3).equals(context)) {
-            regStep.setEmptyProject(true);
             setRegStep();
+            regStep.setRegistrationMode(RegistrationMode.RegisterEmptyProject);
+          }
+          // copy design context
+          if (contextOptions.get(5).equals(context)) {
+            for (ExperimentBean b : experiments) {
+              if (b.getExperiment_type().equals(ExperimentType.Q_EXPERIMENTAL_DESIGN.toString()))
+                beans.add(b);
+            }
+            copyMode = true;
+            setTailoringStepsOnly();
+            dataAggregator.setInheritEntities(true);
+            dataAggregator.setInheritExtracts(true);
           }
           // read only tsv creation
           if (contextOptions.get(4).equals(context)) {
@@ -614,6 +672,7 @@ public class WizardController {
                 beans.add(b);
             }
             setRegStep();
+            regStep.setRegistrationMode(RegistrationMode.DownloadTSV);
           }
           if (beans.size() > 0)
             contextStep.showExperiments(beans);
@@ -679,7 +738,7 @@ public class WizardController {
       }
     };
 
-    techStep.initTestStep(testPoolListener, proteinListener, steps);
+    techStep.initTestStep(testPoolListener, proteinListener, peopleCL, steps);
 
     ValueChangeListener noMeasureListener = new ValueChangeListener() {
 
@@ -769,7 +828,6 @@ public class WizardController {
         // Entity Setup Step
         if (event.getActivatedStep().equals(entStep)) {
           bioFactorInstancesSet = false;
-          // }
         }
         // Entity Condition Instances Step
         if (event.getActivatedStep().equals(entCondInstStep)) {
@@ -788,7 +846,7 @@ public class WizardController {
         if (event.getActivatedStep().equals(tailoringStep1)) {
           try {
             tailoringStep1.setSamples(
-                dataAggregator.prepareEntities(entCondInstStep.getPreSelection()), null);
+                dataAggregator.prepareEntities(entCondInstStep.getPreSelection(), copyMode), null);
           } catch (JAXBException e) {
             e.printStackTrace();
           }
@@ -814,9 +872,14 @@ public class WizardController {
         // Negative Selection of Extracts
         if (event.getActivatedStep().equals(tailoringStep2)) {
           extractPoolsSet = false;
+          if (copyMode) {
+            // set entities if some were removed or changed in the last step
+            dataAggregator.setEntities(tailoringStep1.getSamples());
+
+          }
           try {
             tailoringStep2.setSamples(
-                dataAggregator.prepareExtracts(extrCondInstStep.getPreSelection()),
+                dataAggregator.prepareExtracts(extrCondInstStep.getPreSelection(), copyMode),
                 extrStep.getLabelingMethod());
           } catch (JAXBException e) {
             e.printStackTrace();
@@ -841,8 +904,9 @@ public class WizardController {
           List<AOpenbisSample> all = new ArrayList<AOpenbisSample>();
           all.addAll(extracts);
           all.addAll(dataAggregator.createPoolingSamples(poolStep1.getPools()));
-          logger.debug("setting extracts: " + all);
           dataAggregator.setExtracts(all);
+          if (copyMode)
+            techStep.setAnalyteInputs(dataAggregator.getBaseAnalyteInformation());
         }
         // Test Pool Step
         if (event.getActivatedStep().equals(poolStep2)) {
@@ -864,7 +928,18 @@ public class WizardController {
           // we forward testsamples and potential pools directly to the fractionation step to sort
           // them out
           // they don't get barcodes either for now, in case we need to recreate them
-          protFracStep.setAnalyteSamples(dataAggregator.getTests(), poolStep2.getPools());
+          List<AOpenbisSample> proteins =
+              filterForProperties(dataAggregator.getTests(), "Q_SAMPLE_TYPE", "PROTEINS");
+          Map<String, List<AOpenbisSample>> pools = poolStep2.getPools();
+          for (String pool : pools.keySet()) {
+            List<AOpenbisSample> filtered =
+                filterForProperties(pools.get(pool), "Q_SAMPLE_TYPE", "PROTEINS");
+            if (filtered.isEmpty())
+              pools.remove(pool);
+            else
+              pools.put(pool, filtered);
+          }
+          protFracStep.setAnalyteSamples(proteins, pools);
         }
         // Pooling after Protein Fractionation
         // if (event.getActivatedStep().equals(afterProtFracPooling)) {
@@ -915,7 +990,7 @@ public class WizardController {
             } catch (IOException e) {
               e.printStackTrace();
             }
-            armDownloadButtons(regStep.getDownloadButton(), regStep.getGraphButton());
+            armDownloadButtons(regStep.getDownloadButton());
             List<SampleSummaryBean> summaries = prep.getSummary();
             Map<String, String> taxMap = new HashMap<String, String>();
             for (Map.Entry<String, String> entry : vocabularies.getTaxMap().entrySet())
@@ -928,18 +1003,19 @@ public class WizardController {
             regStep.setSummary(summaries);
             int investigator = -1;
             int contact = -1;
+            int manager = -1;
             if (!contextStep.getPrincipalInvestigator().equals(""))
               investigator = vocabularies.getPeople().get(contextStep.getPrincipalInvestigator());
+            if (!contextStep.getProjectManager().equals(""))
+              manager = vocabularies.getPeople().get(contextStep.getProjectManager());
             if (!contextStep.getContactPerson().equals(""))
               contact = vocabularies.getPeople().get(contextStep.getContactPerson());
-            regStep.setPeopleAndProject(investigator, contact,
+            regStep.setPeopleAndProject(investigator, contact, manager,
                 "/" + contextStep.getSpaceCode() + "/" + contextStep.getProjectCode(),
                 contextStep.getExpSecondaryName(), dataAggregator.getExperiments());
             regStep.setProcessed(prep.getProcessed());
           }
-          if (regStep.summaryIsSet()) {
-            regStep.setRegEnabled(true);
-          }
+          regStep.testRegEnabled();
           // Write TSV mode
           if (contextStep.fetchTSVModeSet()) {
             try {
@@ -953,19 +1029,29 @@ public class WizardController {
             } catch (IOException e) {
               e.printStackTrace();
             }
-            armDownloadButtons(regStep.getDownloadButton(), regStep.getGraphButton());
-            regStep.setSummary(prep.getSummary());
-            // logger.debug("set processed samples");
-            // regStep.setProcessed(prep.getProcessed());
+            armDownloadButtons(regStep.getDownloadButton());
+            List<SampleSummaryBean> summaries = prep.getSummary();
+            Map<String, String> taxMap = new HashMap<String, String>();
+            for (Map.Entry<String, String> entry : vocabularies.getTaxMap().entrySet())
+              taxMap.put(entry.getValue(), entry.getKey());
+            for (SampleSummaryBean s : summaries) {
+              String translation = taxMap.get(s.getSampleContent());
+              if (translation != null)
+                s.setSampleContent(translation);
+            }
+            regStep.setSummary(summaries);
           }
           if (contextStep.emptyProjectModeSet()) {
             int investigator = -1;
             int contact = -1;
+            int manager = -1;
             if (!contextStep.getPrincipalInvestigator().equals(""))
               investigator = vocabularies.getPeople().get(contextStep.getPrincipalInvestigator());
+            if (!contextStep.getProjectManager().equals(""))
+              manager = vocabularies.getPeople().get(contextStep.getProjectManager());
             if (!contextStep.getContactPerson().equals(""))
               contact = vocabularies.getPeople().get(contextStep.getContactPerson());
-            regStep.setPeopleAndProject(investigator, contact,
+            regStep.setPeopleAndProject(investigator, contact, manager,
                 "/" + contextStep.getSpaceCode() + "/" + contextStep.getProjectCode(),
                 contextStep.getExpSecondaryName(), new ArrayList<OpenbisExperiment>());
           }
@@ -1026,6 +1112,16 @@ public class WizardController {
     w.addListener(wl);
   }
 
+  protected List<AOpenbisSample> filterForProperties(List<AOpenbisSample> samples, String property,
+      String value) {
+    List<AOpenbisSample> res = new ArrayList<AOpenbisSample>();
+    for (AOpenbisSample sample : samples) {
+      if (value.equals(sample.getValueMap().get(property)))
+        res.add(sample);
+    }
+    return res;
+  }
+
   protected void createTSV() {
     try {
       dataAggregator.createTSV();
@@ -1072,34 +1168,39 @@ public class WizardController {
 
     // inputs to check
     String space = (String) contextStep.getSpaceBox().getValue();
-    String existingProject = (String) projSelection.getProjectBox().getValue();
+    String existingProject = contextStep.getProjectCode();
+    // String existingProject = (String) projSelection.getProjectBox().getValue();
 
     if (space != null && !space.isEmpty()) {
       // space is set
       if (existingProject != null && !existingProject.isEmpty()) {
         // known project selected, will deactivate generation
         projSelection.tryEnableCustomProject("");
-        String project = existingProject;
-        if (project.contains(" "))
-          project = project.split(" ")[0];
         contextStep.enableNewContextOption(true);
         contextStep.makeContextVisible();
-        boolean hasBioEntities = projectHasBioEntities(space, project);
-        boolean hasExtracts = projectHasExtracts(space, project);
+        boolean hasBioEntities = projectHasBioEntities(space, existingProject);
+        boolean hasExtracts = projectHasExtracts(space, existingProject);
         contextStep.enableExtractContextOption(hasBioEntities);
         contextStep.enableMeasureContextOption(hasExtracts);
         contextStep.enableTSVWriteContextOption(hasBioEntities);
+        contextStep.enableCopyContextOption(hasBioEntities); // TODO
 
         List<ExperimentBean> beans = new ArrayList<ExperimentBean>();
-        for (Experiment e : openbis.getExperimentsOfProjectByCode(project)) {
+        for (Experiment e : openbis.getExperimentsOfProjectByCode(existingProject)) {
           if (designExperimentTypes.contains(e.getExperimentTypeCode())) {
+            Date date = e.getRegistrationDetails().getRegistrationDate();
+            SimpleDateFormat dt1 = new SimpleDateFormat("yy-MM-dd");
+            String dt = "";
+            if (date != null)
+              dt = dt1.format(date);
             int numOfSamples = openbis.getSamplesofExperiment(e.getIdentifier()).size();
             beans.add(new ExperimentBean(e.getIdentifier(), e.getExperimentTypeCode(),
-                Integer.toString(numOfSamples)));
+                Integer.toString(numOfSamples), dt));
           }
         }
         contextStep.setExperiments(beans);
       } else {
+        // can create new project
         projSelection.getProjectField().setEnabled(true);
       }
     }
@@ -1156,7 +1257,7 @@ public class WizardController {
     return permutations;
   }
 
-  protected void armDownloadButtons(Button tsv, Button graph) {
+  protected void armDownloadButtons(Button tsv) {
     StreamResource tsvStream =
         getTSVStream(dataAggregator.getTSVContent(), dataAggregator.getTSVName());
     if (tsvDL == null) {
@@ -1164,12 +1265,6 @@ public class WizardController {
       tsvDL.extend(tsv);
     } else
       tsvDL.setFileDownloadResource(tsvStream);
-    StreamResource graphStream = getGraphStream(prep.toGraphML(), "test");
-    if (graphDL == null) {
-      graphDL = new FileDownloader(graphStream);
-      graphDL.extend(graph);
-    } else
-      graphDL.setFileDownloadResource(graphStream);
   }
 
   public StreamResource getGraphStream(final String content, String name) {
