@@ -25,6 +25,7 @@ import logging.Log4j2Logger;
 import main.IOpenBisClient;
 import main.OpenBisClient;
 import main.ProjectwizardUI;
+import uicomponents.Styles;
 import model.AttachmentConfig;
 import org.vaadin.teemu.wizards.Wizard;
 import org.vaadin.teemu.wizards.WizardStep;
@@ -35,8 +36,10 @@ import uicomponents.UploadsPanel;
 
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
 
+import com.google.gwt.user.client.ui.Widget;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.event.Action.Listener;
 import com.vaadin.server.FileDownloader;
 import com.vaadin.server.StreamResource;
 import com.vaadin.shared.ui.label.ContentMode;
@@ -49,6 +52,8 @@ import com.vaadin.ui.Panel;
 import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.themes.ValoTheme;
 
 import concurrency.UpdateProgressBar;
@@ -76,6 +81,7 @@ public class FinishStep implements WizardStep {
   private UploadsPanel uploads;
   private Wizard w;
   private AttachmentConfig attachConfig;
+  private Button browserLink;
 
   private logging.Logger logger = new Log4j2Logger(FinishStep.class);
   private List<FileDownloader> downloaders = new ArrayList<FileDownloader>();
@@ -88,7 +94,7 @@ public class FinishStep implements WizardStep {
     main.setMargin(true);
     main.setSpacing(true);
     Label header = new Label("Summary and File Upload");
-    main.addComponent(ProjectwizardUI.questionize(header,
+    main.addComponent(Styles.questionize(header,
         "Here you can download spreadsheets of the samples in your experiment "
             + "and upload informative files belonging to your project, e.g. treatment information. "
             + "It might take a few minutes for your files to show up in our project browser.",
@@ -119,6 +125,10 @@ public class FinishStep implements WizardStep {
     main.addComponent(bar);
     main.addComponent(info);
     main.addComponent(downloads);
+
+    browserLink = new Button("Show in Project Browser");
+    main.addComponent(browserLink);
+
     attach = new CheckBox("Upload Additional Files");
     // attach.setVisible(false);
     attach.addValueChangeListener(new ValueChangeListener() {
@@ -129,7 +139,7 @@ public class FinishStep implements WizardStep {
         w.getFinishButton().setVisible(!attach.getValue());
       }
     });
-    main.addComponent(ProjectwizardUI.questionize(attach,
+    main.addComponent(Styles.questionize(attach,
         "Upload one or more small files pertaining to the experimental design of this project.",
         "Upload Attachments"));
   }
@@ -147,6 +157,20 @@ public class FinishStep implements WizardStep {
 
   public void setExperimentInfos(String space, String proj, String desc,
       Map<String, List<Sample>> samplesByExperiment, IOpenBisClient openbis) {
+    for (Object listener : browserLink.getListeners(ClickEvent.class))
+      browserLink.removeClickListener((ClickListener) listener);
+    browserLink.addClickListener(new ClickListener() {
+
+      @Override
+      public void buttonClick(ClickEvent event) {
+        String host = UI.getCurrent().getPage().getLocation().getHost();
+        String path =
+            UI.getCurrent().getPage().getLocation().getPath().replace("qwizard", "qnavigator");
+        String url = "http://" + host + path + "#!project//" + space + "/" + proj;
+        UI.getCurrent().getPage().setLocation(url);
+      }
+    });
+
     int entitieNum = 0;
     int samplesNum = 0;
     List<String> ids = new ArrayList<String>();
