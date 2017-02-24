@@ -22,10 +22,12 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-import main.ProjectwizardUI;
+import uicomponents.Styles;
 import model.AOpenbisSample;
 import model.MHCLigandExtractionProtocol;
+import model.RegisteredAnalyteInformation;
 import model.TestSampleInformation;
 
 import org.vaadin.teemu.wizards.Wizard;
@@ -33,20 +35,16 @@ import org.vaadin.teemu.wizards.WizardStep;
 
 import uicomponents.MSOptionComponent;
 import uicomponents.LigandExtractPanel;
-import uicomponents.MSPanel;
-import uicomponents.MSSampleMultiplicationTable;
 import uicomponents.TechnologiesPanel;
 
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.Notification;
 import com.vaadin.ui.OptionGroup;
-import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.themes.ValoTheme;
 
 import control.Functions;
 import control.Functions.NotificationType;
@@ -85,12 +83,12 @@ public class TestStep implements WizardStep {
     main.setSpacing(true);
     main.setSizeUndefined();
     Label header = new Label("Analysis Method");
-    main.addComponent(ProjectwizardUI.questionize(header,
+    main.addComponent(Styles.questionize(header,
         "Here you can specify what kind of material is extracted from the samples for measurement, how many measurements (techn. replicates) are taken per sample "
             + "and if there is pooling for some or all of the technologies used.",
         "Analysis Method"));
     noMeasure = new CheckBox("No further preparation of samples?");
-    main.addComponent(ProjectwizardUI.questionize(noMeasure,
+    main.addComponent(Styles.questionize(noMeasure,
         "Check if no DNA etc. is extracted and measured, for example in tissue imaging.",
         "No Sample Preparation"));
 
@@ -131,7 +129,7 @@ public class TestStep implements WizardStep {
   @Override
   public boolean onAdvance() {
     if (techPanel.isValid() || noMeasure.getValue()) {
-      if (containsProteins) {// TODO mhc ligands
+      if (containsProteins) {
         if (msPanel.isValid()) {
           return true;
         } else
@@ -170,7 +168,7 @@ public class TestStep implements WizardStep {
   }
 
   public void initTestStep(ValueChangeListener testPoolListener,
-      ValueChangeListener outerProteinListener, Map<Steps, WizardStep> steps) {
+      ValueChangeListener outerProteinListener, ClickListener refreshPeopleListener, Map<Steps, WizardStep> steps) {
     ValueChangeListener proteinListener = new ValueChangeListener() {
 
       /**
@@ -214,7 +212,7 @@ public class TestStep implements WizardStep {
     techPanel = new TechnologiesPanel(vocabs.getMeasureTypes(), vocabs.getPeople().keySet(),
         new OptionGroup(""), testPoolListener,
         new ArrayList<ValueChangeListener>(Arrays.asList(outerProteinListener, proteinListener)),
-        mhcLigandListener);
+        mhcLigandListener, refreshPeopleListener);
     main.addComponent(techPanel);
     main.addComponent(new Label("<hr />", Label.CONTENT_XHTML));
     msPanel = new MSOptionComponent(vocabs);
@@ -282,5 +280,18 @@ public class TestStep implements WizardStep {
 
   public boolean hasComplexProteinPoolBeforeFractionation() {
     return msPanel.hasProteinPoolBeforeFractionation();
+  }
+
+  public void setAnalyteInputs(RegisteredAnalyteInformation infos) {
+    for(String analyte : infos.getAnalytes()) {
+      techPanel.select(analyte);
+    }
+    msPanel.selectMeasurePeptides(infos.isMeasurePeptides());
+    msPanel.selectUseShortGel(infos.isShortGel());
+    msPanel.selectProteinPurification(infos.getPurificationMethod());
+  }
+
+  public void updatePeople(Set<String> people) {
+    techPanel.updatePeople(people);
   }
 }
