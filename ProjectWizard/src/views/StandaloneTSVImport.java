@@ -15,7 +15,6 @@
  *******************************************************************************/
 package views;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import logging.Log4j2Logger;
