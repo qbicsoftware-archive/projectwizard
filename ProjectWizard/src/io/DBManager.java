@@ -45,7 +45,8 @@ public class DBManager {
 
   private void logout(Connection conn) {
     try {
-      conn.close();
+      if (conn != null)
+        conn.close();
     } catch (SQLException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
@@ -68,6 +69,39 @@ public class DBManager {
     return conn;
   }
 
+  public Person getPersonForProject(String projectIdentifier, String role) {
+    String sql =
+        "SELECT * FROM persons LEFT JOIN projects_persons ON persons.id = projects_persons.person_id "
+            + "LEFT JOIN projects ON projects_persons.project_id = projects.id WHERE "
+            + "projects.openbis_project_identifier = ? AND projects_persons.project_role = ?";
+    Person res = null;
+
+    Connection conn = login();
+    try (PreparedStatement statement = conn.prepareStatement(sql)) {
+      statement.setString(1, projectIdentifier);
+      statement.setString(2, role);
+
+      ResultSet rs = statement.executeQuery();
+
+      while (rs.next()) {
+        String zdvID = rs.getString("username");
+        String first = rs.getString("first_name");
+        String last = rs.getString("family_name");
+        String email = rs.getString("email");
+        String tel = rs.getString("phone");
+        int instituteID = -1;// TODO fetch correct id
+        res = new Person(zdvID, first, last, email, tel, instituteID);
+      }
+    } catch (SQLException e) {
+      e.printStackTrace();
+      logout(conn);
+      // LOGGER.debug("Project not associated with Investigator. PI will be set to 'Unknown'");
+    }
+
+    logout(conn);
+    return res;
+  }
+
   public String getProjectName(String projectIdentifier) {
     String sql = "SELECT short_title from projects WHERE openbis_project_identifier = ?";
     String res = "";
@@ -82,27 +116,11 @@ public class DBManager {
     } catch (SQLException e) {
       logger.error("SQL operation unsuccessful: " + e.getMessage());
       e.printStackTrace();
+    } catch (NullPointerException n) {
+      logger.error("Could not reach SQL database, resuming without project names.");
     }
     logout(conn);
     return res;
-  }
-
-  public void addOrChangeSecondaryNameForProject(String projectCode, String secondaryName) {
-    logger
-        .info("Adding/Updating secondary name of project " + projectCode + " to " + secondaryName);
-    String sql = "UPDATE projects SET secondary_name=? WHERE tutorial_id=?";
-    // String sql = "INSERT INTO projects (pi_id, project_code) VALUES(?, ?)";
-    Connection conn = login();
-    try (PreparedStatement statement = conn.prepareStatement(sql)) {
-      statement.setString(2, projectCode);
-      statement.setString(3, secondaryName);
-      statement.execute();
-      logger.info("Successful.");
-    } catch (SQLException e) {
-      logger.error("SQL operation unsuccessful: " + e.getMessage());
-      e.printStackTrace();
-    }
-    logout(conn);
   }
 
   public int isProjectInDB(String projectIdentifier) {
@@ -245,6 +263,7 @@ public class DBManager {
       logout(conn);
       return -1;
     }
+    logger.info("added experiment do mysql db");
     return exists;
   }
 
@@ -258,7 +277,7 @@ public class DBManager {
       statement.setString(1, id);
       ResultSet rs = statement.executeQuery();
       if (rs.next()) {
-        logger.info("project found!");
+        logger.info("experiment found!");
         res = rs.getInt("id");
       }
     } catch (SQLException e) {
@@ -386,6 +405,16 @@ public class DBManager {
       endQuery(conn, statement);
     }
     return res;
+  }
+
+  public Map<String, Integer> fetchPeople() {
+    Map<String, Integer> map = new HashMap<String, Integer>();
+    try {
+      map = getPrincipalInvestigatorsWithIDs();
+    } catch (NullPointerException e) {
+      map.put("No Connection", -1);
+    }
+    return map;
   }
 
   //
