@@ -17,37 +17,39 @@ package steps;
 
 import io.DBManager;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import logging.Log4j2Logger;
 import main.IOpenBisClient;
-import main.OpenBisClient;
-import main.ProjectwizardUI;
+import uicomponents.Styles;
 import main.SampleSummaryBean;
 import model.ExperimentType;
 import model.ISampleBean;
 import model.OpenbisExperiment;
+import model.RegistrationMode;
 import model.notes.Note;
 import uicomponents.ExperimentSummaryTable;
 
-import org.apache.commons.lang.WordUtils;
+import org.vaadin.hene.flexibleoptiongroup.FlexibleOptionGroup;
+import org.vaadin.hene.flexibleoptiongroup.FlexibleOptionGroupItemComponent;
 import org.vaadin.teemu.wizards.WizardStep;
 
 import views.IRegistrationView;
 
+import com.vaadin.data.Container;
+import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.ProgressBar;
-import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.themes.ValoTheme;
 
-import ch.systemsx.cisd.common.shared.basic.string.StringUtils;
 import componentwrappers.CustomVisibilityComponent;
 import control.Functions;
 import control.Functions.NotificationType;
@@ -63,7 +65,6 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
   private VerticalLayout main;
   private Button downloadTSV;
   private Button register;
-  private Button downloadGraph;
   private ExperimentSummaryTable summary;
   private List<List<ISampleBean>> samples;
   private Label registerInfo;
@@ -75,11 +76,21 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
   private IOpenBisClient openbis;
   private int investigatorID;
   private int contactID;
+  private int managerID;
   private String projectIdentifier;
   private String projectName;
-  private boolean isEmptyProject = false;
   private List<OpenbisExperiment> exps;
   private List<Note> notes;
+  private FlexibleOptionGroup optionGroup;
+  private VerticalLayout optionLayout;
+  private RegistrationMode registrationMode;
+  private final String paidOption = "I am aware of all costs associated with this project, "
+      + "since I previously signed a corresponding agreement "
+      + "and I agree to pay all charges upon receival of the "
+      + "invoice. This submission is binding.";
+  private final String freeOption = "I understand that this experimental design draft will "
+      + "now be submitted for QBiC review. I thereby request "
+      + "a consultancy meeting. There are no costs associated " + "with this submission.";
 
   public SummaryRegisterStep(DBManager dbm, IOpenBisClient openbis) {
     this.dbm = dbm;
@@ -88,7 +99,7 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
     main.setMargin(true);
     main.setSpacing(true);
     Label header = new Label("Sample Registration");
-    main.addComponent(ProjectwizardUI.questionize(header,
+    main.addComponent(Styles.questionize(header,
         "Here you can download a spreadsheet of the samples in your experiment "
             + "and register your project in the database. "
             + "Registering samples may take a few seconds.",
@@ -96,7 +107,7 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
 
     summary = new ExperimentSummaryTable();
 
-    summaryComponent = new CustomVisibilityComponent(ProjectwizardUI.questionize(summary,
+    summaryComponent = new CustomVisibilityComponent(Styles.questionize(summary,
         "This is a summary of samples for Sample Sources/Patients, Tissue Extracts and "
             + "samples that will be measured.",
         "Experiment Summary"));
@@ -107,18 +118,39 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
     downloadTSV.setEnabled(false);
     HorizontalLayout tsvInfo = new HorizontalLayout();
     tsvInfo.addComponent(downloadTSV);
-    main.addComponent(ProjectwizardUI.questionize(tsvInfo,
+    main.addComponent(Styles.questionize(tsvInfo,
         "You can download a technical spreadsheet to register your samples at a later time instead. More informative spreadsheets are available in the next step.",
         "TSV Download"));
 
-    downloadGraph = new Button("Download Graph");
-    downloadGraph.setEnabled(false);
-    // main.addComponent(downloadGraph);
+    Container cont = new IndexedContainer();
+    cont.addContainerProperty("caption", String.class, "");
+    cont.getContainerProperty(cont.addItem(), "caption").setValue(paidOption);
+    cont.getContainerProperty(cont.addItem(), "caption").setValue(freeOption);
+    optionGroup = new FlexibleOptionGroup(cont);
+    optionGroup.setItemCaptionPropertyId("caption");
 
-    register = new Button("Register All");
+    optionLayout = new VerticalLayout();
+    Iterator<FlexibleOptionGroupItemComponent> iter;
+    iter = optionGroup.getItemComponentIterator();
+    while (iter.hasNext()) {
+      FlexibleOptionGroupItemComponent fogItemComponent = iter.next();
+      Label caption = new Label(fogItemComponent.getCaption());
+      caption.setWidth("400px");
+      optionLayout.addComponent(new HorizontalLayout(fogItemComponent, caption));
+    }
+
+    main.addComponent(optionLayout);
+    optionGroup.addValueChangeListener(new ValueChangeListener() {
+
+      @Override
+      public void valueChange(ValueChangeEvent event) {
+        testRegEnabled();
+      }
+    });
+
+    register = new Button("Register All Samples");
     register.setEnabled(false);
     main.addComponent(register);
-
 
     registerInfo = new Label();
     bar = new ProgressBar();
@@ -134,7 +166,6 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
 
   public void enableDownloads(boolean enabled) {
     downloadTSV.setEnabled(enabled);
-    downloadGraph.setEnabled(enabled);
   }
 
   public Button getDownloadButton() {
@@ -173,8 +204,18 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
     samples = processed;
   }
 
-  public void setRegEnabled(boolean b) {
-    register.setEnabled(b);
+  public void testRegEnabled() {
+    boolean optionChosen = optionGroup.getValue() != null;
+    register
+        .setEnabled(optionChosen || registrationMode.equals(RegistrationMode.RegisterEmptyProject));
+    if (optionChosen) {
+      if (registrationReady()) {
+        if (optionGroup.getValue().equals(1))
+          register.setCaption("Register All Samples");
+        if (optionGroup.getValue().equals(2))
+          register.setCaption("Send Project to QBiC");
+      }
+    }
   }
 
   public List<List<ISampleBean>> getSamples() {
@@ -205,6 +246,8 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
       dbm.addPersonToProject(projectID, investigatorID, "PI");
     if (contactID != -1)
       dbm.addPersonToProject(projectID, contactID, "Contact");
+    if (managerID != -1)
+      dbm.addPersonToProject(projectID, managerID, "Manager");
     for (OpenbisExperiment e : exps) {
       String identifier = projectIdentifier + "/" + e.getOpenbisName();
       int expID = dbm.addExperimentToDB(identifier);
@@ -216,13 +259,16 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
     Functions.notification("Registration complete!",
         "Registration of samples complete. Press 'next' for additional options.",
         NotificationType.SUCCESS);
+    optionGroup.setEnabled(false);
+    register.setEnabled(false);
     registrationComplete = true;
   }
 
-  public void setPeopleAndProject(int investigator, int contact, String projectIdentifier,
+  public void setPeopleAndProject(int investigator, int contact, int manager, String projectIdentifier,
       String projectName, List<OpenbisExperiment> exps) {
     this.investigatorID = investigator;
     this.contactID = contact;
+    this.managerID = manager;
     this.projectIdentifier = projectIdentifier;
     this.projectName = projectName;
     this.exps = exps;
@@ -236,28 +282,36 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
     return registerInfo;
   }
 
-  public void setEmptyProject(boolean b) {
-    if(b)
-    register.setCaption("Register Project");
-    else
-      register.setCaption("Register All");
-    this.isEmptyProject = b;
-  }
-
-  public boolean summaryIsSet() {
-    return (summary.size() > 0 || isEmptyProject);
+  private boolean registrationReady() {
+    return (summary.size() > 0 || registrationMode.equals(RegistrationMode.RegisterEmptyProject));
   }
 
   public void resetSummary() {
     summary.removeAllItems();
   }
 
-  public Button getGraphButton() {
-    return downloadGraph;
-  }
-
   public void setProjectNotes(List<Note> notes) {
     this.notes = notes;
+  }
+
+  public void setRegistrationMode(RegistrationMode mode) {
+    this.registrationMode = mode;
+    switch (mode) {
+      case RegisterEmptyProject:
+        optionLayout.setVisible(false);
+        register.setCaption("Register Project");
+        break;
+      case RegisterSamples:
+        optionLayout.setVisible(true);
+        register.setCaption("Register All Samples");
+        break;
+      case DownloadTSV:
+        optionLayout.setVisible(false);
+        break;
+      default:
+        logger.error("Unknown registration mode: " + mode);
+        break;
+    }
   }
 
 }
