@@ -19,13 +19,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import main.ProjectwizardUI;
+import uicomponents.Styles;
 import model.TestSampleInformation;
 
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.OptionGroup;
@@ -46,6 +47,7 @@ public class TechnologiesPanel extends HorizontalLayout {
   ValueChangeListener poolListener;
   List<ValueChangeListener> proteinListeners;
   ValueChangeListener mhcLigandListener;
+  Button.ClickListener refreshPeopleListener;
   GridLayout buttonGrid;
   Button add;
   Button remove;
@@ -62,7 +64,7 @@ public class TechnologiesPanel extends HorizontalLayout {
    */
   public TechnologiesPanel(List<String> techOptions, Set<String> persons, OptionGroup conditionsSet,
       ValueChangeListener poolListener, ArrayList<ValueChangeListener> proteinListeners,
-      ValueChangeListener mhcLigandListener) {
+      ValueChangeListener mhcLigandListener, ClickListener refreshPeopleListener) {
     this.options = techOptions;
     this.persons = persons;
 
@@ -70,17 +72,19 @@ public class TechnologiesPanel extends HorizontalLayout {
     this.conditionsSet.addItem("set");
     add = new Button();
     remove = new Button();
-    ProjectwizardUI.iconButton(add, FontAwesome.PLUS_SQUARE);
-    ProjectwizardUI.iconButton(remove, FontAwesome.MINUS_SQUARE);
+    Styles.iconButton(add, FontAwesome.PLUS_SQUARE);
+    Styles.iconButton(remove, FontAwesome.MINUS_SQUARE);
     initListener();
     this.poolListener = poolListener;
     this.proteinListeners = proteinListeners;
     this.mhcLigandListener = mhcLigandListener;
+    this.refreshPeopleListener = refreshPeopleListener;
 
     choosers = new ArrayList<TechChooser>();
     TechChooser c = new TechChooser(techOptions, persons);
     c.setImmediate(true);
     c.addPoolListener(poolListener);
+    c.addRefreshPeopleListener(refreshPeopleListener);
     for (ValueChangeListener l : proteinListeners)
       c.addProteinListener(l);
     c.addMHCListener(mhcLigandListener);
@@ -137,6 +141,7 @@ public class TechnologiesPanel extends HorizontalLayout {
     for (ValueChangeListener l : proteinListeners)
       c.addProteinListener(l);
     c.addMHCListener(mhcLigandListener);
+    c.addRefreshPeopleListener(refreshPeopleListener);
     choosers.add(c);
 
     c.showHelpers();
@@ -156,6 +161,7 @@ public class TechnologiesPanel extends HorizontalLayout {
       for (ValueChangeListener l : proteinListeners)
         last.removeProteinListener(l);
       last.removeMHCListener(mhcLigandListener);
+      last.removeRefreshPeopleListener(refreshPeopleListener);
       choosers.get(size - 2).showHelpers();
     }
   }
@@ -172,6 +178,26 @@ public class TechnologiesPanel extends HorizontalLayout {
     for (TechChooser c : choosers) {
       c.reset();
     }
+  }
+
+  public void select(String analyte) {
+    boolean added = false;
+    for (TechChooser c : choosers) {
+      if (!c.hasAnalyteInput()) {
+        c.setValue(analyte);
+        added = true;
+        break;
+      }
+    }
+    if (!added) {
+      add();
+      select(analyte);
+    }
+  }
+
+  public void updatePeople(Set<String> people) {
+    for (TechChooser c : choosers)
+      c.updatePeople(people);
   }
 
 }

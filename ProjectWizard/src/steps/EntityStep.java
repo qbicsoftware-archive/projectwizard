@@ -20,8 +20,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-import main.ProjectwizardUI;
+import uicomponents.Styles;
 
 import org.vaadin.teemu.wizards.WizardStep;
 
@@ -29,8 +30,12 @@ import uicomponents.ConditionsPanel;
 
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.server.FontAwesome;
+import com.vaadin.shared.ui.combobox.FilteringMode;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.TextField;
@@ -38,6 +43,7 @@ import com.vaadin.ui.VerticalLayout;
 import componentwrappers.OpenbisInfoTextField;
 import control.Functions;
 import control.Functions.NotificationType;
+import main.ProjectwizardUI;
 
 /**
  * Wizard Step to model the biological entities of an experiment
@@ -62,6 +68,8 @@ public class EntityStep implements WizardStep {
       "Health State", "Phenotype", "Species", "Treatment", emptyFactor));
 
   private OpenbisInfoTextField speciesNum;
+  private ComboBox person;
+  private Button reloadPeople;
 
   private OpenbisInfoTextField bioReps;
 
@@ -77,13 +85,14 @@ public class EntityStep implements WizardStep {
    * Create a new Entity step for the wizard
    * 
    * @param speciesMap A map of available species (codes and labels)
+   * @param people 
    */
-  public EntityStep(Map<String, String> speciesMap) {
+  public EntityStep(Map<String, String> speciesMap, Set<String> people) {
     main = new VerticalLayout();
     main.setMargin(true);
     main.setSpacing(true);
     Label header = new Label("Sample Sources");
-    main.addComponent(ProjectwizardUI.questionize(header,
+    main.addComponent(Styles.questionize(header,
         "Sample sources are individual patients, animals or plants that are used in the experiment. "
             + "You can input (optional) experimental variables, e.g. genotypes, that differ between different experimental groups.",
         "Sample Sources"));
@@ -91,7 +100,7 @@ public class EntityStep implements WizardStep {
     openbisSpecies.addAll(speciesMap.keySet());
     Collections.sort(openbisSpecies);
     species = new ComboBox("Species", openbisSpecies);
-    species.setStyleName(ProjectwizardUI.boxTheme);
+    species.setStyleName(Styles.boxTheme);
     species.setRequired(true);
     if (ProjectwizardUI.testMode)
       species.setValue("Homo Sapiens");
@@ -102,7 +111,7 @@ public class EntityStep implements WizardStep {
     c = new ConditionsPanel(suggestions, emptyFactor, "Species", species, true, conditionsSet,
         (TextField) speciesNum.getInnerComponent());
     expName = new TextField("Experimental Step Name");
-    expName.setStyleName(ProjectwizardUI.fieldTheme);
+    expName.setStyleName(Styles.fieldTheme);
     main.addComponent(expName);
     main.addComponent(c);
     main.addComponent(speciesNum.getInnerComponent());
@@ -121,10 +130,25 @@ public class EntityStep implements WizardStep {
       }
     });
     specialSpecies = new TextField("Species Information");
-    specialSpecies.setStyleName(ProjectwizardUI.fieldTheme);
+    specialSpecies.setStyleName(Styles.fieldTheme);
     specialSpecies.setVisible(false);
     specialSpecies.setWidth("350px");
     main.addComponent(specialSpecies);
+    
+    HorizontalLayout persBoxH = new HorizontalLayout();
+    persBoxH.setCaption("Contact Person");
+    person = new ComboBox();
+    person.addItems(people);
+    person.setFilteringMode(FilteringMode.CONTAINS);
+    person.setStyleName(Styles.boxTheme);
+    
+    reloadPeople = new Button();
+    Styles.iconButton(reloadPeople, FontAwesome.REFRESH);
+    persBoxH.addComponent(person);
+    persBoxH.addComponent(reloadPeople);
+    
+    main.addComponent(Styles.questionize(persBoxH,
+        "Contact person responsible for patients or sample sources.", "Contact Person"));
 
     bioReps = new OpenbisInfoTextField(
         "How many identical biological replicates (e.g. animals) per group are there?",
@@ -220,8 +244,22 @@ public class EntityStep implements WizardStep {
   }
 
   public String getPerson() {
-    // TODO Auto-generated method stub
-    return null;
+    if (person.getValue() != null)
+      return person.getValue().toString();
+    else
+      return null;
+  }
+
+  public Button getPeopleReloadButton() {
+    return reloadPeople;
+  }
+
+  public void updatePeople(Set<String> people) {
+    String contact = getPerson();
+    person.removeAllItems();
+    person.addItems(people);
+    if (contact != null && !contact.isEmpty())
+      person.select(contact);
   }
 
 }

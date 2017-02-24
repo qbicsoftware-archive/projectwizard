@@ -21,7 +21,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import main.ProjectwizardUI;
+import uicomponents.Styles;
 import model.ExperimentBean;
 import model.NewSampleModelBean;
 
@@ -57,7 +57,6 @@ public class ProjectContextStep implements WizardStep {
 
   private ComboBox spaceCode;
   private ProjectInformationComponent projectInfoComponent;
-  // private TextField expName;
 
   List<ExperimentBean> experiments;
 
@@ -68,7 +67,7 @@ public class ProjectContextStep implements WizardStep {
   List<String> contextOptions = new ArrayList<String>(
       Arrays.asList("Add new experiment", "Add sample extraction to existing sample sources",
           "Measure existing extracted samples again", "Create empty sub-project",
-          "Download existing sample spreadsheet"));
+          "Download existing sample spreadsheet", "Add similar samples"));
   private CustomVisibilityComponent projectContext;
 
   private GridLayout grid;
@@ -86,7 +85,7 @@ public class ProjectContextStep implements WizardStep {
     main.setSizeUndefined();
     Collections.sort(openbisSpaces);
     spaceCode = new ComboBox("Project", openbisSpaces);
-    spaceCode.setStyleName(ProjectwizardUI.boxTheme);
+    spaceCode.setStyleName(Styles.boxTheme);
     spaceCode.setNullSelectionAllowed(false);
     spaceCode.setImmediate(true);
     spaceCode.setFilteringMode(FilteringMode.CONTAINS);
@@ -103,6 +102,8 @@ public class ProjectContextStep implements WizardStep {
     experimentTable = new Table("Applicable Experiments");
     experimentTable.setColumnHeader("experiment_type", "Experimental Step");
     experimentTable.setColumnHeader("samples", "Samples");
+    experimentTable.setColumnHeader("date", "Date");
+    experimentTable.setColumnHeader("code", "Code");
     experimentTable.setStyleName(ValoTheme.TABLE_SMALL);
     experimentTable.setPageLength(1);
     experimentTable
@@ -122,10 +123,10 @@ public class ProjectContextStep implements WizardStep {
     grid = new GridLayout(2, 5);
     grid.setSpacing(true);
     grid.setMargin(true);
-    grid.addComponent(ProjectwizardUI.questionize(spaceCode, "Name of the project", "Project Name"),
+    grid.addComponent(Styles.questionize(spaceCode, "Name of the project", "Project Name"),
         0, 0);
     grid.addComponent(projectInfoComponent, 0, 1);
-    Component context = ProjectwizardUI.questionize(projectContext,
+    Component context = Styles.questionize(projectContext,
         "If this experiment's organisms or "
             + "tissue extracts are already registered at QBiC from an earlier experiment, you can chose the second "
             + "option (new tissue extracts from old organism) or the third (new measurements from old tissue extracts). "
@@ -143,6 +144,13 @@ public class ProjectContextStep implements WizardStep {
 
   public String getPrincipalInvestigator() {
     String res = projectInfoComponent.getInvestigator();
+    if (res == null)
+      res = "";
+    return res;
+  }
+  
+  public String getProjectManager() {
+    String res = projectInfoComponent.getProjectManager();
     if (res == null)
       res = "";
     return res;
@@ -223,6 +231,7 @@ public class ProjectContextStep implements WizardStep {
       experimentTable.select(c.getIdByIndex(0));
     experimentTable.setPageLength(Math.min(10, c.size()));
     experimentTable.setVisible(true);
+    experimentTable.setVisibleColumns("experiment_type", "samples", "date", "code");
   }
 
   public void setSamples(List<NewSampleModelBean> beans) {
@@ -250,12 +259,12 @@ public class ProjectContextStep implements WizardStep {
     projectContext.setItemEnabled(contextOptions.get(3), enable);
   }
 
-  // public void enableCopyContextOption(boolean enable) {
-  // projectContext.setItemEnabled(contextOptions.get(3), enable);
-  // }
-
   public void enableTSVWriteContextOption(boolean enable) {
     projectContext.setItemEnabled(contextOptions.get(4), enable);
+  }
+
+  public void enableCopyContextOption(boolean enable) {
+    projectContext.setItemEnabled(contextOptions.get(5), enable);
   }
 
   public List<String> getContextOptions() {
@@ -279,7 +288,7 @@ public class ProjectContextStep implements WizardStep {
   @Override
   public boolean onAdvance() {
     if (spaceReady() && projectReady()) {
-      if (inherit() || copy() || readOnly())
+      if (inherit() || readOnly() || copy())
         if (expSelected())
           return true;
         else
@@ -316,7 +325,7 @@ public class ProjectContextStep implements WizardStep {
 
   private boolean copy() {
     String context = (String) projectContext.getValue();
-    return contextOptions.get(4).equals(context);
+    return contextOptions.get(5).equals(context);
   }
 
   private boolean readOnly() {
@@ -378,10 +387,10 @@ public class ProjectContextStep implements WizardStep {
     return res;
   }
 
-  // public boolean copyModeSet() {
-  // String context = (String) projectContext.getValue();
-  // return contextOptions.get(3).equals(context);
-  // }
+  public boolean copyModeSet() {
+    String context = (String) projectContext.getValue();
+    return contextOptions.get(3).equals(context);
+  }
 
   public boolean fetchTSVModeSet() {
     String context = (String) projectContext.getValue();
@@ -413,9 +422,5 @@ public class ProjectContextStep implements WizardStep {
   public void makeContextVisible() {
     projectContext.setVisible(true);
   }
-
-  // public void enableExpName(boolean b) {
-  // expName.setVisible(b);
-  // }
 
 }

@@ -16,6 +16,7 @@
 package steps;
 
 import io.MethodVocabularyParser;
+import main.ProjectwizardUI;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -25,19 +26,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import main.ProjectwizardUI;
-
 import org.vaadin.teemu.wizards.WizardStep;
 
 import uicomponents.ConditionsPanel;
 import uicomponents.LabelingMethod;
+import uicomponents.Styles;
 
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.server.FontAwesome;
 import com.vaadin.shared.ui.combobox.FilteringMode;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.TextField;
@@ -73,6 +76,7 @@ public class ExtractionStep implements WizardStep {
 
   private OpenbisInfoTextField tissueNum;
   private ComboBox person;
+  private Button reloadPeople;
 
   private OpenbisInfoTextField extractReps;
   private List<LabelingMethod> labelingMethods;
@@ -85,12 +89,12 @@ public class ExtractionStep implements WizardStep {
    * @param cellLinesMap
    */
   public ExtractionStep(Map<String, String> tissueMap, Map<String, String> cellLinesMap,
-      Set<String> persons) {
+      Set<String> people) {
     main = new VerticalLayout();
     main.setMargin(true);
     main.setSpacing(true);
     Label header = new Label("Sample Extracts");
-    main.addComponent(ProjectwizardUI.questionize(header,
+    main.addComponent(Styles.questionize(header,
         "Extracts are individual tissue or other samples taken from organisms and used in the experiment. "
             + "You can input (optional) experimental variables, e.g. extraction times or treatments, that differ between different groups "
             + "of extracts.",
@@ -101,7 +105,7 @@ public class ExtractionStep implements WizardStep {
     Collections.sort(tissues);
     tissue = new ComboBox("Tissue", tissues);
     tissue.setRequired(true);
-    tissue.setStyleName(ProjectwizardUI.boxTheme);
+    tissue.setStyleName(Styles.boxTheme);
     if (ProjectwizardUI.testMode)
       tissue.setValue("Blood");
     tissueNum = new OpenbisInfoTextField(
@@ -110,7 +114,7 @@ public class ExtractionStep implements WizardStep {
     tissueNum.getInnerComponent().setEnabled(false);
     
     expName = new TextField("Experimental Step Name");
-    expName.setStyleName(ProjectwizardUI.fieldTheme);
+    expName.setStyleName(Styles.fieldTheme);
     main.addComponent(expName);
     
     c = new ConditionsPanel(suggestions, emptyFactor, "Tissue", tissue, true, conditionsSet,
@@ -119,7 +123,7 @@ public class ExtractionStep implements WizardStep {
 
     isotopes = new CheckBox("Isotope Labeling");
     isotopes.setImmediate(true);
-    main.addComponent(ProjectwizardUI.questionize(isotopes,
+    main.addComponent(Styles.questionize(isotopes,
         "Are extracted cells labeled by isotope labeling (e.g. for Mass Spectrometry)?",
         "Isotope Labeling"));
 
@@ -128,7 +132,7 @@ public class ExtractionStep implements WizardStep {
     isotopeTypes = new ComboBox();
     isotopeTypes.setVisible(false);
     isotopeTypes.setImmediate(true);
-    isotopeTypes.setStyleName(ProjectwizardUI.boxTheme);
+    isotopeTypes.setStyleName(Styles.boxTheme);
     isotopeTypes.setNullSelectionAllowed(false);
     for (LabelingMethod l : labelingMethods)
       isotopeTypes.addItem(l.getName());
@@ -166,19 +170,30 @@ public class ExtractionStep implements WizardStep {
     cellLines.addAll(cellLinesMap.keySet());
     Collections.sort(cellLines);
     cellLine = new ComboBox("Cell Line", cellLines);
-    cellLine.setStyleName(ProjectwizardUI.boxTheme);
+    cellLine.setStyleName(Styles.boxTheme);
     cellLine.setImmediate(true);
     cellLine.setVisible(false);
     cellLine.setFilteringMode(FilteringMode.CONTAINS);
     main.addComponent(cellLine);
     otherTissue = new TextField("Tissue Information");
     otherTissue.setWidth("350px");
-    otherTissue.setStyleName(ProjectwizardUI.fieldTheme);
+    otherTissue.setStyleName(Styles.fieldTheme);
     otherTissue.setVisible(false);
     main.addComponent(otherTissue);
-    person = new ComboBox("Contact Person", persons);
-    person.setStyleName(ProjectwizardUI.boxTheme);
-    main.addComponent(ProjectwizardUI.questionize(person,
+    
+    HorizontalLayout persBoxH = new HorizontalLayout();
+    persBoxH.setCaption("Contact Person");
+    person = new ComboBox();
+    person.addItems(people);
+    person.setFilteringMode(FilteringMode.CONTAINS);
+    person.setStyleName(Styles.boxTheme);
+    
+    reloadPeople = new Button();
+    Styles.iconButton(reloadPeople, FontAwesome.REFRESH);
+    persBoxH.addComponent(person);
+    persBoxH.addComponent(reloadPeople);
+    
+    main.addComponent(Styles.questionize(persBoxH,
         "Contact person responsible for tissue extraction.", "Contact Person"));
 
     extractReps = new OpenbisInfoTextField(
@@ -293,6 +308,10 @@ public class ExtractionStep implements WizardStep {
     return skip;
   }
 
+  public Button getPeopleReloadButton() {
+    return reloadPeople;
+  }
+
   public LabelingMethod getLabelingMethod() {
     Object o = isotopeTypes.getValue();
     if (o != null) {
@@ -303,6 +322,14 @@ public class ExtractionStep implements WizardStep {
       return null;
     } else
       return null;
+  }
+
+  public void updatePeople(Set<String> people) {
+    String contact = getPerson();
+    person.removeAllItems();
+    person.addItems(people);
+    if (contact != null && !contact.isEmpty())
+      person.select(contact);
   }
 
 }

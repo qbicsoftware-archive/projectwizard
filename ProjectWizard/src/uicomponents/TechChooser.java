@@ -19,11 +19,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import main.ProjectwizardUI;
+import uicomponents.Styles;
 import model.TestSampleInformation;
 
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.server.FontAwesome;
+import com.vaadin.shared.ui.combobox.FilteringMode;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
@@ -37,6 +41,7 @@ public class TechChooser extends VerticalLayout {
   private ComboBox chooser;
   private OpenbisInfoTextField replicates;
   private ComboBox person;
+  private Button reloadPeople;
   private CheckBox pool;
   private List<HorizontalLayout> helpers;
 
@@ -52,27 +57,38 @@ public class TechChooser extends VerticalLayout {
    */
   public TechChooser(List<String> options, Set<String> persons) {
     chooser = new ComboBox("Analyte", options);
-    chooser.setStyleName(ProjectwizardUI.boxTheme);
+    chooser.setStyleName(Styles.boxTheme);
 
     replicates = new OpenbisInfoTextField("Replicates", "", "50px", "1");
-    person = new ComboBox("Contact Person", persons);
-    person.setStyleName(ProjectwizardUI.boxTheme);
     pool = new CheckBox("Pool/Multiplex Samples");
     setSpacing(true);
     helpers = new ArrayList<HorizontalLayout>();
     HorizontalLayout help1 =
-        ProjectwizardUI.questionize(chooser, "Choose the analyte that is measured.", "Analytes");
+        Styles.questionize(chooser, "Choose the analyte that is measured.", "Analytes");
     addComponent(help1);
-    HorizontalLayout help2 = ProjectwizardUI.questionize(replicates.getInnerComponent(),
+    HorizontalLayout help2 = Styles.questionize(replicates.getInnerComponent(),
         "Number of prepared replicates (1 means no replicates) of this analyte", "Replicates");
     addComponent(help2);
-    HorizontalLayout help3 = ProjectwizardUI.questionize(person,
+    
+    HorizontalLayout persBoxH = new HorizontalLayout();
+    persBoxH.setCaption("Contact Person");
+    person = new ComboBox();
+    person.addItems(persons);
+    person.setFilteringMode(FilteringMode.CONTAINS);
+    person.setStyleName(Styles.boxTheme);
+    
+    reloadPeople = new Button();
+    Styles.iconButton(reloadPeople, FontAwesome.REFRESH);
+    persBoxH.addComponent(person);
+    persBoxH.addComponent(reloadPeople);
+    
+    HorizontalLayout help3 = Styles.questionize(persBoxH,
         "Person responsible for this part of the experiment", "Contact Person");
     addComponent(help3);
-    HorizontalLayout help4 = ProjectwizardUI.questionize(pool,
+    HorizontalLayout help4 = Styles.questionize(pool,
         "Select if multiple samples are pooled into a single " + "sample before measurement.",
         "Pooling");
-    
+
     chooser.addValueChangeListener(new ValueChangeListener() {
 
       @Override
@@ -82,7 +98,7 @@ public class TechChooser extends VerticalLayout {
         }
       }
     });
-    
+
     addComponent(help4);
     helpers.add(help1);
     helpers.add(help2);
@@ -90,16 +106,32 @@ public class TechChooser extends VerticalLayout {
     helpers.add(help4);
   }
 
+  public boolean hasAnalyteInput() {
+    return chooser.getItemIds().contains(chooser.getValue());
+  }
+  
+  public String getPerson() {
+    if (person.getValue() != null)
+      return person.getValue().toString();
+    else
+      return null;
+  }
+  
+  public void updatePeople(Set<String> people) {
+    String contact = getPerson();
+    person.removeAllItems();
+    person.addItems(people);
+    if (contact != null && !contact.isEmpty())
+      person.select(contact);
+  }
+
   public boolean isSet() {
     return chooser.getItemIds().contains(chooser.getValue()) && replicates.getValue() != null;
   }
 
   public TestSampleInformation getChosenTechInfo() {
-    String p = null;
-    if (person.getValue() != null)
-      p = person.getValue().toString();
     return new TestSampleInformation(chooser.getValue().toString(), pool.getValue(),
-        Integer.parseInt(replicates.getValue()), p);
+        Integer.parseInt(replicates.getValue()), getPerson());
   }
 
   public void showHelpers() {
@@ -147,5 +179,17 @@ public class TechChooser extends VerticalLayout {
 
   public void removeMHCListener(ValueChangeListener mhcLigandListener) {
     this.chooser.removeValueChangeListener(mhcLigandListener);
+  }
+
+  public void setValue(String analyte) {
+    chooser.setValue(analyte);
+  }
+
+  public void addRefreshPeopleListener(ClickListener refreshPeopleListener) {
+    this.reloadPeople.addClickListener(refreshPeopleListener);
+  }
+
+  public void removeRefreshPeopleListener(ClickListener refreshPeopleListener) {
+    this.reloadPeople.removeClickListener(refreshPeopleListener);
   }
 }
