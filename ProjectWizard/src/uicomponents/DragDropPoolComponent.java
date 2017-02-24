@@ -21,8 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import properties.Factor;
-import steps.PoolingStep;
-import main.ProjectwizardUI;
+import uicomponents.Styles;
 import model.AOpenbisSample;
 
 import com.vaadin.ui.Button;
@@ -34,7 +33,6 @@ import com.vaadin.ui.themes.ValoTheme;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Button.ClickEvent;
 
-import control.WizardController.Steps;
 import logging.Log4j2Logger;
 
 public class DragDropPoolComponent extends HorizontalSplitPanel {
@@ -75,7 +73,7 @@ public class DragDropPoolComponent extends HorizontalSplitPanel {
     initButtons();
 
     addComponent(left);
-    left.addComponent(ProjectwizardUI.questionize(tableLayout,
+    left.addComponent(Styles.questionize(tableLayout,
         "Here you can add pools and fill them with the samples "
             + "from earlier steps (found on the right). One sample can be in multiple pools.",
         "Target Pools"));
@@ -84,7 +82,7 @@ public class DragDropPoolComponent extends HorizontalSplitPanel {
 
     samples = new TabSheet();
     initSelectionTables();
-    addComponent(ProjectwizardUI.questionize(samples,
+    addComponent(Styles.questionize(samples,
         "These are the samples you prepared in the earlier steps. For convenience they are separated in unused samples "
             + "and samples that are already in at least one pool.",
         "Target Pools"));
@@ -114,20 +112,22 @@ public class DragDropPoolComponent extends HorizontalSplitPanel {
   private void initSelectionTables() {
     selectionTable = new Table();
     selectionTable.setDragMode(TableDragMode.ROW);
-    selectionTable.setStyleName(ProjectwizardUI.tableTheme);
+    selectionTable.setStyleName(Styles.tableTheme);
     selectionTable.addContainerProperty("ID", Integer.class, null);
     selectionTable.setColumnWidth("ID", 30);
     selectionTable.addContainerProperty("Secondary Name", String.class, null);
+    selectionTable.addContainerProperty("Lab ID", String.class, null);
     selectionTable.setPageLength(20);
     selectionTable.setSelectable(true);
     selectionTable.setMultiSelect(true);
 
     usedTable = new Table();
     usedTable.setDragMode(TableDragMode.ROW);
-    usedTable.setStyleName(ProjectwizardUI.tableTheme);
+    usedTable.setStyleName(Styles.tableTheme);
     usedTable.addContainerProperty("ID", Integer.class, null);
     usedTable.setColumnWidth("ID", 30);
     usedTable.addContainerProperty("Secondary Name", String.class, null);
+    usedTable.addContainerProperty("Lab ID", String.class, null);
     usedTable.setPageLength(20);
     usedTable.setSelectable(true);
     usedTable.setMultiSelect(true);
@@ -165,6 +165,7 @@ public class DragDropPoolComponent extends HorizontalSplitPanel {
       List<Object> row = new ArrayList<Object>();
       row.add(id);
       row.add(s.getQ_SECONDARY_NAME());
+      row.add(s.getQ_EXTERNALDB_ID());
       for (Factor f : s.getFactors()) {
         String v = f.getValue();
         if (f.hasUnit())

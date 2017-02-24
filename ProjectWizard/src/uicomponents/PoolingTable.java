@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import main.ProjectwizardUI;
+import uicomponents.Styles;
 
 import com.vaadin.event.DataBoundTransferable;
 import com.vaadin.event.dd.DragAndDropEvent;
@@ -78,9 +78,9 @@ public class PoolingTable extends VerticalLayout {
     tableButtonComponent.setSpacing(true);
     secondaryName = new StandardTextField("Secondary Name");
     secondaryName.setValue(name);
-    secondaryName.setStyleName(ProjectwizardUI.fieldTheme);
+    secondaryName.setStyleName(Styles.fieldTheme);
     moveLeft = new Button();
-    ProjectwizardUI.iconButton(moveLeft, FontAwesome.ARROW_CIRCLE_LEFT);
+    Styles.iconButton(moveLeft, FontAwesome.ARROW_CIRCLE_LEFT);
     
     moveLeft.addStyleName("large_font_awesome");
     addComponent(secondaryName);
@@ -89,7 +89,7 @@ public class PoolingTable extends VerticalLayout {
     initTable();
     tableButtonComponent.addComponent(poolTable);
     tableButtonComponent.addComponent(moveLeft);
-    addComponent(ProjectwizardUI
+    addComponent(Styles
         .questionize(
             tableButtonComponent,
             "You can add samples to the active pool by "
@@ -108,9 +108,11 @@ public class PoolingTable extends VerticalLayout {
     boolean added = false;
     final Integer id = (Integer) source.getItem(itemId).getItemProperty("ID").getValue();
     String name = (String) source.getItem(itemId).getItemProperty("Secondary Name").getValue();
+    String labID = (String) source.getItem(itemId).getItemProperty("Lab ID").getValue();
     final List<Object> row = new ArrayList<Object>();
     row.add(id);
     row.add(name);
+    row.add(labID);
     for (String label : labels) {
       String value = (String) source.getItem(itemId).getItemProperty(label).getValue();
       row.add(value);
@@ -119,7 +121,7 @@ public class PoolingTable extends VerticalLayout {
       added = true;
       poolIDs.add(id);
       Button delete = new Button();
-      ProjectwizardUI.iconButton(delete, FontAwesome.UNDO);
+      Styles.iconButton(delete, FontAwesome.UNDO);
       delete.setData(itemId);
       delete.addClickListener(new Button.ClickListener() {
         /**
@@ -143,7 +145,7 @@ public class PoolingTable extends VerticalLayout {
             usedTimes.put(id, newNumUsed);
         }
       });
-      poolTable.addItem(new Object[] {id, name, delete}, itemId);
+      poolTable.addItem(new Object[] {id, name, labID, delete}, itemId);
       if (usedTimes.containsKey(id)) {
         int newNumUsed = usedTimes.get(id) + 1;
         usedTimes.put(id, newNumUsed);
@@ -186,10 +188,11 @@ public class PoolingTable extends VerticalLayout {
   }
 
   private void initTable() {
-    poolTable.setStyleName(ProjectwizardUI.tableTheme);
+    poolTable.setStyleName(Styles.tableTheme);
     resizeTable();
     poolTable.addContainerProperty("ID", Integer.class, null);
     poolTable.addContainerProperty("Secondary Name", String.class, null);
+    poolTable.addContainerProperty("Lab ID", String.class, null);
     poolTable.addContainerProperty("Undo", Button.class, null);
   }
 

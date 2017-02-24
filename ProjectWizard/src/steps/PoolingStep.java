@@ -132,9 +132,6 @@ public class PoolingStep implements WizardStep {
 
   public void setSamples(List<List<AOpenbisSample>> sampleGroups, Steps poolingType) {
     for (List<AOpenbisSample> group : sampleGroups) {
-      System.out.println(group);
-      System.out.println(group.get(0));
-      System.out.println(group.get(0).getValueMap());
       String type = group.get(0).getValueMap().get("Q_SAMPLE_TYPE");
       pooling = new DragDropPoolComponent(getPoolPrefix(poolingType));
       pooling.initConditionsAndSetSamples(group);
