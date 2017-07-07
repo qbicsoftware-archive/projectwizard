@@ -1,6 +1,6 @@
-Experimental design wizard
+# Experimental design wizard
 
-Setup instructions
+## Setup instructions
 
 1. Follow the instructions for setting up Liferay and openBIS as well as the QBiC-specific data model found on our portal. (coming soon)
 2. Clone Projectwizard from the git repository: ‘git clone https://github.com/qbicsoftware/projectwizard projectwizard’
