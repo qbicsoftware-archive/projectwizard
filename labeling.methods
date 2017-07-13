@@ -1,0 +1,32 @@
+ICAT
+	ICAT heavy
+	ICAT light
+ICPL
+	ICPL 0
+	ICPL 10
+	ICPL 4
+	ICPL 6
+SILAC
+	SILAC heavy
+	SILAC light
+	SILAC medium
+TMT
+	TMT 126
+	TMT 127
+	TMT 128
+	TMT 129
+	TMT 130
+	TMT 131
+iTRAQ
+	iTRAQ 113
+	iTRAQ 114
+	iTRAQ 115
+	iTRAQ 116
+	iTRAQ 117
+	iTRAQ 118
+	iTRAQ 119
+	iTRAQ 121
+Dimethyl
+	Dimethyl light (CH2O)
+	Dimethyl medium (CD2O)
+	Dimethyl heavy (13CD2O)
