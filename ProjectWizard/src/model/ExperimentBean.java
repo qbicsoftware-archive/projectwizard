@@ -30,6 +30,7 @@ public class ExperimentBean {
   private String experiment_type;
   private String numOfSamples;
   private String registrationDate;
+  private boolean pilot;
 
   /**
    * Creates a new ExperimentBean
@@ -39,12 +40,13 @@ public class ExperimentBean {
    * @param numOfSamples number of samples in this experiment
    * @param date
    */
-  public ExperimentBean(String ID, String experimentTypeCode, String numOfSamples, String date) {
+  public ExperimentBean(String ID, String experimentTypeCode, String numOfSamples, String date, boolean pilot) {
     this.code = ID.split("/")[3];
     this.ID = ID;
     this.experiment_type = experimentTypeCode;
     this.numOfSamples = numOfSamples;
     this.registrationDate = date;
+    this.pilot = pilot;
   }
 
   public String getDate() {
@@ -81,6 +83,10 @@ public class ExperimentBean {
 
   public void setSamples(String samples) {
     this.numOfSamples = samples;
+  }
+
+  public boolean isPilot() {
+    return pilot;
   }
 
 }
