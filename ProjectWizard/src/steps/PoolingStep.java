@@ -25,19 +25,19 @@ import model.AOpenbisSample;
 import model.ExperimentModel;
 import model.MSExperimentModel;
 import model.OpenbisTestSample;
-import properties.Factor;
+import properties.Property;
 
 import org.vaadin.teemu.wizards.WizardStep;
 
 import uicomponents.DragDropPoolComponent;
+import uicomponents.Styles;
+import uicomponents.Styles.*;
 
 import com.vaadin.ui.Component;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
-import control.Functions;
-import control.Functions.NotificationType;
 import control.WizardController.Steps;
 import logging.Log4j2Logger;
 
@@ -116,7 +116,7 @@ public class PoolingStep implements WizardStep {
   @Override
   public boolean onAdvance() {
     if (pooling.getPools().isEmpty()) {
-      Functions.notification("No pooled samples",
+      Styles.notification("No pooled samples",
           "Please create at least one pool containing samples or uncheck pooling in the previous step(s).",
           NotificationType.ERROR);
       return false;
@@ -179,7 +179,7 @@ public class PoolingStep implements WizardStep {
     Map<String, List<AOpenbisSample>> pools = getPools();
     for (String name : pools.keySet()) {
       samples.add(new OpenbisTestSample(1, pools.get(name), analyte, name, "",
-          new ArrayList<Factor>(), ""));
+          new ArrayList<Property>(), ""));
     }
     ExperimentModel exp = new ExperimentModel(1, samples);
     List<ExperimentModel> exps = new ArrayList<ExperimentModel>(Arrays.asList(exp));
