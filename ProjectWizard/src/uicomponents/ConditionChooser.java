@@ -83,10 +83,8 @@ public class ConditionChooser extends VerticalLayout {
         freetext = new TextField();
         freetext.setRequired(true);
         freetext.setStyleName(Styles.fieldTheme);
-        RegexpValidator factorLabelValidator =
-            new RegexpValidator(
-                "[A-Za-z][_A-Za-z0-9]*",
-                "Experimental variable must start with a letter and contain only letters, numbers or underscores ('_')");
+        RegexpValidator factorLabelValidator = new RegexpValidator("([a-z]+_?[a-z]*)+([a-z]|[0-9]*)",
+                "Name must start with a lower case letter and contain only lower case letter words, which can be connected by underscores ('_'). It can end with one or more numbers.");
         freetext.addValidator(factorLabelValidator);
         freetext.setImmediate(true);
         freetext.setValidationVisible(true);
