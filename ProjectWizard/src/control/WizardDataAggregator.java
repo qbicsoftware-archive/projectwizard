@@ -31,7 +31,6 @@ import java.util.Set;
 import javax.xml.bind.JAXBException;
 
 import logging.Log4j2Logger;
-import main.IOpenBisClient;
 import main.ProjectwizardUI;
 import model.AOpenbisSample;
 import model.ExperimentModel;
@@ -43,16 +42,18 @@ import model.OpenbisBiologicalSample;
 import model.OpenbisExperiment;
 import model.OpenbisMHCExtractSample;
 import model.OpenbisTestSample;
+import model.PersonType;
 import model.RegisteredAnalyteInformation;
 import model.TestSampleInformation;
+import model.TissueInfo;
 import parser.XMLParser;
-import properties.Factor;
+import properties.Property;
 
 import org.apache.commons.lang.StringUtils;
 import org.vaadin.teemu.wizards.WizardStep;
 
 import control.WizardController.Steps;
-
+import life.qbic.openbis.openbisclient.IOpenBisClient;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
 import ch.systemsx.cisd.openbis.plugin.query.shared.api.v1.dto.QueryTableModel;
@@ -83,7 +84,7 @@ public class WizardDataAggregator {
   private XMLParser xmlParser = new XMLParser();
   private Map<String, String> taxMap;
   private Map<String, String> tissueMap;
-  private Map<String, Factor> factorMap;
+  private Map<String, Property> factorMap;
   private Map<String, Integer> personMap;
   private int firstFreeExperimentID;
   private int firstFreeEntityID;
@@ -106,7 +107,6 @@ public class WizardDataAggregator {
   // info needed to create samples
   private int bioReps;
   private int extractReps;
-  // private List<Integer> techRepAmounts = new ArrayList<Integer>();
 
   private List<List<String>> bioFactors;
   private List<List<String>> extractFactors;
@@ -126,8 +126,6 @@ public class WizardDataAggregator {
   private ArrayList<Sample> samples;
 
   private Map<String, Map<String, Object>> mhcExperimentProtocols;
-  // private boolean containsFractionationExperiment;
-  // private boolean hasFractionationExperiment;
   private MSExperimentModel fractionationProperties;
   private List<ExperimentType> informativeExpTypes = new ArrayList<ExperimentType>(
       Arrays.asList(ExperimentType.Q_MHC_LIGAND_EXTRACTION, ExperimentType.Q_MS_MEASUREMENT));
@@ -145,7 +143,6 @@ public class WizardDataAggregator {
     s1 = (ProjectContextStep) steps.get(Steps.Project_Context);
     s2 = (EntityStep) steps.get(Steps.Entities);
     s3 = (ConditionInstanceStep) steps.get(Steps.Entity_Conditions);
-    // s5 = (ExtractionStep) steps.get(Steps.Extraction);
     s5 = (ExtractionStep) steps.get(Steps.Extraction);
     s6 = (ConditionInstanceStep) steps.get(Steps.Extract_Conditions);
     s8 = (TestStep) steps.get(Steps.Test_Samples);
@@ -221,7 +218,7 @@ public class WizardDataAggregator {
   public List<AOpenbisSample> prepareEntities(Map<Object, Integer> map, boolean copy)
       throws JAXBException {
     prepareBasics();
-    this.factorMap = new HashMap<String, Factor>();
+    this.factorMap = new HashMap<String, Property>();
     experiments = new ArrayList<OpenbisExperiment>();
     species = s2.getSpecies();
     speciesInfo = s2.getSpecialSpecies();
@@ -229,7 +226,7 @@ public class WizardDataAggregator {
 
     // entities are not created new, but parsed from registered ones
     if (inheritEntities) {
-      openbisEntities = openbis.getSamplesofExperiment(s1.getExperimentName().getID());
+      openbisEntities = openbis.getSamplesofExperiment(s1.getExperiment().getID());
       entities = parseEntities(openbisEntities, copy);
       // create new entities and an associated experiment from collected inputs
     } else {
@@ -243,7 +240,7 @@ public class WizardDataAggregator {
       experiments.add(new OpenbisExperiment(buildExperimentName(),
           ExperimentType.Q_EXPERIMENTAL_DESIGN, personID, props));
 
-      List<List<Factor>> valueLists = s3.getFactors();
+      List<List<Property>> valueLists = s3.getFactors();
       bioFactors = createFactorInfo(valueLists);
 
       entities = buildEntities(map);
@@ -299,10 +296,10 @@ public class WizardDataAggregator {
         }
       } else {
         prepareBasics();
-        this.factorMap = new HashMap<String, Factor>();
+        this.factorMap = new HashMap<String, Property>();
         experiments = new ArrayList<OpenbisExperiment>();
 
-        List<Sample> samples = openbis.getSamplesofExperiment(s1.getExperimentName().getID());
+        List<Sample> samples = openbis.getSamplesofExperiment(s1.getExperiment().getID());
         extracts = parseExtracts(samples, getParentMap(samples));
       }
       // create new entities and an associated experiment from collected inputs
@@ -321,7 +318,7 @@ public class WizardDataAggregator {
         props.put("Q_SECONDARY_NAME", s5.getExpNameField().getValue());
       experiments.add(new OpenbisExperiment(buildExperimentName(),
           ExperimentType.Q_SAMPLE_EXTRACTION, personID, props));
-      List<List<Factor>> valueLists = s6.getFactors();
+      List<List<Property>> valueLists = s6.getFactors();
       extractFactors = createFactorInfo(valueLists);
       // keep track of id letters for different conditions
       classChars = new HashMap<String, Character>();
@@ -404,7 +401,7 @@ public class WizardDataAggregator {
    * 
    * @return
    */
-  public List<AOpenbisSample> prepareMHCExtractSamples() {
+  public List<AOpenbisSample> prepareMHCExtractSamplesAndExperiments() {
     mhcExperimentProtocols = s8.getMHCLigandExtractProperties();
     Map<String, MHCLigandExtractionProtocol> antibodyInfos = s8.getAntibodyInfos();
 
@@ -413,7 +410,7 @@ public class WizardDataAggregator {
     for (String derivedFrom : mhcExperimentProtocols.keySet()) {
       String expCode = buildExperimentName();
       Map<String, Object> currentProtocol = mhcExperimentProtocols.get(derivedFrom);
-      currentProtocol.put("Code", expCode);
+      // currentProtocol.put("Code", expCode); //TODO shouldn't be needed
       experiments.add(
           new OpenbisExperiment(expCode, ExperimentType.Q_MHC_LIGAND_EXTRACTION, currentProtocol));
 
@@ -425,9 +422,9 @@ public class WizardDataAggregator {
     return mhcExtracts;
   }
 
-  public Map<String, Map<String, Object>> getMHCLigandExtractProperties() {
-    return mhcExperimentProtocols;
-  }
+  // public Map<String, Map<String, Object>> getMHCLigandExtractProperties() {
+  // return mhcExperimentProtocols;
+  // }
 
   /**
    * Build and return a list of all possible MHC ligand extracts, using existing test samples and
@@ -443,21 +440,24 @@ public class WizardDataAggregator {
     List<AOpenbisSample> mhcExtracts = new ArrayList<AOpenbisSample>();
     int expNum = experiments.size() - 1;
     for (AOpenbisSample s : tests) {
-      if (s.getParent().equals(tissueCode)) {
-        String secondaryName = s.getQ_SECONDARY_NAME();
-        for (String antibody : protocol.getAntibodies()) {
-          String[] mhcClasses = protocol.getMHCClass(antibody);
-          for (String mhcClass : mhcClasses) {
-            if (classChars.containsKey(secondaryName)) { // TODO see other sample creation
-              classChar = classChars.get(secondaryName);
-            } else {
-              classChar = Functions.incrementUppercase(classChar);
-              classChars.put(secondaryName, classChar);
+      String type = s.getValueMap().get("Q_SAMPLE_TYPE");
+      if (type.equals("CELL_LYSATE")) {
+        if (s.getParent().equals(tissueCode)) {
+          String secondaryName = s.getQ_SECONDARY_NAME();
+          for (String antibody : protocol.getAntibodies()) {
+            String[] mhcClasses = protocol.getMHCClass(antibody);
+            for (String mhcClass : mhcClasses) {
+              if (classChars.containsKey(secondaryName)) { // TODO see other sample creation
+                classChar = classChars.get(secondaryName);
+              } else {
+                classChar = Functions.incrementUppercase(classChar);
+                classChars.put(secondaryName, classChar);
+              }
+              incrementOrCreateBarcode();
+              mhcExtracts.add(new OpenbisMHCExtractSample(nextBarcode, spaceCode,
+                  experiments.get(expNum).getOpenbisName(), secondaryName, "", s.getFactors(),
+                  antibody, mhcClass, s.getCode(), s.getQ_EXTERNALDB_ID()));
             }
-            incrementOrCreateBarcode();
-            mhcExtracts.add(new OpenbisMHCExtractSample(nextBarcode, spaceCode,
-                experiments.get(expNum).getOpenbisName(), secondaryName, "", s.getFactors(),
-                antibody, mhcClass, s.getCode(), s.getQ_EXTERNALDB_ID()));
           }
         }
       }
@@ -499,12 +499,14 @@ public class WizardDataAggregator {
    * @param factors List of a list of condition instances (one list per condition)
    * @return List of a list of condition instances (one list per condition) as Strings
    */
-  private List<List<String>> createFactorInfo(List<List<Factor>> factors) {
+  private List<List<String>> createFactorInfo(List<List<Property>> factors) {
     List<List<String>> res = new ArrayList<List<String>>();
-    for (List<Factor> instances : factors) {
+    for (List<Property> instances : factors) {
       List<String> factorValues = new ArrayList<String>();
-      for (Factor f : instances) {
-        String name = f.getValue() + f.getUnit();
+      for (Property f : instances) {
+        String name = f.getValue();
+        if (f.hasUnit())
+          name = name + " " + f.getUnit().getValue();
         factorValues.add(name);
         factorMap.put(name, f);
       }
@@ -579,7 +581,7 @@ public class WizardDataAggregator {
       if (map.containsKey(permID))
         defBioReps = map.get(permID);
       for (int i = defBioReps; i > 0; i--) {
-        List<Factor> factors = new ArrayList<Factor>();
+        List<Property> factors = new ArrayList<Property>();
         for (String name : secondaryNameList) {
           if (factorMap.containsKey(name))
             factors.add(factorMap.get(name));
@@ -616,6 +618,7 @@ public class WizardDataAggregator {
     int expNum = experiments.size() - techTypeInfo.size() - 1;
     List<AOpenbisSample> extracts = new ArrayList<AOpenbisSample>();
     int permID = 0;
+    Map<String, TissueInfo> specialTissueInfos = s6.getSpecialTissueMap();
     for (AOpenbisSample e : entities) {
       List<List<String>> factorLists = new ArrayList<List<String>>();
       String secName = e.getQ_SECONDARY_NAME();
@@ -631,7 +634,7 @@ public class WizardDataAggregator {
       }
       for (List<String> secondaryNameList : permLists) {
         permID++;
-        List<Factor> factors = new ArrayList<Factor>();
+        List<Property> factors = new ArrayList<Property>();
         factors.addAll(e.getFactors());
         for (String name : secondaryNameList)
           for (String element : name.split(";")) {
@@ -646,20 +649,24 @@ public class WizardDataAggregator {
         if (map.containsKey(permID))
           defExtrReps = map.get(permID);
         for (int i = defExtrReps; i > 0; i--) {
-          if (s5.tissueIsFactor()) {
-            for (String factor : secondaryNameList) {
-              if (tissueMap.containsKey(factor))
-                tissue = factor;
+          String tissueCode = "";
+          if (s5.isTissueFactor()) {
+            for (String factorInstance : secondaryNameList) {
+              if (specialTissueInfos.containsKey(factorInstance)) {
+                TissueInfo info = specialTissueInfos.get(factorInstance);
+                tissue = info.getPrimary();
+                specialTissue = info.getSpecific();
+              }
             }
           }
-          String tissueCode = tissueMap.get(tissue);
+          tissueCode = tissueMap.get(tissue);
           if (classChars.containsKey(secondaryName)) { // TODO does this seem right to you?
             classChar = classChars.get(secondaryName);
           } else {
             classChar = Functions.incrementUppercase(classChar);
             classChars.put(secondaryName, classChar);
           }
-          List<Factor> curFactors = new ArrayList<Factor>(factors);
+          List<Property> curFactors = new ArrayList<Property>(factors);
           incrementOrCreateBarcode();
           extracts.add(new OpenbisBiologicalSample(nextBarcode, spaceCode,
               experiments.get(expNum).getOpenbisName(), secondaryName, "", curFactors, tissueCode,
@@ -671,6 +678,7 @@ public class WizardDataAggregator {
       }
     }
     return extracts;
+
   }
 
   private void incrementOrCreateBarcode() {
@@ -699,7 +707,7 @@ public class WizardDataAggregator {
       else
         testPools = new ArrayList<AOpenbisSample>();
       String exp = dummy.getValueMap().get("EXPERIMENT");
-      List<Factor> factors = new ArrayList<Factor>();
+      List<Property> factors = new ArrayList<Property>();
       for (String secName : pools.keySet()) {
         incrementOrCreateBarcode();
         String parents = "";
@@ -816,8 +824,9 @@ public class WizardDataAggregator {
         entityNum++;
       }
       Map<String, String> p = s.getProperties();
-      List<Factor> factors = xmlParser.getFactors(xmlParser.parseXMLString(p.get("Q_PROPERTIES")));
-      for (Factor f : factors) {
+      List<Property> factors =
+          xmlParser.getExpFactors(xmlParser.parseXMLString(p.get("Q_PROPERTIES")));
+      for (Property f : factors) {
         String name = f.getValue() + f.getUnit();
         factorMap.put(name, f);
       }
@@ -845,8 +854,9 @@ public class WizardDataAggregator {
     for (Sample s : extracts) {
       String code = s.getCode();
       Map<String, String> p = s.getProperties();
-      List<Factor> factors = xmlParser.getFactors(xmlParser.parseXMLString(p.get("Q_PROPERTIES")));
-      for (Factor f : factors) {
+      List<Property> factors =
+          xmlParser.getExpFactors(xmlParser.parseXMLString(p.get("Q_PROPERTIES")));
+      for (Property f : factors) {
         String name = f.getValue() + f.getUnit();
         factorMap.put(name, f);
       }
@@ -872,8 +882,9 @@ public class WizardDataAggregator {
       String code = s.getCode();
       String[] eSplit = s.getExperimentIdentifierOrNull().split("/");
       Map<String, String> p = s.getProperties();
-      List<Factor> factors = xmlParser.getFactors(xmlParser.parseXMLString(p.get("Q_PROPERTIES")));
-      for (Factor f : factors) {
+      List<Property> factors =
+          xmlParser.getExpFactors(xmlParser.parseXMLString(p.get("Q_PROPERTIES")));
+      for (Property f : factors) {
         String name = f.getValue() + f.getUnit();
         factorMap.put(name, f);
       }
@@ -1080,16 +1091,20 @@ public class WizardDataAggregator {
     }
     String description = s1.getDescription();
     String secondaryName = s1.getExpSecondaryName();
-    String investigator = s1.getPrincipalInvestigator();
-    String contact = s1.getContactPerson();
+    String investigator = s1.getPerson(PersonType.Investigator);
+    String contact = s1.getPerson(PersonType.Contact);
+    String manager = s1.getPerson(PersonType.Manager);
 
     String result = "";
     description = description.replace("\n", "\n#");
     secondaryName = secondaryName.replace("\n", " - ");
     result += "#PROJECT_DESCRIPTION=" + description + "\n";
     result += "#ALTERNATIVE_NAME=" + secondaryName + "\n";
+    if (s1.isPilot())
+      result += "#PILOT PROJECT\n";
     result += "#INVESTIGATOR=" + investigator + "\n";
     result += "#CONTACT=" + contact + "\n";
+    result += "#MANAGER=" + manager + "\n";
 
     // TODO reuse this in the refactored version, it's not stupid
     if (experiments != null) {
@@ -1112,9 +1127,18 @@ public class WizardDataAggregator {
     for (String col : header)
       headerLine += "\t" + col;
 
-    for (Factor f : a.getFactors()) {
+    for (Property f : a.getFactors()) {
       String label = f.getLabel();
-      headerLine += "\tCondition: " + label;
+      switch (f.getType()) {
+        case Factor:
+          headerLine += "\tCondition: " + label;
+          break;
+        case Property:
+          headerLine += "\tProperty: " + label;
+          break;
+        default:
+          break;
+      }
     }
     for (AOpenbisSample s : samples) {
       String code = s.getCode();
@@ -1150,11 +1174,12 @@ public class WizardDataAggregator {
     return result;
   }
 
-  // TODO should be parsed from the tsv
+  // TODO should be parsed from the tsv?
   public List<OpenbisExperiment> getExperimentsWithMetadata() {
     List<OpenbisExperiment> res = new ArrayList<OpenbisExperiment>();
     for (OpenbisExperiment e : experiments) {
       if (informativeExpTypes.contains(e.getType()) || e.containsProperties()) {
+
         res.add(e);
       }
     }
@@ -1190,7 +1215,7 @@ public class WizardDataAggregator {
 
   public void parseAll() throws JAXBException {
     prepareBasics();
-    factorMap = new HashMap<String, Factor>();
+    factorMap = new HashMap<String, Property>();
 
     List<Sample> openbisEntities = new ArrayList<Sample>();
     List<Sample> openbisExtracts = new ArrayList<Sample>();
@@ -1342,14 +1367,14 @@ public class WizardDataAggregator {
           for (AOpenbisSample p : s.getParents()) {
             parents += p.getCode() + " ";
           }
-          if (parents.isEmpty()) {
+          parents = parents.trim();
+          s.setParent(parents);
+          if (parents.startsWith("MS")) {// wash runs
             if (s.getCode() == null) {
               incrementOrCreateBarcode();
               s.setCode(nextBarcode);
             }
           } else {
-            parents = parents.trim();
-            s.setParent(parents);
             s.setCode("MS" + parents);
           }
         }

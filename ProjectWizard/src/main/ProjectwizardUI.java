@@ -20,19 +20,29 @@ import io.ConfigurationManagerFactory;
 import io.DBConfig;
 import io.DBManager;
 import io.DBVocabularies;
+import life.qbic.openbis.openbisclient.IOpenBisClient;
+import life.qbic.openbis.openbisclient.OpenBisClient;
+import life.qbic.openbis.openbisclient.OpenBisClientMock;
+import life.qbic.portal.liferayandvaadinhelpers.main.LiferayAndVaadinUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.servlet.annotation.WebServlet;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
 
 import logging.Log4j2Logger;
 import model.AttachmentConfig;
-import model.BarcodeConfig;
+import parser.XMLParser;
+import properties.Qproperties;
+import registration.OpenbisCreationController;
 
 import org.vaadin.teemu.wizards.Wizard;
 import org.vaadin.teemu.wizards.event.WizardCancelledEvent;
@@ -42,9 +52,10 @@ import org.vaadin.teemu.wizards.event.WizardStepActivationEvent;
 import org.vaadin.teemu.wizards.event.WizardStepSetChangedEvent;
 
 import views.AdminView;
-import views.StandaloneTSVImport;
-import views.WizardBarcodeView;
+import views.MetadataUploadView;
 
+import com.liferay.portal.model.User;
+import com.liferay.portal.model.UserGroup;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.VaadinServletConfiguration;
 import com.vaadin.server.FontAwesome;
@@ -52,17 +63,13 @@ import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinServlet;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.TabSheet.SelectedTabChangeListener;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.TabSheet.SelectedTabChangeEvent;
 import com.vaadin.ui.themes.ValoTheme;
 
-import control.BarcodeController;
+import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
 import control.ExperimentImportController;
-import control.SampleFilterGenerator;
 import control.WizardController;
-import de.uni_tuebingen.qbic.main.LiferayAndVaadinUtils;
 
 @SuppressWarnings("serial")
 @Theme("projectwizard")
@@ -84,7 +91,7 @@ public class ProjectwizardUI extends UI {
 
 
   logging.Logger logger = new Log4j2Logger(ProjectwizardUI.class);
-  private String version = "Version 1.29, 15.02.17";
+  private String version = "Version 1.34, 16.02.18";
 
   private ConfigurationManager config;
 
@@ -108,7 +115,7 @@ public class ProjectwizardUI extends UI {
     String userID = "";
     boolean success = true;
     if (LiferayAndVaadinUtils.isLiferayPortlet()) {
-      logger.info("Wizard is running on Liferay and user is logged in.");
+      logger.info("Wizard " + version + " is running on Liferay and user is logged in.");
       userID = LiferayAndVaadinUtils.getUser().getScreenName();
     } else {
       if (isDevelopment()) {
@@ -150,6 +157,8 @@ public class ProjectwizardUI extends UI {
       Map<String, String> tissueMap = openbis.getVocabCodesAndLabelsForVocab("Q_PRIMARY_TISSUES");
       Map<String, String> deviceMap = openbis.getVocabCodesAndLabelsForVocab("Q_MS_DEVICES");
       Map<String, String> cellLinesMap = openbis.getVocabCodesAndLabelsForVocab("Q_CELL_LINES");
+      Map<String, String> enzymeMap =
+          openbis.getVocabCodesAndLabelsForVocab("Q_DIGESTION_PROTEASES");
       Map<String, String> chromTypes =
           openbis.getVocabCodesAndLabelsForVocab("Q_CHROMATOGRAPHY_TYPES");
       List<String> sampleTypes = openbis.getVocabCodesForVocab("Q_SAMPLE_TYPES");
@@ -158,7 +167,6 @@ public class ProjectwizardUI extends UI {
       List<String> fractionationTypes =
           openbis.getVocabCodesForVocab("Q_MS_FRACTIONATION_PROTOCOLS");
       List<String> enrichmentTypes = openbis.getVocabCodesForVocab("Q_MS_ENRICHMENT_PROTOCOLS");
-      List<String> enzymes = openbis.getVocabCodesForVocab("Q_DIGESTION_PROTEASES");
       Map<String, String> antibodiesWithLabels =
           openbis.getVocabCodesAndLabelsForVocab("Q_ANTIBODY");
       List<String> msProtocols = openbis.getVocabCodesForVocab("Q_MS_PROTOCOLS");
@@ -171,12 +179,11 @@ public class ProjectwizardUI extends UI {
       DBManager dbm = new DBManager(mysqlConfig);
       Map<String, Integer> peopleMap = dbm.fetchPeople();
       DBVocabularies vocabs = new DBVocabularies(taxMap, tissueMap, cellLinesMap, sampleTypes,
-          spaces, peopleMap, expTypes, enzymes, antibodiesWithLabels, deviceMap, msProtocols,
+          spaces, peopleMap, expTypes, enzymeMap, antibodiesWithLabels, deviceMap, msProtocols,
           lcmsMethods, chromTypes, fractionationTypes, enrichmentTypes, purificationMethods);
       // initialize the View with sample types, spaces and the dictionaries of tissues and species
       initView(dbm, vocabs, userID);
       layout.addComponent(tabs);
-//      layout.addComponent(new TSVCreationComponent(openbis));
     }
     if (LiferayAndVaadinUtils.isLiferayPortlet())
       try {
@@ -247,15 +254,22 @@ public class ProjectwizardUI extends UI {
     wLayout.setMargin(true);
 
     tabs.addTab(wLayout, "Create Project").setIcon(FontAwesome.FLASK);
-    BarcodeConfig bcConf = new BarcodeConfig(config.getBarcodeScriptsFolder(), tmpFolder,
-        config.getBarcodeResultsFolder(), config.getBarcodePathVariable());
-    SampleFilterGenerator gen = new SampleFilterGenerator();
-    BarcodeController bc = new BarcodeController(openbis, bcConf, dbm);
-    gen.addObserver(bc);
-    final WizardBarcodeView bw = new WizardBarcodeView(vocabularies.getSpaces(), isAdmin, gen);
-    bw.initControl(bc);
-    tabs.addTab(bw, "Create Barcodes").setIcon(FontAwesome.BARCODE);
-    StandaloneTSVImport tsvImport = new StandaloneTSVImport();
+    // TODO barcode tab, remove once new portlet is online
+    // BarcodeConfig bcConf = new BarcodeConfig(config.getBarcodeScriptsFolder(), tmpFolder,
+    // config.getBarcodeResultsFolder(), config.getBarcodePathVariable());
+    // SampleFilterGenerator gen = new SampleFilterGenerator();
+    // BarcodeController bc = new BarcodeController(openbis, bcConf, dbm);
+    // gen.addObserver(bc);
+    // final WizardBarcodeView bw = new WizardBarcodeView(vocabularies.getSpaces(), isAdmin, gen);
+    // bw.initControl(bc);
+    // tabs.addTab(bw, "Create Barcodes").setIcon(FontAwesome.BARCODE);
+    // tabs.addSelectedTabChangeListener(new SelectedTabChangeListener() {
+    //
+    // @Override
+    // public void selectedTabChange(SelectedTabChangeEvent event) {
+    // bw.resetSpace();
+    // }
+    // });
 
     OpenbisCreationController creationController = new OpenbisCreationController(openbis);// will
                                                                                           // not
@@ -265,24 +279,60 @@ public class ProjectwizardUI extends UI {
                                                                                           // is down
 
     ExperimentImportController uc =
-        new ExperimentImportController(tsvImport, creationController, vocabularies.getTaxMap());
+        new ExperimentImportController(creationController, vocabularies, openbis, dbm);
     uc.init(user);
-    tabs.addTab(tsvImport, "Import Project").setIcon(FontAwesome.FILE);
+    tabs.addTab(uc.getView(), "Import Project").setIcon(FontAwesome.FILE);
+
+    boolean overwriteAllowed = isAdmin || canOverwrite();
+    tabs.addTab(new MetadataUploadView(openbis, vocabularies, overwriteAllowed), "Update Metadata")
+        .setIcon(FontAwesome.PENCIL);;
     if (isAdmin) {
-      logger.info("User is " + user + " and can see admin panel and print barcodes.");
+      logger.info("User is " + user + " and can see admin panel.");
       VerticalLayout padding = new VerticalLayout();
       padding.setMargin(true);
-      padding
-          .addComponent(new AdminView(openbis, vocabularies.getSpaces(), creationController, user));
+      padding.addComponent(new AdminView(openbis, vocabularies, creationController, user));
       tabs.addTab(padding, "Admin Functions").setIcon(FontAwesome.WRENCH);
     }
-    tabs.addSelectedTabChangeListener(new SelectedTabChangeListener() {
+    if (overwriteAllowed)
+      logger.info("User can overwrite existing metadata for their project.");
+  }
 
-      @Override
-      public void selectedTabChange(SelectedTabChangeEvent event) {
-        bw.resetSpace();
+  // TODO group that might be used to delete metadata or even sample/experiment objects in the
+  // future
+  private boolean canDelete() {
+    try {
+      User user = LiferayAndVaadinUtils.getUser();
+      for (UserGroup grp : user.getUserGroups()) {
+        String group = grp.getName();
+        if (config.getDeletionGrp().contains(group)) {
+          logger.info(
+              "User " + user.getScreenName() + " can delete because they are part of " + group);
+          return true;
+        }
       }
-    });
+    } catch (Exception e) {
+      e.printStackTrace();
+      logger.error("Could not fetch user groups. User won't be able to delete.");
+    }
+    return false;
+  }
+
+  private boolean canOverwrite() {
+    try {
+      User user = LiferayAndVaadinUtils.getUser();
+      for (UserGroup grp : user.getUserGroups()) {
+        String group = grp.getName();
+        if (config.getMetadataWriteGrp().contains(group)) {
+          logger.info("User " + user.getScreenName()
+              + " can overwrite metadata because they are part of " + group);
+          return true;
+        }
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      logger.error("Could not fetch user groups. User won't be able to overwrite metadata.");
+    }
+    return false;
   }
 
 }

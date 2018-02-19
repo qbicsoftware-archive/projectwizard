@@ -15,17 +15,18 @@
  *******************************************************************************/
 package control;
 
-
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -34,19 +35,19 @@ import java.util.Set;
 import javax.xml.bind.JAXBException;
 
 import logging.Log4j2Logger;
-import main.IOpenBisClient;
-import main.OpenbisCreationController;
 import main.SamplePreparator;
 import main.SampleSummaryBean;
-import main.TSVSampleBean;
+import model.TSVSampleBean;
 import model.AOpenbisSample;
 import model.AttachmentConfig;
+import model.DesignType;
 import model.ExperimentBean;
 import model.ExperimentType;
 import model.ISampleBean;
 import model.MSExperimentModel;
 import model.NewSampleModelBean;
 import model.OpenbisExperiment;
+import model.PersonType;
 import model.RegistrationMode;
 import model.TestSampleInformation;
 import model.notes.Note;
@@ -62,7 +63,6 @@ import org.vaadin.teemu.wizards.event.WizardStepSetChangedEvent;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Experiment;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
-import control.Functions.NotificationType;
 
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -83,6 +83,7 @@ import steps.EntityStep;
 import steps.ExtractionStep;
 import io.DBManager;
 import io.DBVocabularies;
+import life.qbic.openbis.openbisclient.IOpenBisClient;
 import steps.FinishStep;
 import steps.MSAnalyteStep;
 import steps.PoolingStep;
@@ -91,8 +92,11 @@ import steps.TailoringStep;
 import steps.TestStep;
 import steps.SummaryRegisterStep;
 import uicomponents.ProjectInformationComponent;
+import uicomponents.Styles;
+import uicomponents.Styles.NotificationType;
 import processes.RegisteredSamplesReadyRunnable;
-import properties.Factor;
+import properties.Property;
+import registration.OpenbisCreationController;
 
 /**
  * Controller for the sample/experiment creation wizard
@@ -100,7 +104,7 @@ import properties.Factor;
  * @author Andreas Friedrich
  * 
  */
-public class WizardController {
+public class WizardController implements IRegistrationController {
 
   private IOpenBisClient openbis;
   private OpenbisCreationController openbisCreator;
@@ -115,6 +119,7 @@ public class WizardController {
   private DBVocabularies vocabularies;
   private DBManager dbm;
   private FileDownloader tsvDL;
+  private List<Note> notes;
   SamplePreparator prep = new SamplePreparator();
   protected List<String> designExperimentTypes;
 
@@ -280,15 +285,15 @@ public class WizardController {
    * Initialize all possible steps in the wizard and the listeners used
    */
   public void init(final String user) {
+    WizardController control = this;
     this.w = new Wizard();
     w.getFinishButton().setVisible(false);
     w.getFinishButton().setStyleName(ValoTheme.BUTTON_DANGER);
     w.getCancelButton().setStyleName(ValoTheme.BUTTON_DANGER);
 
-    final ProjectInformationComponent projSelection =
-        new ProjectInformationComponent(vocabularies.getPeople().keySet());
-    final ProjectContextStep contextStep =
-        new ProjectContextStep(vocabularies.getSpaces(), projSelection);
+    final ProjectInformationComponent projSelection = new ProjectInformationComponent(
+        vocabularies.getSpaces(), vocabularies.getPeople().keySet());
+    final ProjectContextStep contextStep = new ProjectContextStep(projSelection);
     final EntityStep entStep =
         new EntityStep(vocabularies.getTaxMap(), vocabularies.getPeople().keySet());
     final ConditionInstanceStep entCondInstStep =
@@ -300,7 +305,7 @@ public class WizardController {
         vocabularies.getTissueMap().keySet(), "Tissues", "Extr. Variables");
     final TailoringStep tailoringStep2 = new TailoringStep("Sample Extracts", true);
     final TestStep techStep = new TestStep(w, vocabularies);
-    final SummaryRegisterStep regStep = new SummaryRegisterStep(dbm, openbis);
+    final SummaryRegisterStep regStep = new SummaryRegisterStep();
     final PoolingStep poolStep1 = new PoolingStep(Steps.Extract_Pooling);
     final PoolingStep poolStep2 = new PoolingStep(Steps.Test_Sample_Pooling);
     final FinishStep finishStep = new FinishStep(w, attachConfig);
@@ -331,6 +336,7 @@ public class WizardController {
 
     this.dataAggregator = new WizardDataAggregator(steps, openbis, vocabularies.getTaxMap(),
         vocabularies.getTissueMap(), vocabularies.getPeople());
+    // w.addStep(finishStep);
     w.addStep(contextStep);
 
     FocusListener fListener = new FocusListener() {
@@ -403,8 +409,8 @@ public class WizardController {
         if (src.equals("Register Project")) {
           String desc = contextStep.getDescription();
           String altTitle = contextStep.getExpSecondaryName();
-          logger.debug("register empty project");
           registerProjectOnly(desc, altTitle, user, regStep);
+          w.addStep(steps.get(Steps.Finish));
         }
         if (src.equals("Send Project to QBiC")) {
           String tsv = dataAggregator.getTSVContent();
@@ -436,7 +442,7 @@ public class WizardController {
             }
           }
           sendInquiry(space, project, altTitle, tsv, user, notes);
-          Functions.notification("Project inquiry sent.",
+          Styles.notification("Project inquiry sent.",
               "Your Project inquiry was successfully sent to QBiC. We will contact you.",
               NotificationType.SUCCESS);
         }
@@ -447,7 +453,7 @@ public class WizardController {
           String altTitle = contextStep.getExpSecondaryName();
           boolean afterMS = w.getSteps().contains(steps.get(Steps.Protein_Fractionation));
           // Additional information set in the protein and/or peptide step(s)
-          List<Note> notes = new ArrayList<Note>();
+          notes = new ArrayList<Note>();
           if (afterMS) {
             List<String> infos = new ArrayList<String>();
             String protInfo = protFracStep.getAdditionalInfo();
@@ -470,7 +476,6 @@ public class WizardController {
               }
             }
           }
-          regStep.setProjectNotes(notes);
           // TODO this needs work
           List<List<ISampleBean>> samples = regStep.getSamples();
           String space = contextStep.getSpaceCode();
@@ -478,13 +483,14 @@ public class WizardController {
           String exp = project + "_INFO";
           String code = project + "000";
           String sampleType = "Q_ATTACHMENT_SAMPLE";
+          boolean pilot = contextStep.isPilot();
           ISampleBean infoSample = new TSVSampleBean(code, exp, project, space, sampleType, "", "",
-              new HashMap<String, String>());
+              new HashMap<String, Object>());
           samples.add(new ArrayList<ISampleBean>(Arrays.asList(infoSample)));
-          openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(samples, desc, altTitle,
-              dataAggregator.getExperimentsWithMetadata(),
-              dataAggregator.getMHCLigandExtractProperties(), regStep.getProgressBar(),
-              regStep.getProgressLabel(), new RegisteredSamplesReadyRunnable(regStep), user);
+          openbisCreator.registerProjectWithExperimentsAndSamplesBatchWise(samples, desc,
+              dataAggregator.getExperimentsWithMetadata(), regStep.getProgressBar(),
+              regStep.getProgressLabel(), new RegisteredSamplesReadyRunnable(regStep, control),
+              user, pilot);
           w.addStep(steps.get(Steps.Finish));
         }
       }
@@ -536,15 +542,16 @@ public class WizardController {
             projects.add(code);
           }
           contextStep.setProjectCodes(projects);
+          List<String> dontFilter = new ArrayList<String>(Arrays.asList("SPECIAL_METHOD"));
           if (space.endsWith("PCT")) {
-            protFracStep.filterDictionariesByPrefix("PCT");
-            pepFracStep.filterDictionariesByPrefix("PCT");
+            protFracStep.filterDictionariesByPrefix("PCT", dontFilter);
+            pepFracStep.filterDictionariesByPrefix("PCT", dontFilter);
           } else if (space.endsWith("MPC")) {
-            protFracStep.filterDictionariesByPrefix("MPC");
-            pepFracStep.filterDictionariesByPrefix("MPC");
+            protFracStep.filterDictionariesByPrefix("MPC", dontFilter);
+            pepFracStep.filterDictionariesByPrefix("MPC", dontFilter);
           } else {
-            protFracStep.filterDictionariesByPrefix("");
-            pepFracStep.filterDictionariesByPrefix("");
+            protFracStep.filterDictionariesByPrefix("", dontFilter);
+            pepFracStep.filterDictionariesByPrefix("", dontFilter);
           }
         }
       }
@@ -586,8 +593,15 @@ public class WizardController {
       @Override
       public void valueChange(ValueChangeEvent event) {
         contextStep.resetSamples();
-        ExperimentBean exp = contextStep.getExperimentName();
+        contextStep.makePilotBoxVisible(false);
+        OptionGroup projectContext = contextStep.getProjectContext();
+        String context = (String) projectContext.getValue();
+        List<String> contextOptions = contextStep.getContextOptions();
+        ExperimentBean exp = contextStep.getExperiment();
         if (exp != null) {
+          if (exp.isPilot() && !contextOptions.get(4).equals(context)) {
+            contextStep.selectPilot();
+          }
           List<NewSampleModelBean> beans = new ArrayList<NewSampleModelBean>();
           for (Sample s : openbis.getSamplesofExperiment(exp.getID())) {
             beans.add(new NewSampleModelBean(s.getCode(), s.getProperties().get("Q_SECONDARY_NAME"),
@@ -613,14 +627,15 @@ public class WizardController {
 
       @Override
       public void valueChange(ValueChangeEvent event) {
-        // contextStep.enableExpName(false);
         copyMode = false;
         if (contextStep.getProjectContext().getValue() != null) {
+          contextStep.makePilotBoxVisible(false);
           resetNextSteps();
           OptionGroup projectContext = contextStep.getProjectContext();
-          List<String> contextOptions = contextStep.getContextOptions();
-          List<ExperimentBean> experiments = contextStep.getExperiments();
           String context = (String) projectContext.getValue();
+          List<String> contextOptions = contextStep.getContextOptions();
+
+          List<ExperimentBean> experiments = contextStep.getExperiments();
           List<ExperimentBean> beans = new ArrayList<ExperimentBean>();
           // inherit from bio entities
           if (contextOptions.get(1).equals(context)) {
@@ -644,10 +659,11 @@ public class WizardController {
           }
           // new context
           if (contextOptions.get(0).equals(context)) {
+            contextStep.hideExperiments();
             setCreateEntities();
+            contextStep.makePilotBoxVisible(true);
             dataAggregator.setInheritEntities(false);
             dataAggregator.setInheritExtracts(false);
-            contextStep.hideExperiments();
           }
           regStep.setRegistrationMode(RegistrationMode.RegisterSamples);
           if (contextOptions.get(3).equals(context)) {
@@ -722,6 +738,11 @@ public class WizardController {
     };
 
     ValueChangeListener proteinListener = new ValueChangeListener() {
+
+      /**
+       * 
+       */
+      private static final long serialVersionUID = -7329476869277381974L;
 
       @Override
       public void valueChange(ValueChangeEvent event) {
@@ -835,7 +856,8 @@ public class WizardController {
               new ArrayList<AOpenbisSample>());
           if (!bioFactorInstancesSet) {
             if (entStep.speciesIsFactor())
-              entCondInstStep.initOptionsFactorField(entStep.getSpeciesAmount());
+              entCondInstStep.initOptionsFactorComponent(entStep.getSpeciesAmount(),
+                  new HashSet<String>(), "N/A", "N/A", "N/A", "N/A");
             entCondInstStep.initFactorFields(entStep.getFactors());
             initConditionListener(entCondInstStep, Integer.toString(entStep.getBioRepAmount()),
                 new ArrayList<AOpenbisSample>());
@@ -861,8 +883,10 @@ public class WizardController {
           reloadConditionsPreviewTable(extrCondInstStep,
               Integer.toString(extrStep.getExtractRepAmount()), dataAggregator.getEntities());
           if (!extractFactorInstancesSet) {
-            if (extrStep.tissueIsFactor())
-              extrCondInstStep.initOptionsFactorField(extrStep.getTissueAmount());
+            if (extrStep.isTissueFactor())// TODO mapping and keywords
+              extrCondInstStep.initOptionsFactorComponent(extrStep.getTissueAmount(),
+                  vocabularies.getCellLinesMap().keySet(), "Cell Line", "Other", "Cell Line",
+                  "Other");
             extrCondInstStep.initFactorFields(extrStep.getFactors());
             initConditionListener(extrCondInstStep,
                 Integer.toString(extrStep.getExtractRepAmount()), dataAggregator.getEntities());
@@ -941,28 +965,13 @@ public class WizardController {
           }
           protFracStep.setAnalyteSamples(proteins, pools);
         }
-        // Pooling after Protein Fractionation
-        // if (event.getActivatedStep().equals(afterProtFracPooling)) {
-        // afterProtFracPooling.setPreliminaryExperiments(protFracStep.getPreliminaryExperiments(),
-        // Steps.Protein_Fractionation_Pooling);
-        // }
         // Peptide Fractionation
         if (event.getActivatedStep().equals(pepFracStep)) {
-          // Map<String, Object> peptideMSInfos = techStep.getPeptideMSExperimentProperties();
-          // if (w.getSteps().contains(afterProtFracPooling)) {
-          // pepFracStep
-          // .setAnalyteSamplesAndExperiments(afterProtFracPooling.getPreliminarySamples());
-          // } else if
           if (!protFracStep.hasRun()) {
             protFracStep.createPreliminaryExperiments();
           }
           pepFracStep.setAnalyteSamplesAndExperiments(protFracStep.getResults());
         }
-        // Pooling after Peptide Fractionation
-        // if (event.getActivatedStep().equals(afterPepFracPooling)) {
-        // afterPepFracPooling.setPreliminaryExperiments(pepFracStep.getPreliminaryExperiments(),
-        // Steps.Peptide_Fractionation_Pooling);
-        // }
         // TSV and Registration Step
         if (event.getActivatedStep().equals(regStep)) {
           regStep.enableDownloads(false);
@@ -972,11 +981,12 @@ public class WizardController {
             if (!testPoolsSet && !afterMS)
               dataAggregator.prepareTestSamples();
             if (techStep.hasMHCLigands())
-              dataAggregator.prepareMHCExtractSamples();
+              dataAggregator.prepareMHCExtractSamplesAndExperiments();
             List<AOpenbisSample> all = new ArrayList<AOpenbisSample>();
             if (!afterMS) {
               all.addAll(dataAggregator.getTests());
-              all.addAll(dataAggregator.createPoolingSamples(poolStep2.getPools()));
+//              all.addAll(
+                  dataAggregator.createPoolingSamples(poolStep2.getPools());
               dataAggregator.setTests(all);
             }
             if (containsFractionation()) {
@@ -986,7 +996,7 @@ public class WizardController {
             }
             createTSV();
             try {
-              prep.processTSV(dataAggregator.getTSV());
+              prep.processTSV(dataAggregator.getTSV(), DesignType.QBIC);
             } catch (IOException e) {
               e.printStackTrace();
             }
@@ -996,23 +1006,17 @@ public class WizardController {
             for (Map.Entry<String, String> entry : vocabularies.getTaxMap().entrySet())
               taxMap.put(entry.getValue(), entry.getKey());
             for (SampleSummaryBean s : summaries) {
-              String translation = taxMap.get(s.getSampleContent());
-              if (translation != null)
-                s.setSampleContent(translation);
+              List<String> translations = new ArrayList<String>();
+              for (String id : s.getSampleContent().split(", ")) {
+                String translation = taxMap.get(id);
+                if (translation != null)
+                  translations.add(translation);
+                else
+                  translations.add(id);
+              }
+              s.setSampleContent(String.join(", ", translations));
             }
             regStep.setSummary(summaries);
-            int investigator = -1;
-            int contact = -1;
-            int manager = -1;
-            if (!contextStep.getPrincipalInvestigator().equals(""))
-              investigator = vocabularies.getPeople().get(contextStep.getPrincipalInvestigator());
-            if (!contextStep.getProjectManager().equals(""))
-              manager = vocabularies.getPeople().get(contextStep.getProjectManager());
-            if (!contextStep.getContactPerson().equals(""))
-              contact = vocabularies.getPeople().get(contextStep.getContactPerson());
-            regStep.setPeopleAndProject(investigator, contact, manager,
-                "/" + contextStep.getSpaceCode() + "/" + contextStep.getProjectCode(),
-                contextStep.getExpSecondaryName(), dataAggregator.getExperiments());
             regStep.setProcessed(prep.getProcessed());
           }
           regStep.testRegEnabled();
@@ -1025,7 +1029,7 @@ public class WizardController {
             }
             createTSV();
             try {
-              prep.processTSV(dataAggregator.getTSV());
+              prep.processTSV(dataAggregator.getTSV(), DesignType.QBIC);
             } catch (IOException e) {
               e.printStackTrace();
             }
@@ -1041,24 +1045,22 @@ public class WizardController {
             }
             regStep.setSummary(summaries);
           }
-          if (contextStep.emptyProjectModeSet()) {
-            int investigator = -1;
-            int contact = -1;
-            int manager = -1;
-            if (!contextStep.getPrincipalInvestigator().equals(""))
-              investigator = vocabularies.getPeople().get(contextStep.getPrincipalInvestigator());
-            if (!contextStep.getProjectManager().equals(""))
-              manager = vocabularies.getPeople().get(contextStep.getProjectManager());
-            if (!contextStep.getContactPerson().equals(""))
-              contact = vocabularies.getPeople().get(contextStep.getContactPerson());
-            regStep.setPeopleAndProject(investigator, contact, manager,
-                "/" + contextStep.getSpaceCode() + "/" + contextStep.getProjectCode(),
-                contextStep.getExpSecondaryName(), new ArrayList<OpenbisExperiment>());
-          }
         }
         if (event.getActivatedStep().equals(finishStep)) {
-          String proj = dataAggregator.getProjectCode();
-          Project p = openbis.getProjectByCode(proj);
+          ProjectContextStep context = (ProjectContextStep) steps.get(Steps.Project_Context);
+          String space = context.getSpaceCode();
+          String proj = context.getProjectCode();
+          int timeout = 20;
+          while (!openbis.projectExists(space, proj) && timeout > 0) {
+            logger.error(
+                "Project " + proj + "(" + space + ")" + "could not be found after registration.");
+            try {
+              Thread.sleep(500);
+            } catch (InterruptedException e) {
+              e.printStackTrace();
+            }
+          }
+          Project p = openbis.getProjectByIdentifier("/" + space + "/" + proj);
           Map<String, List<Sample>> samplesByExperiment = new HashMap<String, List<Sample>>();
           for (Sample s : openbis.getSamplesOfProject(p.getIdentifier())) {
             String expID = s.getExperimentIdentifierOrNull();
@@ -1072,8 +1074,8 @@ public class WizardController {
               samplesByExperiment.put(exp, lis);
             }
           }
-          finishStep.setExperimentInfos(p.getSpaceCode(), proj, p.getDescription(),
-              samplesByExperiment, openbis);
+          finishStep.setExperimentInfos(space, proj, p.getDescription(), samplesByExperiment,
+              openbis);
         }
       }
 
@@ -1091,7 +1093,7 @@ public class WizardController {
               "Tried to fetch fractionation properties from wizard but the last step was neither of type Pooling or Fractionation. Step in question is: "
                   + lastInput.toString());
           logger.error("Wizard likely stopped working before registration. User was " + user);
-          Functions.notification("Error",
+          Styles.notification("Error",
               "Sorry, something went wrong. Please notify a QBiC contact person.",
               NotificationType.ERROR);
           return null;
@@ -1183,7 +1185,7 @@ public class WizardController {
         contextStep.enableExtractContextOption(hasBioEntities);
         contextStep.enableMeasureContextOption(hasExtracts);
         contextStep.enableTSVWriteContextOption(hasBioEntities);
-        contextStep.enableCopyContextOption(hasBioEntities); // TODO
+        contextStep.enableCopyContextOption(hasBioEntities);
 
         List<ExperimentBean> beans = new ArrayList<ExperimentBean>();
         for (Experiment e : openbis.getExperimentsOfProjectByCode(existingProject)) {
@@ -1193,9 +1195,12 @@ public class WizardController {
             String dt = "";
             if (date != null)
               dt = dt1.format(date);
+            boolean pilot = false;
+            if (e.getProperties().get("Q_IS_PILOT") != null)
+              pilot = Boolean.parseBoolean(e.getProperties().get("Q_IS_PILOT"));
             int numOfSamples = openbis.getSamplesofExperiment(e.getIdentifier()).size();
             beans.add(new ExperimentBean(e.getIdentifier(), e.getExperimentTypeCode(),
-                Integer.toString(numOfSamples), dt));
+                Integer.toString(numOfSamples), dt, pilot));
           }
         }
         contextStep.setExperiments(beans);
@@ -1214,7 +1219,7 @@ public class WizardController {
    * @param previousTier Samples of the previous tier
    * @return
    */
-  public List<String> preparePreviewPermutations(List<List<Factor>> factorLists,
+  public List<String> preparePreviewPermutations(List<List<Property>> factorLists,
       List<AOpenbisSample> previousTier) {
     List<String> permutations = new ArrayList<String>();
     for (AOpenbisSample e : previousTier) {
@@ -1224,10 +1229,12 @@ public class WizardController {
         secName = "";
       String condKey = "(" + e.getCode().split("-")[1] + ") " + secName;
       res.add(new ArrayList<String>(Arrays.asList(condKey)));
-      for (List<Factor> instances : factorLists) {
+      for (List<Property> instances : factorLists) {
         List<String> factorValues = new ArrayList<String>();
-        for (Factor f : instances) {
-          String name = f.getValue() + f.getUnit();
+        for (Property f : instances) {
+          String name = f.getValue();
+          if (f.hasUnit())
+            name = name + " " + f.getUnit().getValue();
           factorValues.add(name);
         }
         res.add(factorValues);
@@ -1243,12 +1250,14 @@ public class WizardController {
    * @param factorLists
    * @return
    */
-  public List<String> preparePreviewPermutations(List<List<Factor>> factorLists) {
+  public List<String> preparePreviewPermutations(List<List<Property>> factorLists) {
     List<List<String>> res = new ArrayList<List<String>>();
-    for (List<Factor> instances : factorLists) {
+    for (List<Property> instances : factorLists) {
       List<String> factorValues = new ArrayList<String>();
-      for (Factor f : instances) {
-        String name = f.getValue() + f.getUnit();
+      for (Property f : instances) {
+        String name = f.getValue();
+        if (f.hasUnit())
+          name = name + " " + f.getUnit().getValue();
         factorValues.add(name);
       }
       res.add(factorValues);
@@ -1288,10 +1297,21 @@ public class WizardController {
     ProjectContextStep context = (ProjectContextStep) steps.get(Steps.Project_Context);
     String space = context.getSpaceCode();
     String code = context.getProjectCode();
-    openbisCreator.registerProject(space, code, desc, user);
+    boolean success = openbisCreator.registerProject(space, code, desc, user);
     // will register people to the db and send a success message
-    regStep.registrationDone();
+    boolean sqlDown = false;
+    try {
+      performPostRegistrationTasks(success);
+    } catch (SQLException e) {
+      sqlDown = true;
+    }
+    regStep.registrationDone(sqlDown, getRegistrationError());
     // Functions.notification("Success", "Project was registered!", NotificationType.SUCCESS);
+  }
+
+  @Override
+  public String getRegistrationError() {
+    return openbisCreator.getErrors();
   }
 
   public StreamResource getTSVStream(final String content, String name) {
@@ -1308,5 +1328,64 @@ public class WizardController {
       }
     }, String.format("%s.tsv", name));
     return resource;
+  }
+
+  private void writeNoteToOpenbis(String id, Note note) {
+    Map<String, Object> params = new HashMap<String, Object>();
+    params.put("id", id);
+    params.put("user", note.getUsername());
+    params.put("comment", note.getComment());
+    params.put("time", note.getTime());
+    openbis.ingest("DSS1", "add-to-xml-note", params);
+  }
+
+  @Override
+  public void performPostRegistrationTasks(boolean success) throws SQLException {
+    if (success) {
+      ProjectContextStep contextStep = (ProjectContextStep) steps.get(Steps.Project_Context);
+      String projectIdentifier =
+          "/" + contextStep.getSpaceCode() + "/" + contextStep.getProjectCode();
+      String projectName = contextStep.getExpSecondaryName();
+      List<OpenbisExperiment> exps = dataAggregator.getExperiments();
+      if (exps == null)
+        exps = new ArrayList<OpenbisExperiment>();
+      int investigatorID = -1;
+      int contactID = -1;
+      int managerID = -1;
+      if (!contextStep.getPerson(PersonType.Investigator).equals(""))
+        investigatorID =
+            vocabularies.getPeople().get(contextStep.getPerson(PersonType.Investigator));
+      if (!contextStep.getPerson(PersonType.Manager).equals(""))
+        managerID = vocabularies.getPeople().get(contextStep.getPerson(PersonType.Manager));
+      if (!contextStep.getPerson(PersonType.Contact).equals(""))
+        contactID = vocabularies.getPeople().get(contextStep.getPerson(PersonType.Contact));
+
+      logger.info("Registration complete!");
+      for (OpenbisExperiment e : exps) {
+        if (e.getType().equals(ExperimentType.Q_EXPERIMENTAL_DESIGN)) {
+          String id = projectIdentifier + "/" + e.getOpenbisName();
+          for (Note n : notes) {
+            writeNoteToOpenbis(id, n);
+          }
+        }
+      }
+      int projectID = dbm.addProjectToDB(projectIdentifier, projectName);
+      if (investigatorID != -1)
+        dbm.addPersonToProject(projectID, investigatorID, "PI");
+      if (contactID != -1)
+        dbm.addPersonToProject(projectID, contactID, "Contact");
+      if (managerID != -1)
+        dbm.addPersonToProject(projectID, managerID, "Manager");
+      for (OpenbisExperiment e : exps) {
+        String identifier = projectIdentifier + "/" + e.getOpenbisName();
+        int expID = dbm.addExperimentToDB(identifier);
+        if (e.getPersonID() > -1) {
+          int person = e.getPersonID();
+          dbm.addPersonToExperiment(expID, person, "Contact");
+        }
+      }
+    } else {
+      // nothing for now
+    }
   }
 }
