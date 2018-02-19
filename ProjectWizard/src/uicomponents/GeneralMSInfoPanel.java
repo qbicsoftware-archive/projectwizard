@@ -138,19 +138,19 @@ public class GeneralMSInfoPanel extends VerticalLayout {
     return true;
   }
 
-  public void filterDictionariesByPrefix(String prefix) {
+  public void filterDictionariesByPrefix(String prefix, List<String> dontFilter) {
     List<String> devices = new ArrayList<String>();
     List<String> lcmsMethods = new ArrayList<String>();
     if (prefix.isEmpty()) {
       devices.addAll(vocabs.getDeviceMap().keySet());
     } else {
       for (String device : vocabs.getDeviceMap().keySet()) {
-        if (device.contains("(" + prefix + ")"))
+        if (device.contains("(" + prefix + ")") || dontFilter.contains(device))
           devices.add(device);
       }
     }
     for (String lcmsMethod : vocabs.getLcmsMethods()) {
-      if (lcmsMethod.startsWith(prefix))
+      if (lcmsMethod.startsWith(prefix) || dontFilter.contains(lcmsMethod))
         lcmsMethods.add(lcmsMethod);
     }
     Collections.sort(devices);

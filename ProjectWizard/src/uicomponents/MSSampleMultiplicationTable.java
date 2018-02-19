@@ -36,7 +36,7 @@ import model.ExperimentModel;
 import model.MSExperimentModel;
 import model.OpenbisMSSample;
 import model.OpenbisTestSample;
-import properties.Factor;
+import properties.Property;
 import steps.MSAnalyteStep.AnalyteMultiplicationType;
 
 import com.vaadin.data.Item;
@@ -51,8 +51,7 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.themes.ValoTheme;
 
-import control.Functions;
-import control.Functions.NotificationType;
+import uicomponents.Styles.*;
 
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
@@ -74,14 +73,8 @@ public class MSSampleMultiplicationTable extends VerticalLayout {
   private List<String> enzymes;
   private AnalyteMultiplicationType type;
   private boolean aboutPeptides;
-//  private List<EnzymeChooser> choosers;
-//  private Button.ClickListener buttonListener;
-//  private VerticalLayout enzymePane;
-//  private GridLayout buttonGrid;
-//  private Button add;
-//  private Button remove;
-
   private Map<String, AOpenbisSample> tableIdToParent;
+  private Map<Object, AOpenbisSample> tableIdToSample;
   private HashMap<String, List<String>> enzymeMap;
   private Table sampleTable;
   private CheckBox poolSamples;
@@ -98,10 +91,6 @@ public class MSSampleMultiplicationTable extends VerticalLayout {
     this.aboutPeptides = peptides;
     this.enzymes = vocabs.getEnzymes();
     Collections.sort(enzymes);
-
-//    choosers = new ArrayList<EnzymeChooser>();
-//    EnzymeChooser c = new EnzymeChooser(enzymes);
-//    choosers.add(c);
 
     setSpacing(true);
 
@@ -144,23 +133,23 @@ public class MSSampleMultiplicationTable extends VerticalLayout {
     addComponent(Styles.questionize(poolSamples, info, "Pool All " + type + "s"));
 
     if (!peptides) {
-//      add = new Button();
-//      remove = new Button();
-//      Styles.iconButton(add, FontAwesome.PLUS_SQUARE);
-//      Styles.iconButton(remove, FontAwesome.MINUS_SQUARE);
+      // add = new Button();
+      // remove = new Button();
+      // Styles.iconButton(add, FontAwesome.PLUS_SQUARE);
+      // Styles.iconButton(remove, FontAwesome.MINUS_SQUARE);
       initListener();
 
-//      enzymePane = new VerticalLayout();
-//      enzymePane.setCaption(type + " Digestion Enzymes");
-//      enzymePane.addComponent(c);
-//      enzymePane.setVisible(false);
-//      addComponent(enzymePane);
-//      buttonGrid = new GridLayout(2, 1);
-//      buttonGrid.setSpacing(true);
-//      buttonGrid.addComponent(add);
-//      buttonGrid.addComponent(remove);
-//      buttonGrid.setVisible(false);
-//      addComponent(buttonGrid);
+      // enzymePane = new VerticalLayout();
+      // enzymePane.setCaption(type + " Digestion Enzymes");
+      // enzymePane.addComponent(c);
+      // enzymePane.setVisible(false);
+      // addComponent(enzymePane);
+      // buttonGrid = new GridLayout(2, 1);
+      // buttonGrid.setSpacing(true);
+      // buttonGrid.addComponent(add);
+      // buttonGrid.addComponent(remove);
+      // buttonGrid.setVisible(false);
+      // addComponent(buttonGrid);
     }
   }
 
@@ -176,6 +165,10 @@ public class MSSampleMultiplicationTable extends VerticalLayout {
       if (b.isEnabled())// check if this value should be set
         b.setValue(selection);
     }
+  }
+
+  public Table getTable() {
+    return sampleTable;
   }
 
   private Object createComplexCellComponent(ComboBox contentBox, String propertyName,
@@ -206,57 +199,57 @@ public class MSSampleMultiplicationTable extends VerticalLayout {
   }
 
   private void initListener() {
-//    buttonListener = new Button.ClickListener() {
-//
-//      private static final long serialVersionUID = 2240224129259577437L;
-//
-//      @Override
-//      public void buttonClick(ClickEvent event) {
-//        if (event.getButton().equals(add))
-//          add();
-//        else
-//          remove();
-//      }
-//    };
-//    add.addClickListener(buttonListener);
-//    remove.addClickListener(buttonListener);
+    // buttonListener = new Button.ClickListener() {
+    //
+    // private static final long serialVersionUID = 2240224129259577437L;
+    //
+    // @Override
+    // public void buttonClick(ClickEvent event) {
+    // if (event.getButton().equals(add))
+    // add();
+    // else
+    // remove();
+    // }
+    // };
+    // add.addClickListener(buttonListener);
+    // remove.addClickListener(buttonListener);
   }
 
-//  public List<String> getEnzymes() {
-//    List<String> res = new ArrayList<String>();
-//    for (EnzymeChooser c : choosers) {
-//      if (c.isSet())
-//        res.add(c.getEnzyme());
-//    }
-//    return res;
-//  }
+  // public List<String> getEnzymes() {
+  // List<String> res = new ArrayList<String>();
+  // for (EnzymeChooser c : choosers) {
+  // if (c.isSet())
+  // res.add(c.getEnzyme());
+  // }
+  // return res;
+  // }
 
-//  private void add() {
-//    if (choosers.size() < 4) {
-//      EnzymeChooser c = new EnzymeChooser(enzymes);
-//      choosers.add(c);
-//
-//      removeComponent(buttonGrid);
-////      enzymePane.addComponent(c);
-//      addComponent(buttonGrid);
-//    }
-//  }
-//
-//  private void remove() {
-//    int size = choosers.size();
-//    if (size > 1) {
-//      EnzymeChooser last = choosers.get(size - 1);
-//      last.reset();
-////      enzymePane.removeComponent(last);
-//      choosers.remove(last);
-//    }
-//  }
+  // private void add() {
+  // if (choosers.size() < 4) {
+  // EnzymeChooser c = new EnzymeChooser(enzymes);
+  // choosers.add(c);
+  //
+  // removeComponent(buttonGrid);
+  //// enzymePane.addComponent(c);
+  // addComponent(buttonGrid);
+  // }
+  // }
+  //
+  // private void remove() {
+  // int size = choosers.size();
+  // if (size > 1) {
+  // EnzymeChooser last = choosers.get(size - 1);
+  // last.reset();
+  //// enzymePane.removeComponent(last);
+  // choosers.remove(last);
+  // }
+  // }
 
-//  public void resetInputs() {
-//    for (EnzymeChooser c : choosers) {
-//      c.reset();
-//    }
-//  }
+  // public void resetInputs() {
+  // for (EnzymeChooser c : choosers) {
+  // c.reset();
+  // }
+  // }
 
   private ComboBox generateTableBox(Collection<String> entries, String width) {
     ComboBox b = new ComboBox();
@@ -366,10 +359,10 @@ public class MSSampleMultiplicationTable extends VerticalLayout {
             String value = (String) processBox.getValue();
             boolean enableEnzyme = value.equals("Digest") || value.equals("Both");
             parseBoxRow(id, "Enzyme").setEnabled(enableEnzyme);
-//            boolean enableMS = value.equals("Measure") || value.equals("Both");
-//            parseBoxRow(item, "Chr. Type").setEnabled(enableMS);
-//            parseBoxRow(item, "LCMS Method").setEnabled(enableMS);
-//            parseBoxRow(item, "MS Device").setEnabled(enableMS);
+            // boolean enableMS = value.equals("Measure") || value.equals("Both");
+            // parseBoxRow(item, "Chr. Type").setEnabled(enableMS);
+            // parseBoxRow(item, "LCMS Method").setEnabled(enableMS);
+            // parseBoxRow(item, "MS Device").setEnabled(enableMS);
           }
         });
       }
@@ -399,7 +392,7 @@ public class MSSampleMultiplicationTable extends VerticalLayout {
         List<String> enzymes = pan.getEnzymes();
         ComboBox b = parseBoxRow(row, "Enzyme");
         if (enzymes.isEmpty()) {
-          Functions.notification("No enzymes selected", "Please select at least one enzyme!",
+          Styles.notification("No enzymes selected", "Please select at least one enzyme!",
               NotificationType.ERROR);
         } else if (enzymes.size() == 1) {
           b.setValue(enzymes.get(0));
@@ -426,19 +419,19 @@ public class MSSampleMultiplicationTable extends VerticalLayout {
   }
 
   protected void checkFractionMeasured() {
-//    boolean digest = false;
+    // boolean digest = false;
     boolean measure = false;
     for (Object i : sampleTable.getItemIds()) {
       ComboBox processBox = parseBoxRow(i, "Process");
       String process = processBox.getValue().toString();
-//      digest |= process.equals("Both") || process.equals("Digest");
+      // digest |= process.equals("Both") || process.equals("Digest");
       measure |= process.equals("Both") || process.equals("Measure") || aboutPeptides;
     }
-//    boolean hasSamples = sampleTable.size() > 0;
-//    if (!aboutPeptides) {
-//      enzymePane.setVisible(digest && hasSamples);
-//      buttonGrid.setVisible(digest && hasSamples);
-//    }
+    // boolean hasSamples = sampleTable.size() > 0;
+    // if (!aboutPeptides) {
+    // enzymePane.setVisible(digest && hasSamples);
+    // buttonGrid.setVisible(digest && hasSamples);
+    // }
     generalFractionMSInfo.setVisible(measure);
   }
 
@@ -483,7 +476,7 @@ public class MSSampleMultiplicationTable extends VerticalLayout {
     }
 
     if (!res) {
-      Functions.notification("Missing Input", error, NotificationType.ERROR);
+      Styles.notification("Missing Input", error, NotificationType.ERROR);
       return false;
     } else
       return true;
@@ -513,10 +506,11 @@ public class MSSampleMultiplicationTable extends VerticalLayout {
     // new ms experiment
     ExperimentModel msExp = new ExperimentModel(0, new ArrayList<AOpenbisSample>());
     msExp.setProperties(props);
-    
+
     Map<String, List<AOpenbisSample>> peptidesPerDigestion =
         new HashMap<String, List<AOpenbisSample>>();
     // collect samples
+    tableIdToSample = new HashMap<Object, AOpenbisSample>();
     for (Object i : sampleTable.getItemIds()) {
       String item = (String) i;
       String[] ids = item.split("-");
@@ -528,7 +522,7 @@ public class MSSampleMultiplicationTable extends VerticalLayout {
       String extID = parseTextRow(i, type.toString() + " Lab ID").getValue();
       OpenbisTestSample fractionSample =
           new OpenbisTestSample(-2, new ArrayList<AOpenbisSample>(Arrays.asList(parent)),
-              sampleType, secondaryName, extID, new ArrayList<Factor>(), "");
+              sampleType, secondaryName, extID, new ArrayList<Property>(), "");
 
       ComboBox selection = parseBoxRow(i, "Process");
       String option = selection.getValue().toString();
@@ -536,8 +530,10 @@ public class MSSampleMultiplicationTable extends VerticalLayout {
         // new ms sample
         OpenbisMSSample msSample =
             new OpenbisMSSample(-1, new ArrayList<AOpenbisSample>(Arrays.asList(fractionSample)),
-                secondaryName + " run", extID + " run", new ArrayList<Factor>(), "");
+                secondaryName + " run", extID + " run", new ArrayList<Property>(), "");
         msExp.addSample(msSample);
+        // used to attach wash samples
+        tableIdToSample.put(i, msSample);
         // if we have at least one ms measurement, the experiment gets added to the experiment list
         if (msExperiments.isEmpty())
           msExperiments.add(msExp);
@@ -546,7 +542,7 @@ public class MSSampleMultiplicationTable extends VerticalLayout {
         OpenbisTestSample pepSample =
             new OpenbisTestSample(-1, new ArrayList<AOpenbisSample>(Arrays.asList(fractionSample)),
                 "PEPTIDES", fractionSample.getQ_SECONDARY_NAME() + " digested",
-                fractionSample.getQ_EXTERNALDB_ID(), new ArrayList<Factor>(), "");
+                fractionSample.getQ_EXTERNALDB_ID(), new ArrayList<Property>(), "");
         List<String> enzymes = getEnzymesFromSampleRow(i);
         String digestion = StringUtils.join(enzymes, ", ");
         if (peptidesPerDigestion.containsKey(digestion))
@@ -586,7 +582,7 @@ public class MSSampleMultiplicationTable extends VerticalLayout {
       peptideExp.addProperty("Q_ADDITIONAL_INFO", "Digestion: " + digestion);
       peptides.add(peptideExp);
     }
-    
+
     if (fractionations.size() > 0)
       model.addAnalyteStepExperiments(fractionations);
     if (msExperiments.size() > 0)
@@ -601,7 +597,7 @@ public class MSSampleMultiplicationTable extends VerticalLayout {
 
         List<AOpenbisSample> fractions = fractHelper.get(id).getSamples();
         AOpenbisSample pool = new OpenbisTestSample(1, fractions, sampleType,
-            sampleType.toLowerCase() + " pool " + Integer.toString(i), "", new ArrayList<Factor>(),
+            sampleType.toLowerCase() + " pool " + Integer.toString(i), "", new ArrayList<Property>(),
             "");
         pools.add(pool);
 
@@ -614,7 +610,7 @@ public class MSSampleMultiplicationTable extends VerticalLayout {
           OpenbisTestSample pepSample =
               new OpenbisTestSample(-1, new ArrayList<AOpenbisSample>(Arrays.asList(pool)),
                   "PEPTIDES", pool.getQ_SECONDARY_NAME() + " digested", pool.getQ_EXTERNALDB_ID(),
-                  new ArrayList<Factor>(), "");
+                  new ArrayList<Property>(), "");
           ExperimentModel peptideExpPool =
               new ExperimentModel(1, new ArrayList<AOpenbisSample>(Arrays.asList(pepSample)));
           model.getPeptideExperiments().add(peptideExpPool);
@@ -640,8 +636,26 @@ public class MSSampleMultiplicationTable extends VerticalLayout {
     return false;
   }
 
-  public void filterDictionariesByPrefix(String prefix) {
-    generalFractionMSInfo.filterDictionariesByPrefix(prefix);
+  public void filterDictionariesByPrefix(String prefix, List<String> dontFilter) {
+    generalFractionMSInfo.filterDictionariesByPrefix(prefix, dontFilter);
+  }
+
+  public AOpenbisSample getSampleFromRow(Object id) {
+    AOpenbisSample s = tableIdToSample.get(id);
+    return s;
+  }
+
+  public boolean rowIsMeasuredAndNotNull(Object id) {
+    if(id==null)
+      return false;
+    if (aboutPeptides)
+      return true;
+    ComboBox box = parseBoxRow(id, "Process");
+    if (box.getValue() != null) {
+      String option = (String) box.getValue();
+      return option.equals("Both") || option.equals("Measure");
+    } else
+      return false;
   }
 
 }

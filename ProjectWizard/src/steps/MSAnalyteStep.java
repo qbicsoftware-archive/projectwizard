@@ -10,10 +10,11 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang.WordUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.vaadin.teemu.wizards.WizardStep;
 
 import com.vaadin.data.Item;
+import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.util.ObjectProperty;
@@ -38,7 +39,7 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.themes.ValoTheme;
 
 import control.Functions;
-import control.Functions.NotificationType;
+import uicomponents.Styles.*;
 import io.DBVocabularies;
 import logging.Log4j2Logger;
 import main.ProjectwizardUI;
@@ -49,9 +50,9 @@ import model.MSExperimentModel;
 import model.MSProperties;
 import model.OpenbisMSSample;
 import model.OpenbisTestSample;
-import properties.Factor;
 import uicomponents.EnzymePanel;
 import uicomponents.MSSampleMultiplicationTable;
+import uicomponents.SampleSelectComponent;
 
 public class MSAnalyteStep implements WizardStep {
 
@@ -64,8 +65,10 @@ public class MSAnalyteStep implements WizardStep {
   private MSSampleMultiplicationTable msEnrichmentTable;
   private TextField washRunCount;
   private Table washRuns;
+  private boolean selectInfoWasShown;
 
-  private HashMap<Integer, AOpenbisSample> tableIdToSample;
+  private HashMap<Integer, AOpenbisSample> tableIdToAnalyte;
+  private Map<Object, AOpenbisSample> tableIdToMSRun;
   private HashMap<Integer, Integer> tableIdToFractions;
   private HashMap<Integer, Integer> tableIdToCycles;
   private HashMap<Integer, List<String>> enzymeMap;
@@ -114,7 +117,6 @@ public class MSAnalyteStep implements WizardStep {
     main.addComponent(analyteOptions);
 
     baseAnalyteSampleTable = new Table();
-    // baseAnalyteSampleTable.setWidth(width);
     baseAnalyteSampleTable.setStyleName(Styles.tableTheme);
     baseAnalyteSampleTable.addContainerProperty("Sample", Label.class, null);
     baseAnalyteSampleTable.addContainerProperty("Fractions", TextField.class, null);
@@ -217,24 +219,60 @@ public class MSAnalyteStep implements WizardStep {
     washRunCount.setPropertyDataSource(washCount);
 
     washRuns = new Table("Wash Runs");
+    washRuns.addContainerProperty("Sample Selection", Component.class, null);
     washRuns.addContainerProperty("Name", TextField.class, null);
     washRuns.addContainerProperty("Lab ID", TextField.class, null);
+    washRuns.addContainerProperty("LCMS Method", Component.class, null);
+    washRuns.setColumnWidth("Sample Selection", 250);
     washRuns.setColumnWidth("Name", 210);
     washRuns.setColumnWidth("Lab ID", 110);
+    washRuns.setColumnWidth("LCMS Method", 150);
     washRuns.setVisible(false);
 
     washRunCount.addValueChangeListener(new ValueChangeListener() {
 
       @Override
       public void valueChange(ValueChangeEvent event) {
-        washRuns.setVisible(washCount.getValue() > 0);
+        boolean empty = washCount.getValue() == 0;
+        washRuns.removeAllItems();
+        washRuns.setVisible(!empty);
         for (int i = 1; i <= washCount.getValue(); i++) {
+          final int rowID = i;
           List<Object> row = new ArrayList<Object>();
 
-          TextField washName = generateTableTextInput("200px");
+          TextField washName = generateTableTextInput("180px");
           washName.setValue("Wash Run " + Integer.toString(i));
+          SampleSelectComponent sampleSelect = new SampleSelectComponent();
+          sampleSelect.getSelectButton().addClickListener(new ClickListener() { // *inception sound*
+
+            @Override
+            public void buttonClick(ClickEvent event) {
+              showSampleSelectInfo();
+              sampleSelect.reset();
+              initWashSampleConnectionSelection(sampleSelect, rowID);
+            }
+
+            private void showSampleSelectInfo() {
+              if (!selectInfoWasShown) {
+                Styles.notification("Sample Selection",
+                    "You can click on any sample in any of the tables to connect it to this wash run.",
+                    uicomponents.Styles.NotificationType.DEFAULT);
+                selectInfoWasShown = true;
+              }
+            }
+          });
+          row.add(sampleSelect);
           row.add(washName);
           row.add(generateTableTextInput("95px"));
+
+          ComboBox lcmsMethodBox = generateTableBox(lcmsMethods, "115px");
+          lcmsMethodBox.setFilteringMode(FilteringMode.CONTAINS);
+
+          boolean complexRow = i == 1;
+          if (complexRow)
+            row.add(createComplexCellComponent(washRuns, lcmsMethodBox, "LCMS Method", i));
+          else
+            row.add(lcmsMethodBox);
           washRuns.addItem(row.toArray(new Object[row.size()]), i);
 
         }
@@ -254,6 +292,91 @@ public class MSAnalyteStep implements WizardStep {
 
   private void collapseColumn(boolean hide, String colName) {
     baseAnalyteSampleTable.setColumnCollapsed(colName, hide);
+  }
+
+  private void initTableListenersForWashSelection(Table t, SampleSelectComponent sampleSelect,
+      String infoCol, int washRow) {
+
+    t.addValueChangeListener(new ValueChangeListener() {
+      @Override
+      public void valueChange(ValueChangeEvent event) {
+        boolean mainTable = infoCol.equals("Sample");
+        boolean valid = false;
+        Object id = t.getValue();
+        if (mainTable) {
+          valid = rowIsMeasuredAndNotNull(id);
+        } else {
+          if (t.equals(msEnrichmentTable.getTable()))
+            valid = msEnrichmentTable.rowIsMeasuredAndNotNull(id);
+          else
+            valid = msFractionationTable.rowIsMeasuredAndNotNull(id);
+        }
+        if (valid) {
+          String info = "";
+          if (infoCol.equals("Sample")) {
+            Label l = parseLabelRow(t, id, "Sample");
+            sampleSelect.setSample(l, t, id);
+            info = l.getValue();
+          } else {
+            TextField txt = parseTextRow(t, id, infoCol);
+            sampleSelect.setSample(txt, t, id);
+            info = txt.getValue();
+          }
+          String info2 = info;
+          if (info.contains("<br>")) {
+            String[] splt = info.split("<br>");
+            info = splt[0];
+            if (splt.length > 1)
+              info2 = splt[1];
+          }
+          parseTextRow(washRuns, washRow, "Name").setValue(info + " wash");
+          parseTextRow(washRuns, washRow, "Lab ID").setValue(info2 + " wash");
+
+          cancelTableSelectionsAndListeners();
+        } else {
+          notifyUnmeasuredSample();
+        }
+      }
+    });
+    t.setSelectable(true);
+  }
+
+  private void initWashSampleConnectionSelection(SampleSelectComponent sampleSelect, int washRow) {
+    Table enrichTable = msEnrichmentTable.getTable();
+    Table fractTable = msFractionationTable.getTable();
+    initTableListenersForWashSelection(enrichTable, sampleSelect, "Cycle Name", washRow);
+    initTableListenersForWashSelection(fractTable, sampleSelect, "Fraction Name", washRow);
+    initTableListenersForWashSelection(baseAnalyteSampleTable, sampleSelect, "Sample", washRow);
+  }
+
+  protected void notifyUnmeasuredSample() {
+    Styles.notification("Sample is not measured.",
+        "The Sample you selected is not set to be measured. Please change the Process or select a different sample.",
+        NotificationType.DEFAULT);
+  }
+
+  protected boolean rowIsMeasuredAndNotNull(Object id) {
+    if (id == null)
+      return false;
+    ComboBox box = parseBoxRow(baseAnalyteSampleTable, id, "Process");
+    if (box.getValue() != null) {
+      String option = (String) box.getValue();
+      return option.equals("Both") || option.equals("Measure");
+    } else
+      return false;
+  }
+
+  protected void cancelTableSelectionsAndListeners() {
+    List<Table> tables = Arrays.asList(baseAnalyteSampleTable, msFractionationTable.getTable(),
+        msEnrichmentTable.getTable());
+    for (Table t : tables) {
+      Collection<?> listeners = t.getListeners(ValueChangeEvent.class);
+      for (Object l : listeners) {
+        t.removeValueChangeListener((ValueChangeListener) l);
+      }
+      t.select(null);
+      t.setSelectable(false);
+    }
   }
 
   private TextField generateTableTextInput(String width) {
@@ -276,6 +399,7 @@ public class MSAnalyteStep implements WizardStep {
   public void setAnalyteSamples(List<AOpenbisSample> analytes,
       Map<String, List<AOpenbisSample>> pools) {
     hasRun = false;
+    selectInfoWasShown = false;
     boolean peptides = analyte.equals("PEPTIDES");
 
     this.msExperimentModel = new MSExperimentModel();
@@ -284,7 +408,7 @@ public class MSAnalyteStep implements WizardStep {
     if (pools != null)
       samplesForTable.addAll(getPoolingSamples(pools));
     baseAnalyteSampleTable.removeAllItems();
-    tableIdToSample = new HashMap<Integer, AOpenbisSample>();
+    tableIdToAnalyte = new HashMap<Integer, AOpenbisSample>();
     tableIdToFractions = new HashMap<Integer, Integer>();
     tableIdToCycles = new HashMap<Integer, Integer>();
     enzymeMap = new HashMap<Integer, List<String>>();
@@ -293,7 +417,7 @@ public class MSAnalyteStep implements WizardStep {
       i++;
       boolean complexRow = i == 1; // the first row contains a combobox with added button to copy
                                    // its selection to the whole column
-      tableIdToSample.put(i, s);
+      tableIdToAnalyte.put(i, s);
       tableIdToFractions.put(i, 0);
       tableIdToCycles.put(i, 0);
 
@@ -320,7 +444,7 @@ public class MSAnalyteStep implements WizardStep {
       processBox.setNullSelectionAllowed(false);
       processBox.select("None");
       if (complexRow)
-        row.add(createComplexCellComponent(processBox, "Process", i));
+        row.add(createComplexCellComponent(baseAnalyteSampleTable, processBox, "Process", i));
       else
         row.add(processBox);
 
@@ -333,7 +457,7 @@ public class MSAnalyteStep implements WizardStep {
       enzymeBox.setEnabled(false);
       enzymeBox.setFilteringMode(FilteringMode.CONTAINS);
       if (complexRow)
-        row.add(createComplexCellComponent(enzymeBox, "Enzyme", i));
+        row.add(createComplexCellComponent(baseAnalyteSampleTable, enzymeBox, "Enzyme", i));
       else
         row.add(enzymeBox);
       final int rowNum = i;
@@ -355,7 +479,7 @@ public class MSAnalyteStep implements WizardStep {
       chrTypeBox.setEnabled(peptides);
       chrTypeBox.setFilteringMode(FilteringMode.CONTAINS);
       if (complexRow)
-        row.add(createComplexCellComponent(chrTypeBox, "Chr. Type", i));
+        row.add(createComplexCellComponent(baseAnalyteSampleTable, chrTypeBox, "Chr. Type", i));
       else
         row.add(chrTypeBox);
 
@@ -374,7 +498,7 @@ public class MSAnalyteStep implements WizardStep {
         }
       });
       if (complexRow)
-        row.add(createComplexCellComponent(deviceBox, "MS Device", i));
+        row.add(createComplexCellComponent(baseAnalyteSampleTable, deviceBox, "MS Device", i));
       else
         row.add(deviceBox);
 
@@ -382,7 +506,8 @@ public class MSAnalyteStep implements WizardStep {
       lcmsMethodBox.setEnabled(peptides);
       lcmsMethodBox.setFilteringMode(FilteringMode.CONTAINS);
       if (complexRow)
-        row.add(createComplexCellComponent(lcmsMethodBox, "LCMS Method", i));
+        row.add(
+            createComplexCellComponent(baseAnalyteSampleTable, lcmsMethodBox, "LCMS Method", i));
       else
         row.add(lcmsMethodBox);
 
@@ -471,7 +596,7 @@ public class MSAnalyteStep implements WizardStep {
         List<String> enzymes = pan.getEnzymes();
         ComboBox b = parseBoxRow(baseAnalyteSampleTable, row, "Enzyme");
         if (enzymes.isEmpty()) {
-          Functions.notification("No enzymes selected", "Please select at least one enzyme!",
+          Styles.notification("No enzymes selected", "Please select at least one enzyme!",
               NotificationType.ERROR);
         } else if (enzymes.size() == 1) {
           b.setValue(enzymes.get(0));
@@ -497,7 +622,7 @@ public class MSAnalyteStep implements WizardStep {
     ui.addWindow(subWindow);
   }
 
-  private Object createComplexCellComponent(ComboBox contentBox, String propertyName,
+  private Object createComplexCellComponent(Table t, ComboBox contentBox, String propertyName,
       final int rowID) {
     HorizontalLayout complexComponent = new HorizontalLayout();
     complexComponent.setWidth(contentBox.getWidth() + 10, contentBox.getWidthUnits());
@@ -516,9 +641,9 @@ public class MSAnalyteStep implements WizardStep {
 
       @Override
       public void buttonClick(ClickEvent event) {
-        ComboBox b = parseBoxRow(baseAnalyteSampleTable, rowID, propertyName);
+        ComboBox b = parseBoxRow(t, rowID, propertyName);
         Object selection = b.getValue();
-        pasteSelectionToColumn(propertyName, selection);
+        pasteSelectionToColumn(t, propertyName, selection);
       }
     });
     return complexComponent;
@@ -533,7 +658,7 @@ public class MSAnalyteStep implements WizardStep {
           parents.add(s);
         }
         res.add(new OpenbisTestSample(-1, parents, this.analyte, secName, "", // TODO ext db id
-            new ArrayList<Factor>(), ""));
+            new ArrayList<properties.Property>(), ""));
       }
     }
     return res;
@@ -541,7 +666,10 @@ public class MSAnalyteStep implements WizardStep {
 
   private ComboBox parseBoxRow(Table table, Object rowID, String propertyName) {
     Item item = table.getItem(rowID);
-    Object component = item.getItemProperty(propertyName).getValue();
+    Property prop = item.getItemProperty(propertyName);
+    if (prop == null)
+      return new ComboBox();
+    Object component = prop.getValue();
     if (component instanceof ComboBox)
       return (ComboBox) component;
     else {
@@ -550,16 +678,39 @@ public class MSAnalyteStep implements WizardStep {
     }
   }
 
-  private void pasteSelectionToColumn(String propertyName, Object selection) {
-    for (Object id : baseAnalyteSampleTable.getItemIds()) {
+  private TextField parseTextRow(Table table, Object id, String propertyName) {
+    Item item = table.getItem(id);
+    Property prop = item.getItemProperty(propertyName);
+    if (prop == null)
+      return new TextField();
+    TextField t = (TextField) prop.getValue();
+    return t;
+  }
+
+  protected Label parseLabelRow(Table table, Object rowID, String propertyName) {
+    Item item = table.getItem(rowID);
+    Property prop = item.getItemProperty(propertyName);
+    if (prop == null)
+      return new Label();
+    Object component = prop.getValue();
+    if (component instanceof Label)
+      return (Label) component;
+    else {
+      HorizontalLayout h = (HorizontalLayout) component;
+      return (Label) h.getComponent(0);
+    }
+  }
+
+  private void pasteSelectionToColumn(Table t, String propertyName, Object selection) {
+    for (Object id : t.getItemIds()) {
       // should always be ID = 1
-      ComboBox b = parseBoxRow(baseAnalyteSampleTable, id, propertyName);
+      ComboBox b = parseBoxRow(t, id, propertyName);
       if (selection != null && selection.equals("Custom") && propertyName.equals("Enzyme")) {
         Integer i = (int) id;
         enzymeMap.put(i, enzymeMap.get(1));
         b.addItem("Custom");
       }
-      if (b.isEnabled())//check if this value should be set
+      if (b.isEnabled())// check if this value should be set
         b.setValue(selection);
     }
   }
@@ -587,12 +738,6 @@ public class MSAnalyteStep implements WizardStep {
     b.addItems(methods);
     if (val != null && methods.contains(val))
       b.select(val);
-  }
-
-  private TextField parseTextRow(Table table, Object id, String propertyName) {
-    Item item = table.getItem(id);
-    TextField t = (TextField) item.getItemProperty(propertyName).getValue();
-    return t;
   }
 
   private ComboBox generateTableBox(Collection<String> entries, String width) {
@@ -626,17 +771,26 @@ public class MSAnalyteStep implements WizardStep {
     Set<String> selected = (Set<String>) analyteOptions.getValue();
     if (selected.contains("Fractionation") && (fractionationSelection.getValue() == null
         || fractionationSelection.getValue().toString().isEmpty())) {
-      Functions.notification("Please Select Fractionation",
+      Styles.notification("Please Select Fractionation",
           "Please select the type of fractionation you want to perform on the samples or deselect 'Fractionation'.",
           NotificationType.ERROR);
       return false;
     }
     if (selected.contains("Enrichment") && (enrichmentSelection.getValue() == null
         || enrichmentSelection.getValue().toString().isEmpty())) {
-      Functions.notification("Please Select Enrichment",
+      Styles.notification("Please Select Enrichment",
           "Please select the type of enrichment you want to perform on the samples or deselect 'Enrichment'.",
           NotificationType.ERROR);
       return false;
+    }
+    for (Object i : washRuns.getItemIds()) {
+      SampleSelectComponent ssc = (SampleSelectComponent) washRuns.getItem(i)
+          .getItemProperty("Sample Selection").getValue();
+      if (!ssc.isAttachedToSample()) {
+        Styles.notification("Please choose sample(s)", "Please select a sample for every wash run.",
+            NotificationType.ERROR);
+        return false;
+      }
     }
     if (analyte.equals("PROTEINS") && needsDigestion) {
       for (Object i : baseAnalyteSampleTable.getItemIds()) {
@@ -647,7 +801,7 @@ public class MSAnalyteStep implements WizardStep {
         }
       }
       if (!msFractionationTable.hasDigestions() && !msEnrichmentTable.hasDigestions()) {
-        Functions.notification("Please Select Digestion",
+        Styles.notification("Please Select Digestion",
             "Please add at least one process of protein digestion or deselect peptide measurement in a previous step.",
             NotificationType.ERROR);
         return false;
@@ -663,13 +817,13 @@ public class MSAnalyteStep implements WizardStep {
   }
 
   public void createPreliminaryExperiments() {
-    String method = "unknown";// TODO this can't reach openbis
+    String method = "unknown";// TODO this must not reach openbis
     if (fractionationSelection.getValue() != null)
       method = fractionationSelection.getValue().toString();
     this.msExperimentModel =
         msFractionationTable.getFractionsWithMSProperties(this.msExperimentModel, analyte, method);
 
-    method = "unknown";// TODO this can't reach openbis
+    method = "unknown";// TODO this must not reach openbis
     if (enrichmentSelection.getValue() != null)
       method = enrichmentSelection.getValue().toString();
     this.msExperimentModel =
@@ -686,7 +840,7 @@ public class MSAnalyteStep implements WizardStep {
     if (analyte.equals("PROTEINS")) {
       for (Object i : baseAnalyteSampleTable.getItemIds()) {
 
-        AOpenbisSample baseAnalyte = tableIdToSample.get(i);
+        AOpenbisSample baseAnalyte = tableIdToAnalyte.get(i);
         baseAnalytes.addSample(baseAnalyte);
       }
       msExperimentModel.setBaseAnalytes(baseAnalytes);
@@ -696,9 +850,10 @@ public class MSAnalyteStep implements WizardStep {
         new HashMap<MSProperties, List<AOpenbisSample>>();
     Map<String, List<AOpenbisSample>> peptidesPerDigestion =
         new HashMap<String, List<AOpenbisSample>>();
+    tableIdToMSRun = new HashMap<Object, AOpenbisSample>();
     for (Object i : baseAnalyteSampleTable.getItemIds()) {
       // String item = Integer.toString((int) i); TODO needed for exp id?
-      AOpenbisSample parent = tableIdToSample.get(i);
+      AOpenbisSample parent = tableIdToAnalyte.get(i);
 
       ComboBox selection = parseBoxRow(baseAnalyteSampleTable, i, "Process");
       String option = selection.getValue().toString();
@@ -708,18 +863,19 @@ public class MSAnalyteStep implements WizardStep {
         OpenbisMSSample msSample =
             new OpenbisMSSample(1, new ArrayList<AOpenbisSample>(Arrays.asList(parent)),
                 parent.getQ_SECONDARY_NAME() + " run", parent.getQ_EXTERNALDB_ID() + " run",
-                new ArrayList<Factor>(), "");
-        MSProperties props = getMSPropertiesFromSampleRow(i);
+                new ArrayList<properties.Property>(), "");
+        MSProperties props = getMSPropertiesFromSampleRow(baseAnalyteSampleTable, i);
         if (msSamplesPerProps.containsKey(props))
           msSamplesPerProps.get(props).add(msSample);
         else
           msSamplesPerProps.put(props, new ArrayList<AOpenbisSample>(Arrays.asList(msSample)));
+        tableIdToMSRun.put(i, msSample);
       }
       if (option.equals("Both") || option.equals("Digest")) {
         OpenbisTestSample pepSample =
             new OpenbisTestSample(-1, new ArrayList<AOpenbisSample>(Arrays.asList(parent)),
                 "PEPTIDES", parent.getQ_SECONDARY_NAME() + " digested", parent.getQ_EXTERNALDB_ID(),
-                new ArrayList<Factor>(), "");
+                new ArrayList<properties.Property>(), "");
         List<String> enzymes = getEnzymesFromSampleRow(i);
         String digestion = StringUtils.join(enzymes, ", ");
         if (peptidesPerDigestion.containsKey(digestion))
@@ -745,14 +901,22 @@ public class MSAnalyteStep implements WizardStep {
       peptides.add(peptideExp);
     }
 
-    // add wash runs
+    // add wash runs - must be created after the other ms sample objects (parents)
     ExperimentModel washExp = new ExperimentModel("", new ArrayList<AOpenbisSample>());
     for (Object i : washRuns.getItemIds()) {
-      int item = (int) i;
+      Item item = washRuns.getItem(i);
+      SampleSelectComponent ssc =
+          (SampleSelectComponent) item.getItemProperty("Sample Selection").getValue();
+      AOpenbisSample parent = getWashSampleConnection(ssc);
       String name = parseTextRow(washRuns, i, "Name").getValue();
-      String labID = parseTextRow(washRuns, i, "Lab ID").getValue();
-      OpenbisMSSample washRun = new OpenbisMSSample(item, new ArrayList<AOpenbisSample>(), name,
-          labID, new ArrayList<Factor>(), "");
+      String labID = parseTextRow(washRuns, i, "Lab ID").getValue().replace("<br>", "");
+      washExp.setProperties(getMSPropertiesFromSampleRow(washRuns, i).getPropertyMap());// TODO more
+                                                                                        // than one
+                                                                                        // exp
+                                                                                        // needed?
+      OpenbisMSSample washRun =
+          new OpenbisMSSample((int) i, new ArrayList<AOpenbisSample>(Arrays.asList(parent)), name,
+              labID, new ArrayList<properties.Property>(), "");
       washExp.addSample(washRun);
     }
     if (washRuns.size() > 0) {
@@ -765,11 +929,27 @@ public class MSAnalyteStep implements WizardStep {
     return msExperimentModel;
   }
 
-  private MSProperties getMSPropertiesFromSampleRow(Object i) {
-    Object deviceBox = parseBoxRow(baseAnalyteSampleTable, i, "MS Device").getValue();
-    Object lcmsBox = parseBoxRow(baseAnalyteSampleTable, i, "LCMS Method").getValue();
-    Object chromBox = parseBoxRow(baseAnalyteSampleTable, i, "Chr. Type").getValue();
-    String special = parseTextRow(baseAnalyteSampleTable, i, "Method Description").getValue();
+  private AOpenbisSample getWashSampleConnection(SampleSelectComponent ssc) {
+    Table t = ssc.getTable();
+    Object id = ssc.getRowID();
+    if (t.equals(msFractionationTable.getTable()))
+      return msFractionationTable.getSampleFromRow(id);
+    if (t.equals(msEnrichmentTable.getTable()))
+      return msEnrichmentTable.getSampleFromRow(id);
+    else
+      return getSampleFromRow(id);
+  }
+
+  private AOpenbisSample getSampleFromRow(Object id) {
+    AOpenbisSample s = tableIdToMSRun.get(id);
+    return s;
+  }
+
+  private MSProperties getMSPropertiesFromSampleRow(Table t, Object i) {
+    Object deviceBox = parseBoxRow(t, i, "MS Device").getValue();
+    Object lcmsBox = parseBoxRow(t, i, "LCMS Method").getValue();
+    Object chromBox = parseBoxRow(t, i, "Chr. Type").getValue();
+    String special = parseTextRow(t, i, "Method Description").getValue();
     String device = null;
     String lcms = null;
     String chrom = null;
@@ -818,25 +998,25 @@ public class MSAnalyteStep implements WizardStep {
     return results;
   }
 
-  public void filterDictionariesByPrefix(String prefix) {
+  public void filterDictionariesByPrefix(String prefix, List<String> dontFilter) {
     devices = new ArrayList<String>();
     lcmsMethods = new ArrayList<String>();
     if (prefix.isEmpty()) {
       devices.addAll(vocabs.getDeviceMap().keySet());
     } else {
       for (String device : vocabs.getDeviceMap().keySet()) {
-        if (device.contains("(" + prefix + ")"))
+        if (device.contains("(" + prefix + ")") || dontFilter.contains(device))
           devices.add(device);
       }
     }
     for (String lcmsMethod : vocabs.getLcmsMethods()) {
-      if (lcmsMethod.startsWith(prefix))
+      if (lcmsMethod.startsWith(prefix) || dontFilter.contains(lcmsMethod))
         lcmsMethods.add(lcmsMethod);
     }
     Collections.sort(devices);
     Collections.sort(lcmsMethods);
-    msEnrichmentTable.filterDictionariesByPrefix(prefix);
-    msFractionationTable.filterDictionariesByPrefix(prefix);
+    msEnrichmentTable.filterDictionariesByPrefix(prefix, dontFilter);
+    msFractionationTable.filterDictionariesByPrefix(prefix, dontFilter);
   }
 
 }
