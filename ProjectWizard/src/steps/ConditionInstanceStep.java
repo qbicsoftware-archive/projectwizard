@@ -18,23 +18,26 @@ package steps;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import properties.Factor;
+import properties.Property;
+import properties.PropertyType;
 import uicomponents.ConditionPropertyPanel;
+import uicomponents.FactorOptionBox;
 import uicomponents.Styles;
 import componentwrappers.CustomVisibilityComponent;
 import componentwrappers.StandardTextField;
-import control.Functions;
-import control.Functions.NotificationType;
+import model.TissueInfo;
+import uicomponents.Styles.*;
 
 import org.vaadin.teemu.wizards.WizardStep;
 
 import com.vaadin.data.Property.ValueChangeListener;
-import com.vaadin.ui.ComboBox;
+import com.vaadin.server.ErrorMessage;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.TabSheet;
@@ -52,18 +55,21 @@ import com.vaadin.ui.themes.ValoTheme;
  */
 public class ConditionInstanceStep implements WizardStep {
 
-  boolean skip = false;
+  private boolean skip = false;
 
-  VerticalLayout main;
-  TabSheet instances;
-  List<ConditionPropertyPanel> factorInstances;
-  List<ComboBox> optionInstances;
-  Set<String> options;
-  String optionName;
-  String stepName;
-  CustomVisibilityComponent previewFrame;
-  Table preview;
-  Map<Object, Integer> permutations;
+  private VerticalLayout main;
+  private TabSheet instances;
+
+  private List<ConditionPropertyPanel> factorInstances;
+  private List<FactorOptionBox> optionInstances;
+  private Set<String> options;
+  private String optionName;
+  private String stepName;
+  private CustomVisibilityComponent previewFrame;
+  private Table preview;
+  private Map<Object, Integer> permutations;
+
+  private Map<String, TissueInfo> specialTissueInfos;
 
   /**
    * Create a new Condition Step for the wizard
@@ -99,7 +105,7 @@ public class ConditionInstanceStep implements WizardStep {
     this.optionName = optionName;
     this.stepName = stepName;
     factorInstances = new ArrayList<ConditionPropertyPanel>();
-    optionInstances = new ArrayList<ComboBox>();
+    optionInstances = new ArrayList<FactorOptionBox>();
     permutations = new LinkedHashMap<Object, Integer>();
   }
 
@@ -142,10 +148,12 @@ public class ConditionInstanceStep implements WizardStep {
     }
   }
 
-  public void initOptionsFactorField(int amount) {
+  public void initOptionsFactorComponent(int amount, Set<String> altOptions, String altBoxCaption,
+      String altFieldCaption, String altBoxKeyword, String altFieldKeyword) {
     VerticalLayout optionBox = new VerticalLayout();
     for (int i = 1; i <= amount; i++) {
-      ComboBox b = new ComboBox(optionName + " " + i, options);
+      FactorOptionBox b = new FactorOptionBox(options, altOptions, optionName + " " + i,
+          altBoxCaption, altFieldCaption, altBoxKeyword, altFieldKeyword);
       b.setStyleName(Styles.boxTheme);
       optionInstances.add(b);
       optionBox.addComponent(b);
@@ -165,18 +173,24 @@ public class ConditionInstanceStep implements WizardStep {
   public boolean onAdvance() {
     boolean valid = validInput();
     if (!valid) {
-      Functions.notification("Missing levels",
-          "Please fill in all cases of experimental variables.", NotificationType.ERROR);
+      String error = "";
+      for (ConditionPropertyPanel p : factorInstances) {
+        if (p.getException() != "")
+          error = p.getException();
+      }
+      if(error.isEmpty())
+        error = "Please add all missing values.";
+      Styles.notification("Wrong input", error, NotificationType.ERROR);
     }
     return skip || valid;
   }
 
   public boolean validInput() {
     boolean def = optionInstances.size() > 0 || factorInstances.size() > 0;
-    for (ComboBox b : optionInstances)
-      def &= b.getValue() != null;
+    for (FactorOptionBox b : optionInstances)
+      def &= b.isValid();
     for (ConditionPropertyPanel p : factorInstances) {
-      def &= !p.getInputArea().isEmpty();
+      def &= p.isValid();
       if (p.isContinuous())
         def &= p.unitSet();
     }
@@ -190,7 +204,7 @@ public class ConditionInstanceStep implements WizardStep {
   }
 
   public void attachListener(ValueChangeListener l) {
-    for (ComboBox b : optionInstances)
+    for (FactorOptionBox b : optionInstances)
       b.addValueChangeListener(l);
     for (ConditionPropertyPanel p : factorInstances) {
       p.getUnitTypeSelect().addValueChangeListener(l);
@@ -199,17 +213,20 @@ public class ConditionInstanceStep implements WizardStep {
     }
   }
 
-  public List<List<Factor>> getFactors() {
-    List<List<Factor>> res = new ArrayList<List<Factor>>();
+  public List<List<Property>> getFactors() {
+    List<List<Property>> res = new ArrayList<List<Property>>();
     for (ConditionPropertyPanel a : this.factorInstances) {
       res.add(a.getFactors());
     }
     if (this.optionInstances.size() > 0) {
-      List<Factor> species = new ArrayList<Factor>();
-      for (ComboBox b : this.optionInstances) {
-        species.add(new Factor(optionName.toLowerCase(), (String) b.getValue(), ""));
+      List<Property> source = new ArrayList<Property>();
+      specialTissueInfos = new HashMap<String, TissueInfo>();
+      for (FactorOptionBox b : this.optionInstances) {
+        String val = (String) b.getValue();
+        source.add(new Property(optionName.toLowerCase(), val, PropertyType.Factor));
+        specialTissueInfos.put(val, b.getInfoComponent());
       }
-      res.add(species);
+      res.add(source);
     }
     return res;
   }
@@ -217,7 +234,7 @@ public class ConditionInstanceStep implements WizardStep {
   private void resetFactorFields() {
     instances.removeAllComponents();
     factorInstances = new ArrayList<ConditionPropertyPanel>();
-    optionInstances = new ArrayList<ComboBox>();
+    optionInstances = new ArrayList<FactorOptionBox>();
   }
 
   public void setSkipStep(boolean b) {
@@ -237,15 +254,15 @@ public class ConditionInstanceStep implements WizardStep {
     return permutations;
   }
 
-  public static void main(String[] args) {
-    Integer.parseInt("");
-  }
-
   private int parseAmount(Object o) {
     String val = ((TextField) o).getValue();
     if (val.isEmpty())
       return 0;
     else
       return Integer.parseInt(val);
+  }
+
+  public Map<String, TissueInfo> getSpecialTissueMap() {
+    return specialTissueInfos;
   }
 }
