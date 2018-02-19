@@ -54,11 +54,30 @@ public class Styles {
   public static String fieldTheme = ValoTheme.TEXTFIELD_SMALL;
   public static String areaTheme = ValoTheme.TEXTAREA_SMALL;
   public static String tableTheme = ValoTheme.TABLE_SMALL;
-  
+
   public static void iconButton(Button b, Resource icon) {
     b.setStyleName(ValoTheme.BUTTON_BORDERLESS);
     b.setIcon(icon);
     b.setWidth("10px");
+  }
+
+  public static PopupView getPopupViewContaining(Component c) {
+    PopupView pv = new PopupView(new Content() {
+
+      @Override
+      public Component getPopupComponent() {
+        VerticalLayout v = new VerticalLayout(c);
+        v.setMargin(true);
+        return v;
+      }
+
+      @Override
+      public String getMinimizedValueAsHTML() {
+        return "[?]";
+      }
+    });
+    pv.setHideOnMouseOut(false);
+    return pv;
   }
 
   public static HorizontalLayout questionize(Component c, final String info, final String header) {
