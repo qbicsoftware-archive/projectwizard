@@ -1,7 +1,10 @@
 package uicomponents;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang.WordUtils;
 
@@ -13,11 +16,20 @@ import main.SampleSummaryBean;
 
 public class ExperimentSummaryTable extends Table {
 
+  private static final Map<String, String> abbreviations;
+  static {
+    abbreviations = new HashMap<String, String>();
+    abbreviations.put("M Rna", "mRNA");
+    abbreviations.put("R Rna", "rRNA");
+    abbreviations.put("Dna", "DNA");
+    abbreviations.put("Rna", "RNA");
+  };
+
   public ExperimentSummaryTable() {
     super();
     setCaption("Summary");
     addContainerProperty("Type", String.class, null);
-    addContainerProperty("Content", String.class, null);//TODO more width
+    addContainerProperty("Content", String.class, null);// TODO more width
     addContainerProperty("Samples", Integer.class, null);
     setStyleName(ValoTheme.TABLE_SMALL);
     setPageLength(1);
@@ -27,8 +39,11 @@ public class ExperimentSummaryTable extends Table {
     removeAllItems();
     int i = 0;
     for (SampleSummaryBean b : beans) {
-      String content = WordUtils.capitalizeFully(b.getSampleContent().replace("_", " "));
       i++;
+      String content = WordUtils.capitalizeFully(b.getSampleContent().replace("_", " "));
+      for (String key : abbreviations.keySet()) {
+        content = content.replace(key, abbreviations.get(key));
+      }
       int amount = Integer.parseInt(b.getAmount());
       String type = "Unknown";
       String sampleType = b.getSampleType();
