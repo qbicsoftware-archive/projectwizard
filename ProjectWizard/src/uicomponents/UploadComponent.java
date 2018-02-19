@@ -13,13 +13,12 @@ import java.util.Date;
 import org.apache.commons.io.FilenameUtils;
 
 import logging.Log4j2Logger;
+import uicomponents.Styles.NotificationType;
 
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Notification;
 import com.vaadin.ui.ProgressBar;
-import com.vaadin.ui.UI;
 import com.vaadin.ui.Upload;
 import com.vaadin.ui.Upload.FailedEvent;
 import com.vaadin.ui.Upload.FinishedEvent;
@@ -29,10 +28,14 @@ import com.vaadin.ui.Upload.StartedListener;
 import com.vaadin.ui.Upload.SucceededEvent;
 import com.vaadin.ui.VerticalLayout;
 
-public class UploadComponent extends VerticalLayout implements Upload.SucceededListener,
-    Upload.FailedListener, Upload.Receiver, Upload.ProgressListener, Upload.FinishedListener,
-    StartedListener {
+public class UploadComponent extends VerticalLayout
+    implements Upload.SucceededListener, Upload.FailedListener, Upload.Receiver,
+    Upload.ProgressListener, Upload.FinishedListener, StartedListener {
 
+  /**
+   * 
+   */
+  private static final long serialVersionUID = -3228100993055350771L;
   protected Upload upload;
   protected String directory;
   protected String user;
@@ -73,6 +76,11 @@ public class UploadComponent extends VerticalLayout implements Upload.SucceededL
     processingLayout.addComponent(progressIndicator);
 
     cancelProcessing = new Button("cancel", new Button.ClickListener() {
+      /**
+       * 
+       */
+      private static final long serialVersionUID = -6812538024652192780L;
+
       @Override
       public void buttonClick(ClickEvent event) {
         cancelled = true;
@@ -128,11 +136,14 @@ public class UploadComponent extends VerticalLayout implements Upload.SucceededL
   public void uploadFailed(FailedEvent event) {
     processingLayout.setVisible(false);
     if (event.getFilename().isEmpty()) {
-      showNotification("No file selected", "Please select a file before adding it.");
+      Styles.notification("No file selected", "Please select a file before adding it.",
+          NotificationType.ERROR);
+
       logger.info("Upload was cancelled due to no file selected.");
     } else if (contentLength != null && maxSize < contentLength) {
-      showNotification("File too large", "Your file is " + contentLength / 1000
-          + "Kb long. Maximum file size is " + maxSize / 1000 + "Kb");
+      Styles.notification("File too large", "Your file is " + contentLength / 1000
+          + "Kb long. Maximum file size is " + maxSize / 1000 + "Kb", NotificationType.ERROR);
+
       logger.info("Upload was cancelled due to file exceeding size limit.");
     } else if (cancelled) {
       // Nothing to do...
@@ -142,7 +153,7 @@ public class UploadComponent extends VerticalLayout implements Upload.SucceededL
       if (event.getReason() != null)
         event.getReason().printStackTrace(pw);
       logger.error("Upload cancelled due to error.");
-      showNotification("There was a problem uploading your file.", "");
+      Styles.notification("There was a problem uploading your file.", "", NotificationType.ERROR);
     }
 
     try {
@@ -151,16 +162,6 @@ public class UploadComponent extends VerticalLayout implements Upload.SucceededL
       // Silent exception. If we can't delete the file, it's not big problem. May the file did not
       // even exist.
     }
-  }
-
-  /**
-   * File upload is a special case because the Nav7 is not initialized, because the file upload
-   * requests don't go through the Vaadin servlet.
-   */
-  protected void showNotification(String message, String detail) {
-    Notification n = new Notification(message, detail);
-    n.setDelayMsec(-1);
-    n.show(UI.getCurrent().getPage());
   }
 
   public String getDirectory() {

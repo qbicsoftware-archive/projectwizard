@@ -32,28 +32,14 @@ import java.util.Properties;
 
 public enum LiferayIndependentConfigurationManager implements ConfigurationManager {
   Instance;
-  public static final String CONFIGURATION_SUFFIX = ".configuration";
-  public static final String DATASOURCE_KEY = "datasource";
   public static final String DATASOURCE_USER = "datasource.user";
   public static final String DATASOURCE_PASS = "datasource.password";
   public static final String DATASOURCE_URL = "datasource.url";
-
-  public static final String GENOMEVIEWER_URL = "genomeviewer.url";
-  public static final String GENOMEVIEWER_RESTAPI = "genomeviewer.restapi";
 
   public static final String TMP_FOLDER = "tmp.folder";
   public static final String SCRIPTS_FOLDER = "barcode.scripts";
   public static final String BARCODE_RESULTS = "barcode.results";
   public static final String PATH_VARIABLE = "path.variable";
-
-  public static final String PATH_TO_GUSE_WORKFLOWS = "path_to_guse_workflows";
-  public static final String PATH_TO_GUSE_CERTIFICATE = "path_to_certificate";
-  public static final String PATH_TO_WF_CONFIG = "path_to_wf_config";
-
-  public static final String PATH_TO_DROPBOXES = "path_to_dropboxes";
-
-  public static final String GUSE_REMOTE_API_URL = "guse_remoteapi_url";
-  public static final String GUSE_REMOTE_API_PASS = "guse_remoteapi_password";
 
   public static final String ATTACHMENT_URI = "attachment.uri";
   public static final String ATTACHMENT_USER = "attachment.user";
@@ -65,6 +51,9 @@ public enum LiferayIndependentConfigurationManager implements ConfigurationManag
   public static final String MSQL_USER = "mysql.user";
   public static final String MSQL_PORT = "mysql.port";
   public static final String MSQL_PASS = "mysql.pass";
+  
+  public static final String METADATA_OVERWRITE_GROUP = "metadata.write.group";
+  public static final String DELETION_GROUP = "UNUSEDDELETION";
 
   private String LABELING_METHODS = "vocabulary.ms.labeling";
 
@@ -89,6 +78,9 @@ public enum LiferayIndependentConfigurationManager implements ConfigurationManag
   private String msqlPort;
   private String msqlPass;
 
+  private String metadataOverwrite;
+  private String deletionGroup;
+  
   private String labelingMethods;
 
   // private String portletPropertiesFileName = "portlet.properties";
@@ -115,14 +107,12 @@ public enum LiferayIndependentConfigurationManager implements ConfigurationManag
     try {
       List<String> configs =
           new ArrayList<String>(Arrays.asList(
-              "/Users/frieda/Desktop/dev software/liferay-portal-6.2-ce-ga4/qbic-ext.properties",
-              "/home/luser/liferay-portal-6.2-ce-ga4/portlets.properties",
-              "/usr/local/share/guse/portlets.properties",
-              "/home/tomcat-liferay/liferay_production/portlets.properties"));
+              "/Users/frieda/Desktop/dev software/liferay-portal-6.2-ce-ga4/qbic-ext.properties"));
       for (String s : configs) {
         File f = new File(s);
-        if (f.exists())
+        if (f.exists()) {
           portletConfig.load(new FileReader(s));
+        }
       }
       dataSourceUser = portletConfig.getProperty(DATASOURCE_USER);
       dataSourcePass = portletConfig.getProperty(DATASOURCE_PASS);
@@ -144,6 +134,9 @@ public enum LiferayIndependentConfigurationManager implements ConfigurationManag
       msqlPort = portletConfig.getProperty(MSQL_PORT);
       msqlUser = portletConfig.getProperty(MSQL_USER);
       msqlPass = portletConfig.getProperty(MSQL_PASS);
+      
+      metadataOverwrite = portletConfig.getProperty(METADATA_OVERWRITE_GROUP);
+      deletionGroup = portletConfig.getProperty(DELETION_GROUP);
 
       labelingMethods = portletConfig.getProperty(LABELING_METHODS);
 
@@ -232,7 +225,12 @@ public enum LiferayIndependentConfigurationManager implements ConfigurationManag
   public String getMysqlPass() {
     return msqlPass;
   }
-
+  
+  @Override
+  public String getMetadataWriteGrp() {
+    return metadataOverwrite;
+  }
+  
   @Override
   public String getVocabularyMSLabeling() {
     return labelingMethods;
@@ -241,5 +239,10 @@ public enum LiferayIndependentConfigurationManager implements ConfigurationManag
   @Override
   public String getBarcodeResultsFolder() {
     return barcodeResultsFolder;
+  }
+
+  @Override
+  public String getDeletionGrp() {
+    return deletionGroup;
   }
 }

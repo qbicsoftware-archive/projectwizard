@@ -10,9 +10,8 @@ import javax.xml.bind.JAXBException;
 
 import parser.LociParser;
 import parser.XMLParser;
-import processes.RegisteredSamplesReadyRunnable;
-import properties.Factor;
-
+import properties.Property;
+import properties.PropertyType;
 import loci.GeneLocus;
 import logging.Log4j2Logger;
 import model.ISampleBean;
@@ -38,6 +37,7 @@ public class OpenbisCreationController {
   final int SPLIT_AT_ENTITY_SIZE = 100;
   private IOpenBisClient openbis;
   logging.Logger logger = new Log4j2Logger(OpenbisCreationController.class);
+  private String errors;
 
 
   public OpenbisCreationController(IOpenBisClient openbis) {
@@ -84,8 +84,10 @@ public class OpenbisCreationController {
    * @return false, if the specified space doesn't exist, resulting in failure, true otherwise
    */
   public boolean registerProject(String space, String name, String description, String user) {
+    errors = "";
     if (!openbis.spaceExists(space)) {
-      logger.error(space + " does not exist!");
+      errors = space + " does not exist!";
+      logger.error(errors);
       return false;
     }
     logger.info("Creating project " + name + " in space " + space);
@@ -115,8 +117,10 @@ public class OpenbisCreationController {
   public boolean registerExperiment(String space, String project, String experimentType,
       String name, Map<String, Object> map, String user) {
     logger.info("Creating experiment " + name);
+    errors = "";
     if (!openbis.projectExists(space, project)) {
-      logger.error(project + " in " + space + " does not exist.");
+      errors = project + " in " + space + " does not exist.";
+      logger.error(errors);
       return false;
     }
     Map<String, Object> params = new HashMap<String, Object>();
@@ -130,42 +134,9 @@ public class OpenbisCreationController {
     return true;
   }
 
-  protected void registerExperiment(String space, String proj, RegisterableExperiment exp,
-      String projSecondaryName, String user) {
-    String expCode = exp.getCode();
-    final String projInfo = proj + "_INFO";
-    if (!openbis.expExists(space, proj, projInfo)) {
-      if (projSecondaryName != null && !projSecondaryName.isEmpty()) {
-        Map<String, Object> properties = new HashMap<String, Object>();
-        properties.put("Q_SECONDARY_NAME", projSecondaryName);
-        registerExperiment(space, proj, "Q_PROJECT_DETAILS", projInfo, properties, user);
-      } else {
-        logger.warn("No project secondary name found. Not creating Info Experiment.");
-      }
-    }
-    int step = 100;
-    int max = RETRY_UNTIL_SECONDS_PASSED * 1000;
-    while (!openbis.projectExists(space, proj) && max > 0) {
-      try {
-        Thread.sleep(step);
-        max -= step;
-      } catch (InterruptedException e) {
-        logger.error("thread sleep waiting for experiment creation interruped.");
-        e.printStackTrace();
-      }
-    }
-    if (!openbis.expExists(space, proj, expCode)) {
-      logger.info("creating experiment " + expCode);
-      registerExperiment(space, proj, exp.getType(), expCode, new HashMap<String, Object>(), user);
-    }
-  }
-
-  protected boolean registerExperiments(String space, String proj,
-      List<RegisterableExperiment> exps, String projSecondaryName, String user) {
-    // final String projInfo = proj + "_INFO";
-    // if (!openbis.expExists(space, proj, projInfo))
-    // exps.add(new RegisterableExperiment(projInfo, "Q_PROJECT_DETAILS",
-    // new ArrayList<ISampleBean>(Arrays.asList(new )), new HashMap<String, Object>()));
+  public boolean registerExperiments(String space, String proj, List<RegisterableExperiment> exps,
+      String user) {
+    errors = "";
     int step = 100;
     int max = RETRY_UNTIL_SECONDS_PASSED * 1000;
     List<String> codes = new ArrayList<String>();
@@ -190,7 +161,8 @@ public class OpenbisCreationController {
       }
       logger.info("Creating experiments " + codes);
       if (!openbis.projectExists(space, proj)) {
-        logger.error(proj + " in " + space + " does not exist. Not creating experiments.");
+        errors = proj + " in " + space + " does not exist. Not creating experiments.";
+        logger.error(errors);
         return false;
       }
       Map<String, Object> params = new HashMap<String, Object>();
@@ -208,12 +180,12 @@ public class OpenbisCreationController {
   public void prepareXMLProps(List<List<ISampleBean>> samples) {
     for (List<ISampleBean> list : samples) {
       for (ISampleBean s : list) {
-        Map<String, String> metadata = s.getMetadata();
+        Map<String, Object> metadata = s.getMetadata();
         XMLParser p = new XMLParser();
         LociParser lp = new LociParser();
-        List<Factor> factors = new ArrayList<Factor>();
+        List<Property> factors = new ArrayList<Property>();
         if (metadata.get("XML_FACTORS") != null) {
-          String[] fStrings = metadata.get("XML_FACTORS").split(";");
+          String[] fStrings = ((String) metadata.get("XML_FACTORS")).split(";");
           for (String factor : fStrings) {
             if (factor.length() > 1) {
               String[] fields = factor.split(":");
@@ -221,14 +193,18 @@ public class OpenbisCreationController {
                 fields[i] = fields[i].trim();
               String lab = fields[0].replace(" ", "");
               String val = fields[1];
-              if (fields.length > 2)
-                factors.add(new Factor(lab, val, fields[2]));
-              else
-                factors.add(new Factor(lab, val));
+              if (fields.length > 2) {
+                properties.Unit unit = properties.Unit.valueOf(fields[2]);
+                factors.add(new Property(lab, val, unit, PropertyType.Factor));
+              } else
+                factors.add(new Property(lab, val, PropertyType.Factor));
             }
           }
           try {
-            metadata.put("Q_PROPERTIES", p.toString(p.createXMLFromFactors(factors)));
+            metadata.put("Q_PROPERTIES", p.toString(p.createXMLFromProperties(factors)));// TODO
+                                                                                         // other
+                                                                                         // property
+                                                                                         // types
           } catch (JAXBException e) {
             e.printStackTrace();
           }
@@ -237,7 +213,7 @@ public class OpenbisCreationController {
 
         List<GeneLocus> loci = new ArrayList<GeneLocus>();
         if (metadata.get("XML_LOCI") != null) {
-          String[] lStrings = metadata.get("XML_LOCI").split(";");
+          String[] lStrings = ((String) metadata.get("XML_LOCI")).split(";");
           for (String locus : lStrings) {
             if (locus.length() > 1) {
               String[] fields = locus.split(":");
@@ -288,9 +264,9 @@ public class OpenbisCreationController {
    */
   public void registerProjectWithExperimentsAndSamplesBatchWise(
       final List<List<ISampleBean>> tsvSampleHierarchy, final String description,
-      final String secondaryName, final List<OpenbisExperiment> informativeExperiments,
-      final Map<String, Map<String, Object>> mhcExperimentProperties, final ProgressBar bar,
-      final Label info, final Runnable ready, final String user, final boolean isPilot) {
+      final List<OpenbisExperiment> informativeExperiments, final ProgressBar bar, final Label info,
+      final Runnable ready, final String user, final boolean isPilot) {
+    errors = "";
 
     logger.debug("User sending samples: " + user);
     Thread t = new Thread(new Runnable() {
@@ -301,9 +277,7 @@ public class OpenbisCreationController {
         info.setCaption("Collecting information");
         UI.getCurrent().access(new UpdateProgressBar(bar, info, 0.01));
         RegisterableProject p = new RegisterableProject(tsvSampleHierarchy, description,
-            secondaryName, mhcExperimentProperties, informativeExperiments, isPilot);
-        // if(mhcExperimentProperties != null)
-        // p.addExperimentFromProperties(mhcExperimentProperties, "Q_MHC_LIGAND_EXTRACTION");
+            informativeExperiments, isPilot);
         List<RegisterableExperiment> exps = p.getExperiments();
         String space = p.getSpace().toUpperCase();
         String project = p.getProjectCode();
@@ -315,8 +289,10 @@ public class OpenbisCreationController {
           splitSteps += exp.getSamples().size() / (SPLIT_AT_ENTITY_SIZE + 1);
         }
 
-        final int todo = exps.size() + splitSteps + 1;// TODO huge number of samples should be split
-                                                      // into groups
+        // final int todo = exps.size() + splitSteps + 1;// TODO huge number of samples should be
+        // split
+        // into groups
+        final int todo = tsvSampleHierarchy.size() + splitSteps + 1;
         // of 50 or 100. this needs to be reflected in the progress
         // bar
         current++;
@@ -325,7 +301,16 @@ public class OpenbisCreationController {
         UI.getCurrent().access(new UpdateProgressBar(bar, info, frac));
         if (!openbis.projectExists(space, project))
           registerProject(space, project, desc, user);
-        registerExperiments(space, project, exps, secondaryName, user);
+        boolean success = registerExperiments(space, project, exps, user);
+        if (!success) {
+          // experiments were not registered, break registration
+          errors = "Experiments could not be registered.";
+          bar.setVisible(false);
+          info.setCaption("An error occured.");
+          UI.getCurrent().setPollInterval(-1);
+          UI.getCurrent().access(ready);
+          return;
+        }
 
         try {
           Thread.sleep(500);
@@ -333,27 +318,53 @@ public class OpenbisCreationController {
           logger.error("thread sleep waiting for experiment creation interruped.");
           e.printStackTrace();
         }
-        for (RegisterableExperiment exp : exps) {
-          List<ISampleBean> level = exp.getSamples();
+        // for (RegisterableExperiment exp : exps) { old version!
+        int i = 0;
+        for (List<ISampleBean> level : tsvSampleHierarchy) {
+          i++;
+          logger.info("registration of level " + i);
+          // List<ISampleBean> level = exp.getSamples(); old version!
           info.setCaption("Registering samples");
           current++;
           frac = current * 1.0 / todo;
           UI.getCurrent().access(new UpdateProgressBar(bar, info, frac));
+          boolean batchSuccess;
           if (level.size() > SPLIT_AT_ENTITY_SIZE) {
             for (List<ISampleBean> batch : splitSamplesIntoBatches(level, SPLIT_AT_ENTITY_SIZE)) {
-              registerSampleBatchInETL(batch, user);
-              try {
-                Thread.sleep(50);
-              } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+              batchSuccess = registerSampleBatchInETL(batch, user);
+              if (!batchSuccess) {
+                bar.setVisible(false);
+                info.setCaption("An error occured.");
+                UI.getCurrent().setPollInterval(-1);
+                UI.getCurrent().access(ready);
+                return;
+              }
+              ISampleBean last = batch.get(batch.size() - 1);
+              logger.info("waiting for last batch sample to reach openbis");
+              int step = 50;
+              int max = RETRY_UNTIL_SECONDS_PASSED * 1000;
+              while (!openbis.sampleExists(last.getCode()) && max > 0) {
+                try {
+                  Thread.sleep(step);
+                  max -= step;
+                } catch (InterruptedException e) {
+                  e.printStackTrace();
+                }
               }
               current++;
               frac = current * 1.0 / todo;
               UI.getCurrent().access(new UpdateProgressBar(bar, info, frac));
             }
-          } else
-            registerSampleBatchInETL(level, user);
+          } else {
+            batchSuccess = registerSampleBatchInETL(level, user);
+            if (!batchSuccess) {
+              bar.setVisible(false);
+              info.setCaption("An error occured.");
+              UI.getCurrent().setPollInterval(-1);
+              UI.getCurrent().access(ready);
+              return;
+            }
+          }
           if (level.size() > 0) {
             ISampleBean last = level.get(level.size() - 1);
             logger.info("waiting for last sample to reach openbis");
@@ -386,7 +397,7 @@ public class OpenbisCreationController {
     String p = null;
     String e = null;
     if (samples.size() == 0)
-      return false;
+      return true;
     // to speed up things only the first sample and its experiment is checked for existence, might
     // lead to errors
     ISampleBean first = samples.get(0);
@@ -395,8 +406,8 @@ public class OpenbisCreationController {
       p = first.getProject();
       e = first.getExperiment();
       if (!openbis.expExists(s, p, e)) {
-        logger.error(e + " not found in " + p + " (" + s
-            + ") Stopping registration of this sample batch. This will most likely lead to openbis errors or lost samples!");
+        errors = e + " not found in " + p + " (" + s + ") Stopping registration of samples.";
+        logger.error(errors + " This will most likely lead to openbis errors or lost samples!");
         return false;
       }
     }
@@ -446,6 +457,11 @@ public class OpenbisCreationController {
    */
   public boolean registerSample(String code, String space, String project, String exp, String type,
       String user, Map<String, Object> metadata) {
+    errors = "";
+    if (openbis.sampleExists(code)) {
+      errors = "Sample " + code + " already exists.";
+      return false;
+    }
     Map<String, Object> params = new HashMap<String, Object>();
     Map<String, Object> map = new HashMap<String, Object>();
     map.put("code", code);
@@ -458,6 +474,10 @@ public class OpenbisCreationController {
     params.put(code, map);
     openbis.ingest("DSS1", "register-sample-batch", params);
     return true;
+  }
+
+  public String getErrors() {
+    return errors;
   }
 
 }

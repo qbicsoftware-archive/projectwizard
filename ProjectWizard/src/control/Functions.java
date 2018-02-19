@@ -16,6 +16,8 @@
 package control;
 
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,6 +31,7 @@ import logging.Logger;
 
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
+import com.vaadin.server.StreamResource;
 import com.vaadin.shared.Position;
 
 /**
@@ -41,12 +44,9 @@ public class Functions {
 
   static Logger logger = new Log4j2Logger(Functions.class);
 
-  public enum NotificationType {
-    ERROR, SUCCESS, DEFAULT
-  }
-  
   /**
    * natural order comparison (a1 < a2 < a10)
+   * 
    * @param a
    * @param b
    * @return
@@ -89,36 +89,29 @@ public class Functions {
       kb++;
     }
   }
+  //
+  // public static double compareStringsJaroWinkler(String stringA, String stringB) {
+  // return StringUtils.getJaroWinklerDistance(stringA, stringB);
+  // }
+  //
+  // public static int compareStringsLevenshtein(String stringA, String stringB) {
+  // return StringUtils.getLevenshteinDistance(stringA, stringB);
+  // }
 
-  public static double compareStringsJaroWinkler(String stringA, String stringB) {
-    return StringUtils.getJaroWinklerDistance(stringA, stringB);
-  }
-
-  public static int compareStringsLevenshtein(String stringA, String stringB) {
-    return StringUtils.getLevenshteinDistance(stringA, stringB);
-  }
-
-  public static void notification(String title, String description, NotificationType type) {
-    Notification notify = new Notification(title, description);
-    notify.setPosition(Position.TOP_CENTER);
-    switch (type) {
-      case ERROR:
-        notify.setDelayMsec(16000);
-        notify.setIcon(FontAwesome.FROWN_O);
-        notify.setStyleName(ValoTheme.NOTIFICATION_ERROR + " " + ValoTheme.NOTIFICATION_CLOSABLE);
-        break;
-      case SUCCESS:
-        notify.setDelayMsec(8000);
-        notify.setIcon(FontAwesome.SMILE_O);
-        notify.setStyleName(ValoTheme.NOTIFICATION_SUCCESS + " " + ValoTheme.NOTIFICATION_CLOSABLE);
-        break;
-      default:
-        notify.setDelayMsec(8000);
-        notify.setIcon(FontAwesome.COMMENT);
-        notify.setStyleName(ValoTheme.NOTIFICATION_TRAY + " " + ValoTheme.NOTIFICATION_CLOSABLE);
-        break;
-    }
-    notify.show(Page.getCurrent());
+  public static StreamResource getFileStream(final String content, String name, String extension) {
+    StreamResource resource = new StreamResource(new StreamResource.StreamSource() {
+      @Override
+      public InputStream getStream() {
+        try {
+          InputStream is = new ByteArrayInputStream(content.getBytes());
+          return is;
+        } catch (Exception e) {
+          e.printStackTrace();
+          return null;
+        }
+      }
+    }, name + "." + extension);
+    return resource;
   }
 
   /**

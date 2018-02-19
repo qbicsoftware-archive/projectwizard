@@ -3,6 +3,7 @@ package registration;
 import java.util.List;
 import java.util.Map;
 
+import model.ExperimentType;
 import model.ISampleBean;
 
 public class RegisterableExperiment {
@@ -12,14 +13,13 @@ public class RegisterableExperiment {
   List<ISampleBean> samples;
   Map<String, Object> properties;
 
-  public RegisterableExperiment(String code, String type, List<ISampleBean> samples,
+  public RegisterableExperiment(String code, ExperimentType type, List<ISampleBean> samples,
       Map<String, Object> properties) {
     this.code = code;
-    this.type = type;
+    this.type = type.toString();
     this.samples = samples;
     this.properties = properties;
   }
-
   public String getType() {
     return type;
   }

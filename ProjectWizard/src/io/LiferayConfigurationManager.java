@@ -49,6 +49,9 @@ public enum LiferayConfigurationManager implements ConfigurationManager {
   public static final String MSQL_PORT = "mysql.port";
   public static final String MSQL_PASS = "mysql.pass";
   
+  public static final String METADATA_OVERWRITE_GROUP = "metadata.write.group";
+  public static final String DELETION_GROUP = "UNUSEDDELETION";
+  
   private String LABELING_METHODS = "vocabulary.ms.labeling";
 
   private String configurationFileName;
@@ -71,6 +74,9 @@ public enum LiferayConfigurationManager implements ConfigurationManager {
   private String msqlUser;
   private String msqlPort;
   private String msqlPass;
+  
+  private String metadataOverwrite;
+  private String deletionGroup;
   
   private String labelingMethods;
 
@@ -104,6 +110,9 @@ public enum LiferayConfigurationManager implements ConfigurationManager {
     msqlUser = portletConfig.getProperty(MSQL_USER);
     msqlPort = portletConfig.getProperty(MSQL_PORT);
     msqlPass = portletConfig.getProperty(MSQL_PASS);
+    
+    metadataOverwrite = portletConfig.getProperty(METADATA_OVERWRITE_GROUP);
+    deletionGroup = portletConfig.getProperty(DELETION_GROUP);
     
     labelingMethods = portletConfig.getProperty(LABELING_METHODS);
 
@@ -191,6 +200,11 @@ public enum LiferayConfigurationManager implements ConfigurationManager {
   }
 
   @Override
+  public String getMetadataWriteGrp() {
+    return metadataOverwrite;
+  }
+  
+  @Override
   public String getVocabularyMSLabeling() {
     return labelingMethods;
   }
@@ -198,6 +212,11 @@ public enum LiferayConfigurationManager implements ConfigurationManager {
   @Override
   public String getBarcodeResultsFolder() {
     return barcodeResultsFolder;
+  }
+
+  @Override
+  public String getDeletionGrp() {
+    return deletionGroup;
   }
 
 }

@@ -19,6 +19,6 @@ package views;
 
 public interface IRegistrationView {
   
-  public void registrationDone();
+  public void registrationDone(boolean sqlDown, String error);
 
 }

@@ -17,6 +17,9 @@
  *******************************************************************************/
 package processes;
 
+import java.sql.SQLException;
+
+import control.IRegistrationController;
 import views.IRegistrationView;
 
 /**
@@ -27,13 +30,21 @@ import views.IRegistrationView;
 public class RegisteredSamplesReadyRunnable implements Runnable {
 
   private IRegistrationView view;
+  private IRegistrationController control;
 
-  public RegisteredSamplesReadyRunnable(IRegistrationView view) {
+  public RegisteredSamplesReadyRunnable(IRegistrationView view, IRegistrationController control) {
     this.view = view;
+    this.control = control;
   }
 
   @Override
   public void run() {
-    view.registrationDone();
+    boolean sqlDown = false;
+    try {
+      control.performPostRegistrationTasks(control.getRegistrationError().isEmpty());
+    } catch (SQLException e) {
+      sqlDown = true;
+    }
+    view.registrationDone(sqlDown, control.getRegistrationError());
   }
 }

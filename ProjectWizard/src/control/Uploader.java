@@ -1,19 +1,17 @@
 /*******************************************************************************
- * QBiC Project Wizard enables users to create hierarchical experiments including different study conditions using factorial design.
- * Copyright (C) "2016"  Andreas Friedrich
+ * QBiC Project Wizard enables users to create hierarchical experiments including different study
+ * conditions using factorial design. Copyright (C) "2016" Andreas Friedrich
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with this program. If
+ * not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 package control;
 
@@ -22,6 +20,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+
+import org.apache.commons.io.FilenameUtils;
 
 import logging.Log4j2Logger;
 import main.ProjectwizardUI;
@@ -38,11 +38,11 @@ import com.vaadin.ui.Upload;
 @SuppressWarnings("serial")
 public class Uploader implements Upload.SucceededListener, Upload.FailedListener, Upload.Receiver {
 
-  Panel root; // Root element for contained components.
-  File file; // File to write to.
-  String error;
-  
-  logging.Logger logger = new Log4j2Logger(Uploader.class);
+  private File file; // File to write to.
+  private String error;
+
+  private logging.Logger logger = new Log4j2Logger(Uploader.class);
+  private String fileName;
 
   public Uploader() {}
 
@@ -52,6 +52,7 @@ public class Uploader implements Upload.SucceededListener, Upload.FailedListener
   public OutputStream receiveUpload(String filename, String MIMEType) {
     FileOutputStream fos = null; // Output stream to write to
     error = null;
+    fileName = filename;
     file = new File(ProjectwizardUI.tmpFolder + "up_" + filename);
     // TODO probably not needed; some browsers set MIME information to application/octet-stream,
     // which leads to bug
@@ -73,6 +74,14 @@ public class Uploader implements Upload.SucceededListener, Upload.FailedListener
     return error;
   }
 
+  public String getBaseFileName() {
+    return fileName;
+  }
+
+  public String getFileNameWithoutExtension() {
+    return FilenameUtils.removeExtension(fileName);
+  }
+
   public File getFile() {
     return file;
   }
@@ -82,8 +91,8 @@ public class Uploader implements Upload.SucceededListener, Upload.FailedListener
    */
   public void uploadSucceeded(Upload.SucceededEvent event) {
     // Display the uploaded file in the image panel.
-    logger.info("Uploading " + event.getFilename() + " of type '" + event.getMIMEType()
-        + "' successful.");
+    logger.info(
+        "Uploading " + event.getFilename() + " of type '" + event.getMIMEType() + "' successful.");
   }
 
   /**
@@ -91,7 +100,7 @@ public class Uploader implements Upload.SucceededListener, Upload.FailedListener
    */
   public void uploadFailed(Upload.FailedEvent event) {
     // Log the failure on screen.
-    logger.error("Uploading " + event.getFilename() + " of type '" + event.getMIMEType()
-        + "' failed.");
+    logger.error(
+        "Uploading " + event.getFilename() + " of type '" + event.getMIMEType() + "' failed.");
   }
 }

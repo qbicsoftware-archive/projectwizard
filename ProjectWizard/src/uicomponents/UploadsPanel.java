@@ -12,12 +12,10 @@ import java.util.Map;
 
 import processes.AttachmentMover;
 import processes.MoveUploadsReadyRunnable;
-
+import registration.OpenbisCreationController;
 import logging.Log4j2Logger;
-import main.OpenBisClient;
-import main.OpenbisCreationController;
 import uicomponents.Styles;
-import main.TSVSampleBean;
+import model.TSVSampleBean;
 import model.AttachmentConfig;
 import model.AttachmentInformation;
 import model.ISampleBean;
@@ -37,8 +35,8 @@ import com.vaadin.ui.Upload.FinishedEvent;
 import com.vaadin.ui.Upload.FinishedListener;
 import com.vaadin.ui.themes.ValoTheme;
 
-import control.Functions;
-import control.Functions.NotificationType;
+import life.qbic.openbis.openbisclient.OpenBisClient;
+import uicomponents.Styles.*;
 
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.VerticalLayout;
@@ -70,7 +68,7 @@ public class UploadsPanel extends VerticalLayout {
 
   private String userID;
   private String tmpFolder;
-
+  
   public UploadsPanel(String tmpFolder, String space, String project, List<String> expOptions,
       String userID, AttachmentConfig attachConfig, OpenBisClient openbis) {
     this.openbisCreator = new OpenbisCreationController(openbis);
@@ -275,13 +273,13 @@ public class UploadsPanel extends VerticalLayout {
       }
       List<ISampleBean> samples = new ArrayList<ISampleBean>();
       samples.add(new TSVSampleBean(sample, experiment, project, space, "Q_ATTACHMENT_SAMPLE", "",
-          "", new HashMap<String, String>()));
+          "", new HashMap<String, Object>()));
       openbisCreator.registerSampleBatchInETL(samples, userID);
       double timeoutS = 10.0;
       while (!openbis.sampleExists(sample))
         if (timeoutS <= 0) {
           logger.error("Could not create attachment sample. User has been informed");
-          Functions.notification("Upload failed",
+          Styles.notification("Upload failed",
               "Upload failed, the data management system might be offline. Please contact us if the problem persists.",
               NotificationType.ERROR);
           break;
