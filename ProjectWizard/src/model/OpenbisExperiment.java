@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Map;
 
 import logging.Log4j2Logger;
-import uicomponents.MSSampleMultiplicationTable;
 
 /**
  * Class representing an experiment with some metadata
@@ -97,6 +96,10 @@ public class OpenbisExperiment {
 
   public String getQ_ADDITIONAL_NOTES() {
     return Q_ADDITIONAL_NOTES;
+  }
+  
+  public String toString() {
+    return getPropertiesString();
   }
 
   private static String escapeSpecials(String s) {

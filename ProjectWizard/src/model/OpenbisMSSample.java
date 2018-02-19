@@ -18,7 +18,7 @@ package model;
 import java.util.List;
 import java.util.Map;
 
-import properties.Factor;
+import properties.Property;
 
 public class OpenbisMSSample extends AOpenbisSample {
 
@@ -35,13 +35,13 @@ public class OpenbisMSSample extends AOpenbisSample {
    * @param parent Entity parent this sample was extracted from
    */
   public OpenbisMSSample(String openbisName, String space, String experiment, String secondaryName,
-      String additionalNotes, List<Factor> factors, String parent, String extID) {
+      String additionalNotes, List<Property> factors, String parent, String extID) {
     super(openbisName, space, experiment, secondaryName, additionalNotes, factors, parent, extID,
         "Q_MS_RUN");
   }
 
   public OpenbisMSSample(int tempID, List<AOpenbisSample> parents, String secondaryName,
-      String externalID, List<Factor> newFactors, String additionalNotes) {
+      String externalID, List<Property> newFactors, String additionalNotes) {
     super(tempID, parents, "Q_MS_RUN", secondaryName, externalID, newFactors, additionalNotes);
   }
 

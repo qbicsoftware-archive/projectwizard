@@ -18,7 +18,7 @@ package model;
 import java.util.List;
 import java.util.Map;
 
-import properties.Factor;
+import properties.Property;
 
 public class OpenbisMHCExtractSample extends AOpenbisSample {
 
@@ -26,7 +26,7 @@ public class OpenbisMHCExtractSample extends AOpenbisSample {
   private String Q_MHC_ANTIBODY;
 
   public OpenbisMHCExtractSample(String openbisName, String space, String experiment,
-      String secondaryName, String additionalNotes, List<Factor> factors, String antibody,
+      String secondaryName, String additionalNotes, List<Property> factors, String antibody,
       String mhcClass, String parent, String extID) {
     super(openbisName, space, experiment, secondaryName, additionalNotes, factors, parent, extID,
         "Q_MHC_LIGAND_EXTRACT");
@@ -35,7 +35,7 @@ public class OpenbisMHCExtractSample extends AOpenbisSample {
   }
 
   public OpenbisMHCExtractSample(int tempID, List<AOpenbisSample> parents, String mhcClass,
-      String secondaryName, String externalID, List<Factor> newFactors, String additionalNotes) {
+      String secondaryName, String externalID, List<Property> newFactors, String additionalNotes) {
     super(tempID, parents, "Q_MHC_LIGAND_EXTRACT", secondaryName, externalID, newFactors,
         additionalNotes);
     this.Q_MHC_CLASS = mhcClass;

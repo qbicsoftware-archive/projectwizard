@@ -132,8 +132,9 @@ public class ConditionsPanel extends HorizontalLayout {
           }
           special |= c.factorIsSpecial();
         }
-        specialField.setEnabled(!special);
         specialField.setRequired(!special);
+        //TODO test this, was enabled
+        specialField.setVisible(!special);
         specialNumField.setEnabled(special);
         specialNumField.setVisible(special);
       }

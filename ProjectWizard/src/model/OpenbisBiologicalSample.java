@@ -20,7 +20,7 @@ package model;
 import java.util.List;
 import java.util.Map;
 
-import properties.Factor;
+import properties.Property;
 
 /**
  * Class representing a sample created in a sample extraction experiment and from which test samples
@@ -47,7 +47,7 @@ public class OpenbisBiologicalSample extends AOpenbisSample {
    * @param parent Entity parent this sample was extracted from
    */
   public OpenbisBiologicalSample(String openbisName, String space, String experiment,
-      String secondaryName, String additionalNotes, List<Factor> factors, String primaryTissue,
+      String secondaryName, String additionalNotes, List<Property> factors, String primaryTissue,
       String tissueDetailed, String parent, String extID) {
     super(openbisName, space, experiment, secondaryName, additionalNotes, factors, parent, extID,
         "Q_BIOLOGICAL_SAMPLE");
@@ -56,7 +56,7 @@ public class OpenbisBiologicalSample extends AOpenbisSample {
   }
 
   public OpenbisBiologicalSample(int tempID, List<AOpenbisSample> parents, String primaryTissue,
-      String tissueDetailed, String secondaryName, String externalID, List<Factor> newFactors,
+      String tissueDetailed, String secondaryName, String externalID, List<Property> newFactors,
       String additionalNotes) {
     super(tempID, parents, "Q_BIOLOGICAL_SAMPLE", secondaryName, externalID, newFactors, additionalNotes);
     this.primaryTissue = primaryTissue;

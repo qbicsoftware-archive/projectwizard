@@ -26,10 +26,12 @@ import java.util.Map;
 import javax.xml.bind.JAXBException;
 
 import parser.XMLParser;
-import properties.Factor;
+import properties.Property;
 import steps.FinishStep;
 
 import com.vaadin.server.StreamResource;
+
+import control.Functions;
 
 public class TSVReadyRunnable implements Runnable {
 
@@ -46,30 +48,15 @@ public class TSVReadyRunnable implements Runnable {
   @Override
   public void run() {
     List<StreamResource> streams = new ArrayList<StreamResource>();
-    streams.add(
-        getTSVStream(getTSVString(tables.get("Q_BIOLOGICAL_ENTITY")), project + "_sample_sources"));
-    streams.add(getTSVStream(getTSVString(tables.get("Q_BIOLOGICAL_SAMPLE")),
-        project + "_sample_extracts"));
+    String ext = "tsv";
+    streams.add(Functions.getFileStream(getTSVString(tables.get("Q_BIOLOGICAL_ENTITY")),
+        project + "_sample_sources", ext));
+    streams.add(Functions.getFileStream(getTSVString(tables.get("Q_BIOLOGICAL_SAMPLE")),
+        project + "_sample_extracts", ext));
     if (tables.containsKey("Q_TEST_SAMPLE"))
-      streams.add(getTSVStream(getTSVString(tables.get("Q_TEST_SAMPLE")),
-          project + "_sample_preparations"));
+      streams.add(Functions.getFileStream(getTSVString(tables.get("Q_TEST_SAMPLE")),
+          project + "_sample_preparations", ext));
     layout.armButtons(streams);
-  }
-
-  public StreamResource getTSVStream(final String content, String name) {
-    StreamResource resource = new StreamResource(new StreamResource.StreamSource() {
-      @Override
-      public InputStream getStream() {
-        try {
-          InputStream is = new ByteArrayInputStream(content.getBytes());
-          return is;
-        } catch (Exception e) {
-          e.printStackTrace();
-          return null;
-        }
-      }
-    }, String.format("%s.tsv", name));
-    return resource;
   }
 
   private static String getTSVString(List<String> table) {
@@ -89,19 +76,28 @@ public class TSVReadyRunnable implements Runnable {
         if (cell.startsWith(xmlStart))
           xml = cell;
       }
-      List<Factor> factors = new ArrayList<Factor>();
+      List<Property> properties = new ArrayList<Property>();
       if (!xml.equals(xmlStart)) {
         try {
-          factors = p.getFactorsFromXML(xml);
+          properties = p.getPropertiesFromXML(xml);
         } catch (JAXBException e) {
           // TODO Auto-generated catch block
           e.printStackTrace();
         }
-        for (Factor f : factors) {
-          String label = f.getLabel();
+        for (Property prop : properties) {
+          String label = prop.getLabel();
           if (!factorLabels.contains(label)) {
             factorLabels.add(label);
-            header.append("\tCondition: " + label);
+            switch (prop.getType()) {
+              case Factor:
+                header.append("\tCondition: " + label);
+                break;
+              case Property:
+                header.append("\tProperty: " + label);
+                break;
+              default:
+                break;
+            }
           }
         }
       }
@@ -117,22 +113,22 @@ public class TSVReadyRunnable implements Runnable {
       }
       row = row.replace("\t" + xml, "");
       StringBuilder line = new StringBuilder("\n" + row);
-      List<Factor> factors = new ArrayList<Factor>();
+      List<Property> props = new ArrayList<Property>();
       if (!xml.equals(xmlStart)) {
         try {
-          factors = p.getFactorsFromXML(xml);
+          props = p.getPropertiesFromXML(xml);
         } catch (JAXBException e) {
           // TODO Auto-generated catch block
           e.printStackTrace();
         }
-        Map<Integer, Factor> order = new HashMap<Integer, Factor>();
-        for (Factor f : factors) {
+        Map<Integer, Property> order = new HashMap<Integer, Property>();
+        for (Property f : props) {
           String label = f.getLabel();
           order.put(factorLabels.indexOf(label), f);
         }
         for (int i = 0; i < factorLabels.size(); i++) {
           if (order.containsKey(i)) {
-            Factor f = order.get(i);
+            Property f = order.get(i);
             line.append("\t" + f.getValue());
             if (f.hasUnit())
               line.append(f.getUnit());

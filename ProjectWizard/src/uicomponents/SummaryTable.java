@@ -19,8 +19,8 @@ package uicomponents;
 import java.util.ArrayList;
 import java.util.List;
 
-import properties.Factor;
-
+import properties.Property;
+import properties.PropertyType;
 import uicomponents.Styles;
 import model.AOpenbisSample;
 
@@ -102,7 +102,7 @@ public class SummaryTable extends VerticalLayout {
           String method = labelingMethod.getName();
           String value = parseComboLabel(method, id);
           if (value != null)
-            s.addFactor(new Factor(method.toLowerCase(), value));
+            s.addFactor(new Property(method.toLowerCase(), value, PropertyType.Factor));
         }
         res.add(s);
       }
@@ -167,7 +167,7 @@ public class SummaryTable extends VerticalLayout {
         mostInformative = s;
       }
     }
-    List<Factor> factors = mostInformative.getFactors();
+    List<Property> factors = mostInformative.getFactors();
     for (int i = 0; i < factors.size(); i++) {
       String l = factors.get(i).getLabel();
 
@@ -263,7 +263,7 @@ public class SummaryTable extends VerticalLayout {
         row.add(cb);
       }
       int missing = maxCols - s.getFactors().size();
-      for (Factor f : s.getFactors()) {
+      for (Property f : s.getFactors()) {
         String v = f.getValue();
         if (f.hasUnit())
           v += " " + f.getUnit();
@@ -277,7 +277,7 @@ public class SummaryTable extends VerticalLayout {
   }
 
   public void resetChanges() {
-    for (String col : addedCols ) {
+    for (String col : addedCols) {
       table.removeContainerProperty(col);
     }
   }

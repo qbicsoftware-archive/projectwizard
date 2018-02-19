@@ -18,7 +18,7 @@ package model;
 import java.util.List;
 import java.util.Map;
 
-import properties.Factor;
+import properties.Property;
 
 /**
  * Class representing a biological entity that will be used in an experiment and will be the root of
@@ -45,7 +45,7 @@ public class OpenbisBiologicalEntity extends AOpenbisSample {
    * @param extID External database identifier
    */
   public OpenbisBiologicalEntity(String openbisName, String space, String experiment,
-      String secondaryName, String additionalNotes, List<Factor> factors, String ncbiOrganism,
+      String secondaryName, String additionalNotes, List<Property> factors, String ncbiOrganism,
       String speciesInfo, String extID) {
     super(openbisName, space, experiment, secondaryName, additionalNotes, factors, "", extID,
         "Q_BIOLOGICAL_ENTITY");

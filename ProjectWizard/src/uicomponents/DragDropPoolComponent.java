@@ -20,9 +20,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import properties.Factor;
 import uicomponents.Styles;
 import model.AOpenbisSample;
+import properties.Property;
 
 import com.vaadin.ui.Button;
 import com.vaadin.ui.HorizontalSplitPanel;
@@ -139,7 +139,7 @@ public class DragDropPoolComponent extends HorizontalSplitPanel {
   public void initConditionsAndSetSamples(List<AOpenbisSample> samples) {
     map = new HashMap<Integer, AOpenbisSample>();
     factorLabels = new ArrayList<String>();
-    List<Factor> factors = samples.get(0).getFactors();
+    List<Property> factors = samples.get(0).getFactors();
     for (int i = 0; i < factors.size(); i++) {
       String l = factors.get(i).getLabel();
 
@@ -166,7 +166,7 @@ public class DragDropPoolComponent extends HorizontalSplitPanel {
       row.add(id);
       row.add(s.getQ_SECONDARY_NAME());
       row.add(s.getQ_EXTERNALDB_ID());
-      for (Factor f : s.getFactors()) {
+      for (Property f : s.getFactors()) {
         String v = f.getValue();
         if (f.hasUnit())
           v += " " + f.getUnit();

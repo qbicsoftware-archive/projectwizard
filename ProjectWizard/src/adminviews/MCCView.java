@@ -24,20 +24,20 @@ import java.util.Set;
 
 import javax.xml.bind.JAXBException;
 
+import org.apache.commons.lang.StringUtils;
+
 import parser.XMLParser;
 import processes.RegisteredSamplesReadyRunnable;
-import properties.Factor;
+import properties.Property;
+import registration.OpenbisCreationController;
 import uicomponents.Styles;
 import views.IRegistrationView;
 
 import logging.Log4j2Logger;
-import main.IOpenBisClient;
-import main.OpenbisCreationController;
-import uicomponents.Styles;
-import main.TSVSampleBean;
 import model.ISampleBean;
 import model.MCCPatient;
 import model.OpenbisExperiment;
+import model.TSVSampleBean;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Project;
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
 
@@ -48,20 +48,19 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.Notification;
 import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
-import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.themes.ValoTheme;
 import componentwrappers.StandardTextField;
-import control.Functions;
-import control.Functions.NotificationType;
+import uicomponents.Styles.*;
+import control.IRegistrationController;
 import control.SampleCounter;
+import life.qbic.openbis.openbisclient.IOpenBisClient;
 
-public class MCCView extends VerticalLayout implements IRegistrationView {
+public class MCCView extends VerticalLayout implements IRegistrationView, IRegistrationController {
   /**
    * 
    */
@@ -83,8 +82,8 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
   private Table existingPatients;
 
   private TabSheet editView;
-   private Table samples;
-   private Table metaData;
+  private Table samples;
+  private Table metaData;
 
   private ProgressBar bar;
   private Label registerInfo;
@@ -141,17 +140,17 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
     editView = new TabSheet();
     editView.addStyleName(ValoTheme.TABSHEET_FRAMED);
 
-     samples = new Table("Samples");
-     samples.setStyleName(Styles.tableTheme);
-     samples.setPageLength(1);
-    
-     metaData = new Table();
-     metaData.setEditable(true);
-     metaData.setStyleName(Styles.tableTheme);
-    
-     editView.addTab(samples, "Overview");
-     editView.addTab(metaData, "Change Metadata");
-     editView.setVisible(false);
+    samples = new Table("Samples");
+    samples.setStyleName(Styles.tableTheme);
+    samples.setPageLength(1);
+
+    metaData = new Table();
+    metaData.setEditable(true);
+    metaData.setStyleName(Styles.tableTheme);
+
+    editView.addTab(samples, "Overview");
+    editView.addTab(metaData, "Change Metadata");
+    editView.setVisible(false);
 
     registerInfo = new Label();
     bar = new ProgressBar();
@@ -190,9 +189,9 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
     return this;
   }
 
-  private List<Factor> parseXMLFactors(Sample s) {
+  private List<Property> parseXMLFactors(Sample s) {
     try {
-      return p.getFactorsFromXML(s.getProperties().get("Q_PROPERTIES"));
+      return p.getExpFactorsFromXML(s.getProperties().get("Q_PROPERTIES"));
     } catch (IllegalArgumentException e) {
       e.printStackTrace();
     } catch (JAXBException e) {
@@ -261,14 +260,14 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
         logger.info("Adding MCC Patient.");
         List<List<ISampleBean>> samps = null;
         samps = prepDefaultMCCSamples();
-        for (List<ISampleBean> ss : samps)
-          for (ISampleBean s : ss)
-            logger.debug("Created samples: " + s);
+        // for (List<ISampleBean> ss : samps)
+        // for (ISampleBean s : ss)
+        // logger.debug("Created samples: " + s);
         addSamples.setEnabled(false);
         creator.prepareXMLProps(samps);
-        creator.registerProjectWithExperimentsAndSamplesBatchWise(samps, null, null,
-            new ArrayList<OpenbisExperiment>(), null, bar, registerInfo,
-            new RegisteredSamplesReadyRunnable(getView()), user);
+        creator.registerProjectWithExperimentsAndSamplesBatchWise(samps, null,
+            new ArrayList<OpenbisExperiment>(), bar, registerInfo,
+            new RegisteredSamplesReadyRunnable(getView(), getView()), user, false);
       }
     });
   }
@@ -299,7 +298,7 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
         patients.add(id);
       } else {
         if (treatment.isEmpty()) {
-          for (Factor f : parseXMLFactors(s)) {
+          for (Property f : parseXMLFactors(s)) {
             if (f.getLabel().equals("treatment")) {
               treatment = f.getValue();
               getView().treatment.setValue(treatment);
@@ -308,8 +307,11 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
           }
         }
         try {
-          cases.add(id.substring(0, 6));
-        } catch (NullPointerException e) {
+          if (id != null) {
+            String prefix = StringUtils.join(Arrays.copyOfRange(id.split(":"), 0, 3), ":");
+            cases.add(prefix);
+          }
+        } catch (IndexOutOfBoundsException e) {
           wrongFormat = true;
         }
       }
@@ -352,12 +354,13 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
     if (!newProject.isEmpty())
       project = newProject.getValue();
 
-    if (patient.length() < 2)
-      patient += "0" + patient;
-    String patientExtID = treatment.substring(0, 1).toUpperCase() + ":" + patient;
     String patientID = project + "ENTITY-" + patient;// new parent
 
-    HashMap<String, String> metadata = new HashMap<String, String>();
+    if (patient.length() < 2)
+      patient = "0" + patient;
+    String patientExtID = treatment.substring(0, 1).toUpperCase() + ":" + patient;
+
+    HashMap<String, Object> metadata = new HashMap<String, Object>();
     // if new patient, add to samples to register
     if (!this.patients.contains(patientExtID)) {
       metadata.put("Q_EXTERNALDB_ID", patientExtID);
@@ -368,20 +371,20 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
     String extIDBase = patientExtID + ":" + timepoint + ":";
 
     String urineExtIDBase = extIDBase + "U:1";
-    metadata = new HashMap<String, String>();
+    metadata = new HashMap<String, Object>();
     metadata.put("XML_FACTORS",
         "treatment: " + treatment + "; timepoint: evaluation #" + timepoint);
     metadata.put("Q_PRIMARY_TISSUE", "URINE");
     metadata.put("Q_EXTERNALDB_ID", urineExtIDBase);
     String urineID = counter.getNewBarcode();// parent
     urine.add(new TSVSampleBean(urineID, project + "E2", project, mccSpace, "Q_BIOLOGICAL_SAMPLE",
-        "urine sample", patientID, (HashMap<String, String>) metadata.clone()));
+        "urine sample", patientID, (HashMap<String, Object>) metadata.clone()));
     for (int i = 1; i < 6; i++) {
       char lower = (char) ('a' + i - 1);
       String ID = counter.getNewBarcode();
       metadata.put("Q_EXTERNALDB_ID", urineExtIDBase + lower);
       uAliquots.add(new TSVSampleBean(ID, project + "E3", project, mccSpace, "Q_BIOLOGICAL_SAMPLE",
-          "aliquot #" + i, urineID, (HashMap<String, String>) metadata.clone()));
+          "aliquot #" + i, urineID, (HashMap<String, Object>) metadata.clone()));
     }
     for (int i = 1; i < 4; i++) {
       String plasmaExtID = extIDBase + "B:" + i;
@@ -390,7 +393,7 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
       metadata.put("Q_PRIMARY_TISSUE", "BLOOD_PLASMA");
       plasma
           .add(new TSVSampleBean(plasmaID, project + "E4", project, mccSpace, "Q_BIOLOGICAL_SAMPLE",
-              "EDTA plasma #" + i, patientID, (HashMap<String, String>) metadata.clone()));
+              "EDTA plasma #" + i, patientID, (HashMap<String, Object>) metadata.clone()));
       if (i == 1) {
         for (int j = 1; j < 3; j++) {
           char lower = (char) ('a' + j - 1);
@@ -398,7 +401,7 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
           metadata.put("Q_EXTERNALDB_ID", plasmaExtID + lower);
           pAliquots
               .add(new TSVSampleBean(ID, project + "E4", project, mccSpace, "Q_BIOLOGICAL_SAMPLE",
-                  "plasma aliquot #" + j, plasmaID, (HashMap<String, String>) metadata.clone()));
+                  "plasma aliquot #" + j, plasmaID, (HashMap<String, Object>) metadata.clone()));
         }
       }
       if (i == 3) {
@@ -409,7 +412,7 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
           metadata.put("Q_EXTERNALDB_ID", plasmaExtID + lower);
           metadata.put("Q_SAMPLE_TYPE", "SMALLMOLECULES");
           molecules.add(new TSVSampleBean(ID, project + "E5", project, mccSpace, "Q_TEST_SAMPLE",
-              "cryovial #" + j, plasmaID, (HashMap<String, String>) metadata.clone()));
+              "cryovial #" + j, plasmaID, (HashMap<String, Object>) metadata.clone()));
         }
         metadata.remove("Q_SAMPLE_TYPE");
       }
@@ -420,7 +423,7 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
       metadata.put("Q_EXTERNALDB_ID", tumorExtBase + i);
       metadata.put("Q_PRIMARY_TISSUE", "HEPATOCELLULAR_CARCINOMA");
       liver.add(new TSVSampleBean(ID, project + "E6", project, mccSpace, "Q_BIOLOGICAL_SAMPLE",
-          "tumor biopsy #" + i, patientID, (HashMap<String, String>) metadata.clone()));
+          "tumor biopsy #" + i, patientID, (HashMap<String, Object>) metadata.clone()));
     }
     String liverExtBase = extIDBase + "L";
     for (int i = 1; i < 5; i++) {
@@ -428,7 +431,7 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
       metadata.put("Q_EXTERNALDB_ID", liverExtBase + i);
       metadata.put("Q_PRIMARY_TISSUE", "LIVER");
       liver.add(new TSVSampleBean(ID, project + "E6", project, mccSpace, "Q_BIOLOGICAL_SAMPLE",
-          "liver biopsy #" + i, patientID, (HashMap<String, String>) metadata.clone()));
+          "liver biopsy #" + i, patientID, (HashMap<String, Object>) metadata.clone()));
     }
     List<List<ISampleBean>> dummy = new ArrayList<List<ISampleBean>>(
         Arrays.asList(patients, urine, uAliquots, plasma, pAliquots, molecules, liver));
@@ -446,10 +449,20 @@ public class MCCView extends VerticalLayout implements IRegistrationView {
   }
 
   @Override
-  public void registrationDone() {
+  //TODO handle errors
+  public void registrationDone(boolean sqlDown, String errors) {
     logger.info("Registration complete, reloading patient table.");
-    Functions.notification("Registration complete!", "Registration of patient complete.",
+    Styles.notification("Registration complete!", "Registration of patient complete.",
         NotificationType.SUCCESS);
     projectBoxChanged();
+  }
+
+  @Override
+  public void performPostRegistrationTasks(boolean success) {
+  }
+
+  @Override
+  public String getRegistrationError() {
+    return creator.getErrors();
   }
 }

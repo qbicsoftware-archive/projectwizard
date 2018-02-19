@@ -20,7 +20,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import properties.Factor;
+import properties.Property;
+import properties.PropertyType;
 
 /**
  * Abstract class to represent different samples and their metadata
@@ -37,7 +38,7 @@ public abstract class AOpenbisSample {
   private String code;
   private String experiment;
   private String Q_SECONDARY_NAME;
-  private List<Factor> factors;
+  private List<Property> factors;
   private String Q_ADDITIONAL_NOTES;
   private String parent;
   private String Q_EXTERNALDB_ID;
@@ -54,7 +55,7 @@ public abstract class AOpenbisSample {
    * @param parent A parent sample code this sample is attached to
    */
   AOpenbisSample(String code, String space, String experiment, String secondaryName,
-      String additionalNotes, List<Factor> factors, String parent, String externalID,
+      String additionalNotes, List<Property> factors, String parent, String externalID,
       String sampleType) {
     this.code = code;
     this.space = space;
@@ -68,7 +69,7 @@ public abstract class AOpenbisSample {
   }
 
   // this is the new version for entities
-  AOpenbisSample(int tempID, String secondaryName, String additionalNotes, List<Factor> factors,
+  AOpenbisSample(int tempID, String secondaryName, String additionalNotes, List<Property> factors,
       String externalID, List<Integer> tempParentIDs, String sampleType) {
     this.tempID = tempID;
     this.sampleType = sampleType;
@@ -81,33 +82,34 @@ public abstract class AOpenbisSample {
 
   // this is the new version for all child samples
   AOpenbisSample(int tempID, List<AOpenbisSample> parents, String sampleType, String secondaryName,
-      String externalID, List<Factor> newFactors, String additionalNotes) {
+      String externalID, List<Property> newFactors, String additionalNotes) {
     this.parents = parents;
     this.tempID = tempID;
     this.sampleType = sampleType;
     this.Q_SECONDARY_NAME = secondaryName;
     this.Q_ADDITIONAL_NOTES = additionalNotes;
     this.Q_EXTERNALDB_ID = externalID;
-    Map<String, Factor> oldFactors = new HashMap<String, Factor>();
+    Map<String, Property> oldFactors = new HashMap<String, Property>();
     this.tempParentIDs = new ArrayList<Integer>();
     this.parent = "";
     for (AOpenbisSample s : parents) {
       this.tempParentIDs.add(s.getTempID());
       if (s.getCode() != null)
         parent += s.getCode() + " ";
-      for (Factor f : s.getFactors()) {
+      for (Property f : s.getFactors()) {
         String lab = f.getLabel();
         if (oldFactors.containsKey(lab)) {
-          String value = oldFactors.get(lab).getValue() + oldFactors.get(lab).getUnit();
+          Property old = oldFactors.get(lab);
+          String value = old.getValue() + old.getUnit();
           String newValue = f.getValue() + f.getUnit();
           if (!value.equals(newValue))
-            oldFactors.put(lab, new Factor(lab, "mixed"));
+            oldFactors.put(lab, new Property(lab, "mixed", old.getType()));
         } else
           oldFactors.put(lab, f);
       }
     }
     this.parent = parent.trim();
-    this.factors = new ArrayList<Factor>();
+    this.factors = new ArrayList<Property>();
     if (parents.size() > 0) {
       for (String lab : parents.get(0).getFactorLabels())
         this.factors.add(oldFactors.get(lab));
@@ -135,7 +137,7 @@ public abstract class AOpenbisSample {
     Q_SECONDARY_NAME = q_SECONDARY_NAME;
   }
 
-  public void setFactors(List<Factor> factors) {
+  public void setFactors(List<Property> factors) {
     this.factors = factors;
   }
 
@@ -181,7 +183,7 @@ public abstract class AOpenbisSample {
    */
   private void fillInFactors(Map<String, String> map) {
     String res = "";
-    for (Factor f : factors) {
+    for (Property f : factors) {
       res += f.getLabel() + ": " + f.getValue(); // TODO null should be empty list
       if (f.hasUnit())
         res += ":" + f.getUnit();
@@ -193,7 +195,7 @@ public abstract class AOpenbisSample {
 
   public List<String> getFactorStrings() {
     List<String> res = new ArrayList<String>();
-    for (Factor f : factors) {
+    for (Property f : factors) {
       String cur = f.getLabel() + ": " + f.getValue(); // TODO null should be empty list
       if (f.hasUnit())
         cur += " " + f.getUnit();
@@ -204,7 +206,7 @@ public abstract class AOpenbisSample {
 
   public List<String> getFactorStringsWithoutLabel() {
     List<String> res = new ArrayList<String>();
-    for (Factor f : factors) {
+    for (Property f : factors) {
       String cur = f.getValue(); // TODO null should be empty list
       if (f.hasUnit())
         cur += " " + f.getUnit();
@@ -215,7 +217,7 @@ public abstract class AOpenbisSample {
 
   public List<String> getFactorLabels() {
     List<String> res = new ArrayList<String>();
-    for (Factor f : factors) {
+    for (Property f : factors) {
       res.add(f.getLabel());
     }
     return res;
@@ -229,7 +231,7 @@ public abstract class AOpenbisSample {
     return Q_SECONDARY_NAME;
   }
 
-  public List<Factor> getFactors() {
+  public List<Property> getFactors() {
     return factors;
   }
 
@@ -261,7 +263,7 @@ public abstract class AOpenbisSample {
     return tempParentIDs;
   }
 
-  public void addFactor(Factor factor) {
+  public void addFactor(Property factor) {
     this.factors.add(factor);
   }
 }
