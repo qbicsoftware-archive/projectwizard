@@ -61,4 +61,8 @@ public interface ConfigurationManager {
   public String getMysqlPass();
 
   public String getBarcodeResultsFolder();
+
+  public String getMetadataWriteGrp();
+
+  public String getDeletionGrp();
 }
