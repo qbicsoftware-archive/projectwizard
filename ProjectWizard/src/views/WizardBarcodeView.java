@@ -52,8 +52,7 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import componentwrappers.CustomVisibilityComponent;
 import control.BarcodeController;
-import control.Functions;
-import control.Functions.NotificationType;
+import uicomponents.Styles.*;
 import control.SampleFilterDecorator;
 import control.SampleFilterGenerator;
 
@@ -141,7 +140,7 @@ public class WizardBarcodeView extends HorizontalLayout {
             + " for which barcodes can be printed. You can select one or multiple rows.",
         "Sample Overview"));
 
-    sortby = new OptionGroup("Sort Barcodes By");
+    sortby = new OptionGroup("Sort Barcode Sheet/Stickers By");
     sortby.addItems(SortBy.values());
     sortby.setValue(SortBy.BARCODE_ID);
     left.addComponent(sortby);
@@ -461,10 +460,10 @@ public class WizardBarcodeView extends HorizontalLayout {
 
   public void printCommandsDone(PrintReadyRunnable done) {
     if (done.wasSuccess())
-      Functions.notification("Printing successful",
+      Styles.notification("Printing successful",
           "Your barcodes can be found in the printer room.", NotificationType.SUCCESS);
     else
-      Functions.notification("Printing error", "There was a problem with contacting the printer.",
+      Styles.notification("Printing error", "There was a problem with contacting the printer.",
           NotificationType.ERROR);
   }
 
