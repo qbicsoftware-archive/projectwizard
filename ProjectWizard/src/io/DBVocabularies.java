@@ -15,6 +15,7 @@
  *******************************************************************************/
 package io;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -40,7 +41,7 @@ public class DBVocabularies {
 
   public DBVocabularies(Map<String, String> taxMap, Map<String, String> tissueMap,
       Map<String, String> cellLinesMap, List<String> measureTypes, List<String> spaces,
-      Map<String, Integer> piMap, List<String> experimentTypes, List<String> enzymes,
+      Map<String, Integer> piMap, List<String> experimentTypes, Map<String, String> enzymeMap,
       Map<String, String> antibodiesWithDescriptions, Map<String, String> deviceMap,
       List<String> msProtocols, List<String> lcmsMethods, Map<String, String> chromTypes2,
       List<String> fractionationTypes, List<String> enrichmentTypes, Map<String, String> purificationMethods) {
@@ -52,7 +53,6 @@ public class DBVocabularies {
     this.spaces = spaces;
     this.investigators = piMap;
     this.experimentTypes = experimentTypes;
-    this.enzymes = enzymes;
     this.antibodies = antibodiesWithDescriptions;
     this.msProtocols = msProtocols;
     this.lcmsMethods = lcmsMethods;
@@ -60,6 +60,8 @@ public class DBVocabularies {
     this.fractionationTypes = fractionationTypes;
     this.enrichmentTypes = enrichmentTypes;
     this.proteinPurificationMethods = purificationMethods;
+    this.enzymes = new ArrayList<String>();
+    enzymes.addAll(enzymeMap.keySet());
   }
 
   public List<String> getFractionationTypes() {
@@ -90,7 +92,7 @@ public class DBVocabularies {
     return deviceMap;
   }
 
-  public List<String> getMeasureTypes() {
+  public List<String> getAnalyteTypes() {
     return measureTypes;
   }
 
