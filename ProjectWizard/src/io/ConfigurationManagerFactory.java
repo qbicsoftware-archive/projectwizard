@@ -17,7 +17,7 @@
  *******************************************************************************/
 package io;
 
-import de.uni_tuebingen.qbic.main.LiferayAndVaadinUtils;
+import life.qbic.portal.liferayandvaadinhelpers.main.LiferayAndVaadinUtils;
 
 /**
  * The ConfigurationManager Factory has only the getInstance mehtod. Dependigng on whether the
