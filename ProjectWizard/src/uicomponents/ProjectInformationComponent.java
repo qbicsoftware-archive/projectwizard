@@ -16,10 +16,12 @@
 package uicomponents;
 
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 import uicomponents.Styles;
+import uicomponents.Styles.NotificationType;
 
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.validator.StringLengthValidator;
@@ -35,6 +37,8 @@ import com.vaadin.ui.VerticalLayout;
 
 import componentwrappers.CustomVisibilityComponent;
 import componentwrappers.StandardTextField;
+import model.PersonType;
+import model.ProjectInfo;
 
 public class ProjectInformationComponent extends VerticalLayout {
 
@@ -42,6 +46,7 @@ public class ProjectInformationComponent extends VerticalLayout {
    * 
    */
   private static final long serialVersionUID = 3467663055161160735L;
+  private ComboBox spaceBox;
   private CustomVisibilityComponent projectBox;
   private TextField project;
   private Button reloadProjects;
@@ -52,12 +57,22 @@ public class ProjectInformationComponent extends VerticalLayout {
   private ComboBox managerBox;
   private Button reloadPeople;
 
-  TextArea description;
+  private TextArea projectDescription;
 
-  ValueChangeListener projectSelectListener;
+  private ValueChangeListener projectSelectListener;
 
-  public ProjectInformationComponent(Set<String> people) {
+  public ProjectInformationComponent(List<String> spaces, Set<String> people) {
     setSpacing(true);
+    setSizeUndefined();
+
+    Collections.sort(spaces);
+    spaceBox = new ComboBox("Project", spaces);
+    spaceBox.setStyleName(Styles.boxTheme);
+    spaceBox.setNullSelectionAllowed(false);
+    spaceBox.setImmediate(true);
+    spaceBox.setFilteringMode(FilteringMode.CONTAINS);
+    addComponent(Styles.questionize(spaceBox, "Name of the project", "Project Name"));
+
     ComboBox prBox = new ComboBox("Sub-Project");
     prBox.setStyleName(Styles.boxTheme);
     projectBox = new CustomVisibilityComponent(prBox);
@@ -122,19 +137,19 @@ public class ProjectInformationComponent extends VerticalLayout {
         "Investigator and contact person of this project. Please contact us if additional people need to be added. Press refresh button to show newly added people.",
         "Contacts"));
 
-    description = new TextArea("Description");
-    description.setRequired(true);
-    description.setStyleName(Styles.fieldTheme);
-    description.setInputPrompt("Sub-Project description, maximum of 2000 symbols.");
-    description.setWidth("100%");
-    description.setHeight("110px");
-    description.setVisible(false);
+    projectDescription = new TextArea("Description");
+    projectDescription.setRequired(true);
+    projectDescription.setStyleName(Styles.fieldTheme);
+    projectDescription.setInputPrompt("Sub-Project description, maximum of 2000 symbols.");
+    projectDescription.setWidth("100%");
+    projectDescription.setHeight("110px");
+    projectDescription.setVisible(false);
     StringLengthValidator lv = new StringLengthValidator(
         "Description is only allowed to contain a maximum of 2000 letters.", 0, 2000, true);
-    description.addValidator(lv);
-    description.setImmediate(true);
-    description.setValidationVisible(true);
-    addComponent(description);
+    projectDescription.addValidator(lv);
+    projectDescription.setImmediate(true);
+    projectDescription.setValidationVisible(true);
+    addComponent(projectDescription);
   }
 
   public void tryEnableCustomProject(String code) {
@@ -146,14 +161,14 @@ public class ProjectInformationComponent extends VerticalLayout {
     }
     project.setEnabled(choseNewProject);
     expName.setVisible(choseNewProject);
-    description.setVisible(choseNewProject);
+    projectDescription.setVisible(choseNewProject);
     personBox.setVisible(choseNewProject);
   }
 
   public void updatePeople(Set<String> people) {
-    String pi = getInvestigator();
-    String contact = getContactPerson();
-    String manager = getProjectManager();
+    String pi = getPerson(PersonType.Investigator);
+    String contact = getPerson(PersonType.Contact);
+    String manager = getPerson(PersonType.Manager);
     piBox.removeAllItems();
     contactBox.removeAllItems();
     managerBox.removeAllItems();
@@ -192,12 +207,15 @@ public class ProjectInformationComponent extends VerticalLayout {
     return reloadPeople;
   }
 
+  /**
+   * Returns either a selected existing project from the combobox or, if it is empty, the value from
+   * the textfield. validity of the textfield should be checked elsewhere
+   * 
+   * @return project code
+   */
   public String getSelectedProject() {
     if (selectionNull())
-      if (project.isValid())
-        return project.getValue();
-      else
-        return "";
+      return project.getValue();
     else {
       String project = projectBox.getValue().toString();
       if (project.contains(" "))
@@ -208,7 +226,7 @@ public class ProjectInformationComponent extends VerticalLayout {
   }
 
   public String getProjectDescription() {
-    return description.getValue();
+    return projectDescription.getValue();
   }
 
   public String getSecondaryName() {
@@ -233,16 +251,70 @@ public class ProjectInformationComponent extends VerticalLayout {
     return expName;
   }
 
-  public String getInvestigator() {
-    return (String) piBox.getValue();
+  public String getPerson(PersonType type) {
+    switch (type) {
+      case Manager:
+        return (String) managerBox.getValue();
+      case Investigator:
+        return (String) piBox.getValue();
+      case Contact:
+        return (String) contactBox.getValue();
+      default:
+        return null;
+    }
   }
 
-  public String getContactPerson() {
-    return (String) contactBox.getValue();
+  public boolean spaceIsReady() {
+    return spaceBox.getValue() != null && !spaceBox.getValue().toString().isEmpty();
   }
 
-  public String getProjectManager() {
-    return (String) managerBox.getValue();
+  public String getSpaceCode() {
+    return (String) this.spaceBox.getValue();
   }
 
+  public ComboBox getSpaceBox() {
+    return spaceBox;
+  }
+
+  public void addInfoCompleteListener(ValueChangeListener infoCompleteListener) {
+    ComboBox b = (ComboBox) projectBox.getInnerComponent();
+    b.addValueChangeListener(infoCompleteListener);
+    piBox.addValueChangeListener(infoCompleteListener);
+    contactBox.addValueChangeListener(infoCompleteListener);
+    managerBox.addValueChangeListener(infoCompleteListener);
+    expName.addValueChangeListener(infoCompleteListener);
+    project.addValueChangeListener(infoCompleteListener);
+    projectDescription.addValueChangeListener(infoCompleteListener);
+  }
+
+  public boolean isValid(boolean notify) {
+    if (spaceIsReady() && projectIsReady()) {
+      if (getProjectBox().isEmpty()) {
+        if (projectDescription.isValid() && !projectDescription.isEmpty())
+          return true;
+        else {
+          if (notify)
+            Styles.notification("No description", "Please fill in an experiment description.",
+                NotificationType.ERROR);
+        }
+      } else
+        return true;
+    } else {
+      if (notify)
+        Styles.notification("No Sub-project selected", "Please select a project and sub-project.",
+            NotificationType.ERROR);
+    }
+    return false;
+  }
+
+  public boolean projectIsReady() {
+    return !selectionNull() || project.isValid();
+    // return !getSelectedProject().toUpperCase().isEmpty();
+  }
+
+  public ProjectInfo getProjectInfo() {
+    return new ProjectInfo(projectDescription.getValue(), getSecondaryName(), false,
+        getPerson(PersonType.Investigator), getPerson(PersonType.Contact),
+        getPerson(PersonType.Manager));
+  }
 }
