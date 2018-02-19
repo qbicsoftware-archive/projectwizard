@@ -37,8 +37,6 @@ import processes.TubeBarcodesReadyRunnable;
 
 import logging.Log4j2Logger;
 import main.BarcodeCreator;
-import main.IOpenBisClient;
-import main.OpenBisClient;
 import model.BarcodeConfig;
 import model.ExperimentBarcodeSummary;
 import model.IBarcodeBean;
@@ -60,13 +58,16 @@ import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.TabSheet.SelectedTabChangeEvent;
 import com.vaadin.ui.TabSheet.SelectedTabChangeListener;
 
-import control.Functions.NotificationType;
 import io.DBManager;
+import life.qbic.openbis.openbisclient.IOpenBisClient;
+import life.qbic.openbis.openbisclient.OpenBisClient;
 import sorters.SampleCodeComparator;
 import sorters.SampleExtIDComparator;
 import sorters.SampleSecondaryNameComparator;
 import sorters.SampleTypeComparator;
 import uicomponents.BarcodePreviewComponent;
+import uicomponents.Styles;
+import uicomponents.Styles.NotificationType;
 import views.WizardBarcodeView;
 
 /**
@@ -165,7 +166,7 @@ public class BarcodeController implements Observer {
           Printer p = view.getPrinter();
           creator.printBarcodeFolderForProject(project, p.getHostname(), p.getName(),
               new PrintReadyRunnable(view));
-          Functions.notification("Barcodes printing", "Barcodes have been sent to the printer.",
+          Styles.notification("Barcodes printing", "Barcodes have been sent to the printer.",
               NotificationType.DEFAULT);
           try {
             Thread.sleep(1000);
@@ -205,7 +206,7 @@ public class BarcodeController implements Observer {
                       barcodeBeans));
             }
           } else
-            Functions.notification("Can't create Barcodes",
+            Styles.notification("Can't create Barcodes",
                 "Please select at least one group of Sampes from the table!",
                 NotificationType.DEFAULT);
         }
