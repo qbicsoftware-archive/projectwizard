@@ -44,6 +44,10 @@
 		<dependency org="org.vaadin.addons" name="filteringtable" rev="0.9.15.v7" />
 		<dependency org="org.vaadin.addons" name="flexibleoptiongroup" rev="2.3.0" />
 		<dependency org="org.vaadin.addons" name="wizards-for-vaadin" rev="1.1.1" />
+		<!-- parsing -->
+		<dependency org="com.opencsv" name="opencsv" rev="4.0"><artifact name="opencsv" type="jar" />
+</dependency>
+		<!-- other -->
 		<dependency org="org.apache.commons" name="commons-lang3" rev="3.0"/>
 		<!-- Webdav upload -->	
 		<dependency org="com.github.lookfirst" name="sardine" rev="5.5" />
@@ -53,8 +57,9 @@
 		<dependency org="life.qbic.openbis" name="openbisclient" rev="1.1.3" />
 		<!--<dependency org="life.qbic" name="collections" rev="0.1-SNAPSHOT" changing="true"/> -->
 		<!--<dependency org="life.qbic.openbis" name="liferayandvaadinhelpers" rev="1.1.2" /> -->
+		<dependency org="life.qbic.openbis" name="liferayandvaadinhelpers" rev="1.1.3-SNAPSHOT" />
 		<!-- maria db -->
-		<dependency org="org.mariadb.jdbc" name="mariadb-java-client" rev="1.1.7"/>
+		<dependency org="org.mariadb.jdbc" name="mariadb-java-client" rev="1.3.1"/>
 		<!-- logging -->
 		<dependency org="org.apache.logging.log4j" name="log4j-api" rev="2.2" />
   		<dependency org="org.apache.logging.log4j" name="log4j-core" rev="2.2" />

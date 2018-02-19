@@ -5,8 +5,10 @@
 		<chain name="default">
 			<!-- Public Maven repository -->
 			<ibiblio name="public" m2compatible="true" />
-			<ibiblio name="nexus-snapshots" m2compatible="true" usepoms="true" root="https://peltzer.com.de/nexus/content/repositories/snapshots" changingPattern="*-SNAPSHOT" />
+			<!-- <ibiblio name="nexus-snapshots" m2compatible="true" usepoms="true" root="https://peltzer.com.de/nexus/content/repositories/snapshots" changingPattern="*-SNAPSHOT" /> -->
+			<ibiblio name="nexus-snapshots" m2compatible="true" usepoms="true" root="https://peltzer.com.de/nexus/content/repositories/snapshots" changingPattern=".+\.-SNAPSHOT" checkmodified="true" changingMatcher="regexp" />
 			<ibiblio name="nexus-releases" m2compatible="true" usepoms="true" root="https://peltzer.com.de/nexus/content/repositories/releases" />
+			
 			<!-- Vaadin Add-on repository -->
 			<ibiblio name="vaadin-addons" usepoms="true" m2compatible="true"
 				root="http://maven.vaadin.com/vaadin-addons" />
