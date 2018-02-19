@@ -22,8 +22,6 @@ import java.util.List;
 import java.util.Map;
 
 import logging.Log4j2Logger;
-import main.IOpenBisClient;
-import main.OpenBisClient;
 import main.ProjectwizardUI;
 import uicomponents.Styles;
 import model.AttachmentConfig;
@@ -36,10 +34,8 @@ import uicomponents.UploadsPanel;
 
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
 
-import com.google.gwt.user.client.ui.Widget;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
-import com.vaadin.event.Action.Listener;
 import com.vaadin.server.FileDownloader;
 import com.vaadin.server.StreamResource;
 import com.vaadin.shared.ui.label.ContentMode;
@@ -47,19 +43,18 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.Notification;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.themes.ValoTheme;
 
 import concurrency.UpdateProgressBar;
-import control.Functions;
-import control.Functions.NotificationType;
-import de.uni_tuebingen.qbic.main.LiferayAndVaadinUtils;
+import life.qbic.openbis.openbisclient.IOpenBisClient;
+import life.qbic.openbis.openbisclient.OpenBisClient;
+import life.qbic.portal.liferayandvaadinhelpers.main.LiferayAndVaadinUtils;
+import uicomponents.Styles.*;
 
 /**
  * Wizard Step to downloadTSV and upload the TSV file to and from and register samples and context
@@ -147,7 +142,7 @@ public class FinishStep implements WizardStep {
   public void fileCommitDone() {
     uploads.commitDone();
     logger.info("Moving of files to Datamover folder complete!");
-    Functions
+    Styles
         .notification("Upload complete",
             "Registration of files complete. It might take a few minutes for your files to show up in the navigator. \n"
                 + "You can end the project creation by clicking 'Finish'.",
@@ -157,6 +152,7 @@ public class FinishStep implements WizardStep {
 
   public void setExperimentInfos(String space, String proj, String desc,
       Map<String, List<Sample>> samplesByExperiment, IOpenBisClient openbis) {
+    boolean empty = samplesByExperiment.isEmpty();
     for (Object listener : browserLink.getListeners(ClickEvent.class))
       browserLink.removeClickListener((ClickListener) listener);
     browserLink.addClickListener(new ClickListener() {
@@ -194,16 +190,26 @@ public class FinishStep implements WizardStep {
           break;
       }
     }
-    summary.setValue("Your Experimental Design was registered. Project " + proj + " now has "
-        + entitieNum + " Sample Sources and " + samplesNum + " samples. \n"
+    String amountInfo = "\ndoes not have samples for now.";
+    if (!empty) {
+      amountInfo = "\nnow has " + entitieNum + " Sample Sources and " + samplesNum + " samples.";
+    }
+    summary.setValue("Your Experimental Design was registered. Project " + proj + amountInfo + " \n"
         + "Project description: " + desc.substring(0, Math.min(desc.length(), 60)) + "...");
     w.getFinishButton().setVisible(true);
 
     initUpload(space, proj, openbis);
-    prepareSpreadsheets(
-        new ArrayList<String>(
-            Arrays.asList("Q_BIOLOGICAL_ENTITY", "Q_BIOLOGICAL_SAMPLE", "Q_TEST_SAMPLE")),
-        ids.size(), space, proj, openbis);
+    if (!empty) {
+      downloads.setVisible(true);
+      prepareSpreadsheets(
+          new ArrayList<String>(
+              Arrays.asList("Q_BIOLOGICAL_ENTITY", "Q_BIOLOGICAL_SAMPLE", "Q_TEST_SAMPLE")),
+          ids.size(), space, proj, openbis);
+    } else {
+      bar.setVisible(false);
+      info.setVisible(false);
+      downloads.setVisible(false);
+    }
   }
 
   private void prepareSpreadsheets(List<String> sampleTypes, int numSamples, String space,
