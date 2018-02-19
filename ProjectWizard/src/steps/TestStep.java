@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 import uicomponents.Styles;
+import uicomponents.Styles.NotificationType;
 import model.AOpenbisSample;
 import model.MHCLigandExtractionProtocol;
 import model.RegisteredAnalyteInformation;
@@ -46,8 +47,7 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.VerticalLayout;
 
-import control.Functions;
-import control.Functions.NotificationType;
+import uicomponents.Styles;
 import control.WizardController.Steps;
 
 /**
@@ -137,7 +137,7 @@ public class TestStep implements WizardStep {
       } else
         return true;
     } else {
-      Functions.notification("Missing information",
+      Styles.notification("Missing information",
           "Please input at least one analyte and the number of replicates.",
           NotificationType.ERROR);
       return false;
@@ -145,7 +145,7 @@ public class TestStep implements WizardStep {
   }
 
   private void replaceWizardSteps(List<WizardStep> nextMSSteps) {
-    resetNextSteps();
+    resetNextSteps(hasPools());
     for (WizardStep step : nextMSSteps)
       wizard.addStep(step);
   }
@@ -168,7 +168,8 @@ public class TestStep implements WizardStep {
   }
 
   public void initTestStep(ValueChangeListener testPoolListener,
-      ValueChangeListener outerProteinListener, ClickListener refreshPeopleListener, Map<Steps, WizardStep> steps) {
+      ValueChangeListener outerProteinListener, ClickListener refreshPeopleListener,
+      Map<Steps, WizardStep> steps) {
     ValueChangeListener proteinListener = new ValueChangeListener() {
 
       /**
@@ -185,7 +186,7 @@ public class TestStep implements WizardStep {
         }
         msPanel.setVisible(containsProteins);
         if (!containsProteins) {
-          resetNextSteps();
+          resetNextSteps(hasPools());
           wizard.addStep(steps.get(Steps.Registration));
         } else {
           replaceWizardSteps(msPanel.getNextMSSteps(steps));
@@ -209,7 +210,7 @@ public class TestStep implements WizardStep {
         mhcLigandPanel.setVisible(containsMHCLigands);
       }
     };
-    techPanel = new TechnologiesPanel(vocabs.getMeasureTypes(), vocabs.getPeople().keySet(),
+    techPanel = new TechnologiesPanel(vocabs.getAnalyteTypes(), vocabs.getPeople().keySet(),
         new OptionGroup(""), testPoolListener,
         new ArrayList<ValueChangeListener>(Arrays.asList(outerProteinListener, proteinListener)),
         mhcLigandListener, refreshPeopleListener);
@@ -263,14 +264,15 @@ public class TestStep implements WizardStep {
     return res;
   }
 
-  private void resetNextSteps() {
+  private void resetNextSteps(boolean pool) {
     List<WizardStep> steps = wizard.getSteps();
     List<WizardStep> copy = new ArrayList<WizardStep>();
     copy.addAll(steps);
     boolean isNew = false;
     for (int i = 0; i < copy.size(); i++) {
       WizardStep cur = copy.get(i);
-      if (isNew) {
+      boolean keep = pool && cur instanceof PoolingStep && !hasProteins();
+      if (isNew && !keep) {
         wizard.removeStep(cur);
       }
       if (cur.equals(this))
@@ -283,7 +285,7 @@ public class TestStep implements WizardStep {
   }
 
   public void setAnalyteInputs(RegisteredAnalyteInformation infos) {
-    for(String analyte : infos.getAnalytes()) {
+    for (String analyte : infos.getAnalytes()) {
       techPanel.select(analyte);
     }
     msPanel.selectMeasurePeptides(infos.isMeasurePeptides());
