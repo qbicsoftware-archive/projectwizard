@@ -41,8 +41,7 @@ import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import componentwrappers.OpenbisInfoTextField;
-import control.Functions;
-import control.Functions.NotificationType;
+import uicomponents.Styles.*;
 import main.ProjectwizardUI;
 
 /**
@@ -85,7 +84,7 @@ public class EntityStep implements WizardStep {
    * Create a new Entity step for the wizard
    * 
    * @param speciesMap A map of available species (codes and labels)
-   * @param people 
+   * @param people
    */
   public EntityStep(Map<String, String> speciesMap, Set<String> people) {
     main = new VerticalLayout();
@@ -102,6 +101,7 @@ public class EntityStep implements WizardStep {
     species = new ComboBox("Species", openbisSpecies);
     species.setStyleName(Styles.boxTheme);
     species.setRequired(true);
+    species.setFilteringMode(FilteringMode.CONTAINS);
     if (ProjectwizardUI.testMode)
       species.setValue("Homo Sapiens");
     speciesNum = new OpenbisInfoTextField("How many different species are there in this project?",
@@ -134,19 +134,19 @@ public class EntityStep implements WizardStep {
     specialSpecies.setVisible(false);
     specialSpecies.setWidth("350px");
     main.addComponent(specialSpecies);
-    
+
     HorizontalLayout persBoxH = new HorizontalLayout();
     persBoxH.setCaption("Contact Person");
     person = new ComboBox();
     person.addItems(people);
     person.setFilteringMode(FilteringMode.CONTAINS);
     person.setStyleName(Styles.boxTheme);
-    
+
     reloadPeople = new Button();
     Styles.iconButton(reloadPeople, FontAwesome.REFRESH);
     persBoxH.addComponent(person);
     persBoxH.addComponent(reloadPeople);
-    
+
     main.addComponent(Styles.questionize(persBoxH,
         "Contact person responsible for patients or sample sources.", "Contact Person"));
 
@@ -161,7 +161,7 @@ public class EntityStep implements WizardStep {
   public TextField getExpNameField() {
     return expName;
   }
-  
+
   @Override
   public String getCaption() {
     return "Sample Sources";
@@ -177,7 +177,7 @@ public class EntityStep implements WizardStep {
     if (skip || speciesReady() && replicatesReady() && c.isValid())
       return true;
     else {
-      Functions.notification("Missing information", "Please fill in the required fields.",
+      Styles.notification("Missing information", "Please fill in the required fields.",
           NotificationType.ERROR);
       return false;
     }
@@ -198,7 +198,8 @@ public class EntityStep implements WizardStep {
   }
 
   public boolean speciesIsFactor() {
-    return !species.isEnabled();
+    //TODO was: isEnabld
+    return !species.isVisible();
   }
 
   public void enableSpeciesFactor(boolean enable) {

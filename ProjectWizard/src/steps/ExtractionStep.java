@@ -17,6 +17,7 @@ package steps;
 
 import io.MethodVocabularyParser;
 import main.ProjectwizardUI;
+import model.TissueInfo;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -46,8 +47,7 @@ import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import componentwrappers.OpenbisInfoTextField;
-import control.Functions;
-import control.Functions.NotificationType;
+import uicomponents.Styles.*;
 
 /**
  * Wizard Step to model the extraction of biological samples from entities
@@ -69,8 +69,8 @@ public class ExtractionStep implements WizardStep {
   private TextField expName;
 
   private String emptyFactor = "Other (please specify)";
-  private List<String> suggestions = new ArrayList<String>(Arrays.asList("Extraction time", "Tissue",
-      "Growth Medium", "Radiation", "Treatment", emptyFactor));
+  private List<String> suggestions = new ArrayList<String>(Arrays.asList("Extraction time",
+      "Tissue", "Growth Medium", "Radiation", "Treatment", emptyFactor));
   private CheckBox isotopes;
   private ComboBox isotopeTypes;
 
@@ -81,7 +81,7 @@ public class ExtractionStep implements WizardStep {
   private OpenbisInfoTextField extractReps;
   private List<LabelingMethod> labelingMethods;
 
-  
+
   /**
    * Create a new Extraction step for the wizard
    * 
@@ -106,17 +106,18 @@ public class ExtractionStep implements WizardStep {
     tissue = new ComboBox("Tissue", tissues);
     tissue.setRequired(true);
     tissue.setStyleName(Styles.boxTheme);
+    tissue.setFilteringMode(FilteringMode.CONTAINS);
     if (ProjectwizardUI.testMode)
       tissue.setValue("Blood");
     tissueNum = new OpenbisInfoTextField(
         "How many different tissue types are there in this sample extraction?", "", "50px", "2");
     tissueNum.getInnerComponent().setVisible(false);
     tissueNum.getInnerComponent().setEnabled(false);
-    
+
     expName = new TextField("Experimental Step Name");
     expName.setStyleName(Styles.fieldTheme);
     main.addComponent(expName);
-    
+
     c = new ConditionsPanel(suggestions, emptyFactor, "Tissue", tissue, true, conditionsSet,
         (TextField) tissueNum.getInnerComponent());
     main.addComponent(c);
@@ -180,19 +181,19 @@ public class ExtractionStep implements WizardStep {
     otherTissue.setStyleName(Styles.fieldTheme);
     otherTissue.setVisible(false);
     main.addComponent(otherTissue);
-    
+
     HorizontalLayout persBoxH = new HorizontalLayout();
     persBoxH.setCaption("Contact Person");
     person = new ComboBox();
     person.addItems(people);
     person.setFilteringMode(FilteringMode.CONTAINS);
     person.setStyleName(Styles.boxTheme);
-    
+
     reloadPeople = new Button();
     Styles.iconButton(reloadPeople, FontAwesome.REFRESH);
     persBoxH.addComponent(person);
     persBoxH.addComponent(reloadPeople);
-    
+
     main.addComponent(Styles.questionize(persBoxH,
         "Contact person responsible for tissue extraction.", "Contact Person"));
 
@@ -203,7 +204,7 @@ public class ExtractionStep implements WizardStep {
         "50px", "1");
     main.addComponent(extractReps.getInnerComponent());
   }
-  
+
   public ConditionsPanel getCondPanel() {
     return c;
   }
@@ -243,7 +244,7 @@ public class ExtractionStep implements WizardStep {
     if (skip || tissueReady() && replicatesReady() && c.isValid())
       return true;
     else {
-      Functions.notification("Information missing", "Please fill in the required fields.",
+      Styles.notification("Information missing", "Please fill in the required fields.",
           NotificationType.ERROR);
       return false;
     }
@@ -254,7 +255,7 @@ public class ExtractionStep implements WizardStep {
   }
 
   private boolean tissueReady() {
-    return tissueIsFactor() || tissue.getValue() != null;
+    return isTissueFactor() || tissue.getValue() != null;
   }
 
   @Override
@@ -262,8 +263,9 @@ public class ExtractionStep implements WizardStep {
     return true;
   }
 
-  public boolean tissueIsFactor() {
-    return !tissue.isEnabled();
+  public boolean isTissueFactor() {
+    //TODO test. was: isEnabled 
+    return !tissue.isVisible();
   }
 
   public List<String> getFactors() {
