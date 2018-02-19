@@ -16,6 +16,7 @@
 package io;
 
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -351,7 +352,6 @@ public class DBManager {
       }
   }
 
-  // TODO test this once tables exist
   public Set<Printer> getPrintersForProject(String project) {
     Set<Printer> res = new HashSet<Printer>();
     String sql =
@@ -415,6 +415,34 @@ public class DBManager {
       map.put("No Connection", -1);
     }
     return map;
+  }
+
+  public void tryAddPersonToProjectByName(int projectID, String person, String role) {
+    String sql = "SELECT id FROM persons WHERE first_name = ? AND family_name = ?";
+    int personID = -1;
+    if (person == null || person.isEmpty())
+      return;
+    String[] splt = person.split(" ");
+    if (splt.length != 2)
+      return;
+    String first = splt[0];
+    String last = splt[1];
+    Connection conn = login();
+    try (PreparedStatement statement = conn.prepareStatement(sql)) {
+      statement.setString(1, first);
+      statement.setString(2, last);
+      ResultSet rs = statement.executeQuery();
+      while (rs.next()) {
+        personID = rs.getInt("id");
+      }
+      statement.close();
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+    logout(conn);
+    if (personID > -1) {
+      addPersonToProject(projectID, personID, role);
+    }
   }
 
   //
