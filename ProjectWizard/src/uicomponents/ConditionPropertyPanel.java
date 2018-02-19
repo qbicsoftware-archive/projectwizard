@@ -22,13 +22,17 @@ import java.util.List;
 
 import uicomponents.Styles;
 
-import properties.Factor;
+import properties.Property;
+import properties.PropertyType;
 import steps.MSAnalyteStep;
 
 import com.gargoylesoftware.htmlunit.WebConsole.Logger;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.data.Validator;
+import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.data.validator.NullValidator;
+import com.vaadin.server.ErrorMessage;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.TextArea;
@@ -48,7 +52,7 @@ public class ConditionPropertyPanel extends VerticalLayout {
   private String condition;
   private OptionGroup type;
   private TextArea values;
-  private ComboBox unit;
+  private ComboBox unitField;
   private logging.Logger logger = new Log4j2Logger(ConditionPropertyPanel.class);
 
   /**
@@ -67,19 +71,22 @@ public class ConditionPropertyPanel extends VerticalLayout {
     values.setWidth("300px");
     values.setInputPrompt("Please input different occurrences of the condition " + condition + ",\n"
         + "one per row.");
+    Validator v = new PropertyValuesValidator();
+    values.addValidator(v);
+    values.setValidationVisible(true);
     values.setImmediate(true);
     values.setRequired(true);
     values.setRequiredError("Please input at least one condition.");
 
-    unit = new ComboBox("Unit", units);
-    unit.setStyleName(Styles.boxTheme);
-    unit.setEnabled(false);
-    unit.setVisible(false);
-    unit.setNullSelectionAllowed(false);
+    unitField = new ComboBox("Unit", units);
+    unitField.setStyleName(Styles.boxTheme);
+    unitField.setEnabled(false);
+    unitField.setVisible(false);
+    unitField.setNullSelectionAllowed(false);
     NullValidator uv =
         new NullValidator("If the condition is continuous, a unit must be selected.", false);
-    unit.addValidator(uv);
-    unit.setValidationVisible(false);
+    unitField.addValidator(uv);
+    unitField.setValidationVisible(false);
 
     initListener();
     addComponent(values);
@@ -87,7 +94,7 @@ public class ConditionPropertyPanel extends VerticalLayout {
         "Continuous variables can be measured and have units, "
             + "e.g. discrete time points, categorical variables don't, e.g. different genotypes.",
         "Variable Type"));
-    addComponent(unit);
+    addComponent(unitField);
     setSpacing(true);
   }
 
@@ -102,11 +109,11 @@ public class ConditionPropertyPanel extends VerticalLayout {
       @Override
       public void valueChange(ValueChangeEvent event) {
         boolean on = type != null && type.getValue().toString().equals("Continuous");
-        unit.setEnabled(on);
-        unit.setVisible(on);
-        unit.setValidationVisible(on);
+        unitField.setEnabled(on);
+        unitField.setVisible(on);
+        unitField.setValidationVisible(on);
         if (!on)
-          unit.select(unit.getNullSelectionItemId());
+          unitField.select(unitField.getNullSelectionItemId());
       }
     };
     type.addValueChangeListener(typeListener);
@@ -117,22 +124,26 @@ public class ConditionPropertyPanel extends VerticalLayout {
    * 
    * @return
    */
-  public List<Factor> getFactors() {
+  public List<Property> getFactors() {
     logger.debug("debugging input of conditions: ");
-    List<Factor> res = new ArrayList<Factor>();
-    String unitVal = "";
-    if (unit.getValue() != null)
-      unitVal = ((properties.Unit) unit.getValue()).getValue();
+    List<Property> res = new ArrayList<Property>();
+    properties.Unit unit = null;
+    if (unitField.getValue() != null)
+      unit = (properties.Unit) unitField.getValue();
     logger.debug("whole string:>" + values.getValue() + "<end");
     for (String val : values.getValue().split("\n")) {
-      res.add(new Factor(condition.toLowerCase().replace(" ", "_"), val, unitVal));
+      if (unit != null)
+        res.add(new Property(condition.toLowerCase().replace(" ", "_"), val, unit,
+            PropertyType.Factor));
+      else
+        res.add(new Property(condition.toLowerCase().replace(" ", "_"), val, PropertyType.Factor));
     }
     logger.debug("resulting list: " + res);
     return res;
   }
 
   public boolean unitSet() {
-    return unit.getValue() != null;
+    return unitField.getValue() != null;
   }
 
   public boolean isContinuous() {
@@ -140,7 +151,7 @@ public class ConditionPropertyPanel extends VerticalLayout {
   }
 
   public ComboBox getUnitsBox() {
-    return unit;
+    return unitField;
   }
 
   public TextArea getInputArea() {
@@ -149,5 +160,34 @@ public class ConditionPropertyPanel extends VerticalLayout {
 
   public OptionGroup getUnitTypeSelect() {
     return type;
+  }
+
+  public boolean isValid() {
+    return values.isValid();
+  }
+
+  public String getException() {
+    String err = "";
+    String val = values.getValue();
+    if (val.isEmpty())
+      err = "Please input different occurrences of the condition " + condition + ",\n"
+          + "one per row.";
+    else if (val.contains(";") || val.contains(":"))
+      err = "Please don't use the symbols ';' or ':'";
+    else if (isContinuous() && !unitSet())
+      err = "If the condition is continuous, a unit must be selected.";
+    return err;
+  }
+
+  public class PropertyValuesValidator implements Validator {
+
+    @Override
+    public void validate(Object value) throws InvalidValueException {
+      String val = (String) value;
+      if (val != null && !val.isEmpty())
+        // throw new InvalidValueException("Please fill in values.");
+        if (val.contains(":") || val.contains(";"))
+        throw new InvalidValueException("Please don't use the symbols ';' or ':'");
+    }
   }
 }
