@@ -24,12 +24,12 @@ import java.util.List;
 import uicomponents.Styles;
 import model.ExperimentBean;
 import model.NewSampleModelBean;
+import model.PersonType;
 
 import org.vaadin.teemu.wizards.WizardStep;
 
 import componentwrappers.CustomVisibilityComponent;
-import control.Functions;
-import control.Functions.NotificationType;
+import uicomponents.Styles.*;
 import uicomponents.ProjectInformationComponent;
 
 import com.vaadin.data.util.BeanItemContainer;
@@ -43,6 +43,7 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.themes.ValoTheme;
 
 /**
@@ -55,7 +56,6 @@ public class ProjectContextStep implements WizardStep {
 
   private VerticalLayout main;
 
-  private ComboBox spaceCode;
   private ProjectInformationComponent projectInfoComponent;
 
   List<ExperimentBean> experiments;
@@ -72,27 +72,23 @@ public class ProjectContextStep implements WizardStep {
 
   private GridLayout grid;
 
+  private CustomVisibilityComponent pilot;
+  private CheckBox pilotBox;
+
   /**
    * Create a new Context Step for the wizard
    * 
-   * @param openbisSpaces List of Spaces to select from in the openBIS instance
    * @param newProjectCode
    */
-  public ProjectContextStep(List<String> openbisSpaces, ProjectInformationComponent projSelect) {
+  public ProjectContextStep(ProjectInformationComponent projSelect) {
     main = new VerticalLayout();
     main.setMargin(true);
     main.setSpacing(true);
     main.setSizeUndefined();
-    Collections.sort(openbisSpaces);
-    spaceCode = new ComboBox("Project", openbisSpaces);
-    spaceCode.setStyleName(Styles.boxTheme);
-    spaceCode.setNullSelectionAllowed(false);
-    spaceCode.setImmediate(true);
-    spaceCode.setFilteringMode(FilteringMode.CONTAINS);
 
     projectInfoComponent = projSelect;
     projectInfoComponent.setImmediate(true);
-    projectInfoComponent.setVisible(false);
+    projectInfoComponent.setVisible(true);
 
     projectContext = new CustomVisibilityComponent(new OptionGroup("", contextOptions));
     projectContext.setVisible(false);
@@ -120,12 +116,10 @@ public class ProjectContextStep implements WizardStep {
     samples.setContainerDataSource(
         new BeanItemContainer<NewSampleModelBean>(NewSampleModelBean.class));
 
-    grid = new GridLayout(2, 5);
+    grid = new GridLayout(2, 4);
     grid.setSpacing(true);
     grid.setMargin(true);
-    grid.addComponent(Styles.questionize(spaceCode, "Name of the project", "Project Name"),
-        0, 0);
-    grid.addComponent(projectInfoComponent, 0, 1);
+    grid.addComponent(projectInfoComponent, 0, 0);
     Component context = Styles.questionize(projectContext,
         "If this experiment's organisms or "
             + "tissue extracts are already registered at QBiC from an earlier experiment, you can chose the second "
@@ -133,34 +127,72 @@ public class ProjectContextStep implements WizardStep {
             + "You can also create a preliminary sub-project and add samples later or "
             + "download existing sample information by choosing the last option.",
         "Project Context");
-    grid.addComponent(context, 0, 2);
-    grid.addComponent(experimentTable, 0, 3);
-    grid.addComponent(samples, 1, 2, 1, 3);
+    grid.addComponent(context, 0, 1);
+    grid.addComponent(experimentTable, 0, 2);
+    grid.addComponent(samples, 1, 1, 1, 2);
+
+    pilotBox = new CheckBox("Pilot Project");
+
+    pilot = new CustomVisibilityComponent(pilotBox);
+    pilot.setVisible(false);
+    grid.addComponent(Styles.questionize(pilot,
+        "Select if the samples you want to add belong to a pilot project. "
+            + "You can derive non-pilot samples from existing pilot experiments, but not the other way around.",
+        "Pilot Experiment"), 0, 3);
 
     main.addComponent(grid);
 
     initListeners();
   }
 
-  public String getPrincipalInvestigator() {
-    String res = projectInfoComponent.getInvestigator();
-    if (res == null)
-      res = "";
-    return res;
+  public boolean isPilot() {
+    return pilotBox.getValue();
   }
-  
-  public String getProjectManager() {
-    String res = projectInfoComponent.getProjectManager();
+
+  public String getPerson(PersonType type) {
+    String res = projectInfoComponent.getPerson(type);
     if (res == null)
       res = "";
     return res;
   }
 
-  public String getContactPerson() {
-    String res = projectInfoComponent.getContactPerson();
-    if (res == null)
-      res = "";
-    return res;
+  public void setProjectCodes(List<String> projects) {
+    projectInfoComponent.addProjects(projects);
+    projectInfoComponent.enableProjectBox(true);
+    projectInfoComponent.setVisible(true);
+  }
+
+  public void resetProjects() {
+    projectInfoComponent.resetProjects();
+    resetExperiments();
+  }
+
+  private boolean descriptionReady() {
+    return getDescription() != null && !getDescription().isEmpty();
+  }
+
+  private boolean projectReady() {
+    return this.projectInfoComponent.projectIsReady();
+  }
+
+  public String getProjectCode() {
+    return this.projectInfoComponent.getSelectedProject().toUpperCase();
+  }
+
+  public ComboBox getProjectBox() {
+    return projectInfoComponent.getProjectBox();
+  }
+
+  public TextField getProjectCodeField() {
+    return projectInfoComponent.getProjectField();
+  }
+
+  public String getDescription() {
+    return projectInfoComponent.getProjectDescription();
+  }
+
+  public void tryEnableCustomProject(String code) {
+    projectInfoComponent.tryEnableCustomProject(code);
   }
 
   private void initListeners() {
@@ -182,20 +214,9 @@ public class ProjectContextStep implements WizardStep {
     return experiments;
   }
 
-  public void setProjectCodes(List<String> projects) {
-    projectInfoComponent.addProjects(projects);
-    projectInfoComponent.enableProjectBox(true);
-    projectInfoComponent.setVisible(true);
-  }
-
   public void disableContextOptions() {
     for (int i = 0; i < contextOptions.size(); i++)
       projectContext.setItemEnabled(contextOptions.get(i), false);
-  }
-
-  public void resetProjects() {
-    projectInfoComponent.resetProjects();
-    resetExperiments();
   }
 
   public void resetContext() {
@@ -292,26 +313,22 @@ public class ProjectContextStep implements WizardStep {
         if (expSelected())
           return true;
         else
-          Functions.notification("No experiment selected", "Please select an existing experiment.",
+          Styles.notification("No experiment selected", "Please select an existing experiment.",
               NotificationType.ERROR);
       else {
         if (getProjectBox().isEmpty())
           if (descriptionReady())
             return true;
           else
-            Functions.notification("No description", "Please fill in an experiment description.",
+            Styles.notification("No description", "Please fill in an experiment description.",
                 NotificationType.ERROR);
         else
           return true;
       }
     } else
-      Functions.notification("No sub-project selected",
+      Styles.notification("No sub-project selected",
           "Please select a project and subproject or create a new one.", NotificationType.ERROR);
     return false;
-  }
-
-  private boolean descriptionReady() {
-    return getDescription() != null && !getDescription().isEmpty();
   }
 
   private boolean expSelected() {
@@ -334,12 +351,8 @@ public class ProjectContextStep implements WizardStep {
     // return contextOptions.get(4).equals(context);
   }
 
-  private boolean projectReady() {
-    return getProjectCode() != null && !getProjectCode().isEmpty();
-  }
-
   private boolean spaceReady() {
-    return spaceCode.getValue() != null && !spaceCode.getValue().toString().isEmpty();
+    return projectInfoComponent.spaceIsReady();
   }
 
   @Override
@@ -347,31 +360,19 @@ public class ProjectContextStep implements WizardStep {
     return true;
   }
 
-  public String getProjectCode() {
-    return this.projectInfoComponent.getSelectedProject().toUpperCase();
-  }
-
   public String getSpaceCode() {
-    return (String) this.spaceCode.getValue();
-  }
-
-  public ComboBox getProjectBox() {
-    return projectInfoComponent.getProjectBox();
-  }
-
-  public TextField getProjectCodeField() {
-    return projectInfoComponent.getProjectField();
+    return projectInfoComponent.getSpaceCode();
   }
 
   public ComboBox getSpaceBox() {
-    return spaceCode;
+    return projectInfoComponent.getSpaceBox();
   }
 
   public Table getExperimentTable() {
     return experimentTable;
   }
 
-  public ExperimentBean getExperimentName() {
+  public ExperimentBean getExperiment() {
     return (ExperimentBean) experimentTable.getValue();
   }
 
@@ -407,20 +408,22 @@ public class ProjectContextStep implements WizardStep {
     return expName != null && !expName.isEmpty();
   }
 
-  public String getDescription() {
-    return projectInfoComponent.getProjectDescription();
-  }
-
   public String getExpSecondaryName() {
     return projectInfoComponent.getExpNameField().getValue();
   }
 
-  public void tryEnableCustomProject(String code) {
-    projectInfoComponent.tryEnableCustomProject(code);
+  public void makePilotBoxVisible(boolean b) {
+    pilotBox.setValue(false);
+    pilot.setVisible(b);
   }
 
   public void makeContextVisible() {
     projectContext.setVisible(true);
+  }
+
+  public void selectPilot() {
+    makePilotBoxVisible(true);
+    pilotBox.setValue(true);
   }
 
 }
