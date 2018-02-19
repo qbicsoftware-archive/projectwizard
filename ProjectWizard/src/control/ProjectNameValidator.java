@@ -17,9 +17,9 @@
  *******************************************************************************/
 package control;
 
-import main.IOpenBisClient;
-
 import com.vaadin.data.Validator;
+
+import life.qbic.openbis.openbisclient.IOpenBisClient;
 
 public class ProjectNameValidator implements Validator {
   

@@ -119,8 +119,8 @@ public class AttachmentMover {
         + type;
   }
 
-  private void createMarkers(List<AttachmentInformation> attachments) throws InterruptedException,
-      IOException {
+  private void createMarkers(List<AttachmentInformation> attachments)
+      throws InterruptedException, IOException {
     Sardine sardine = SardineFactory.begin(config.getUser(), config.getPass());
     // File marker = new File(tmpFolder + "marker");
     // if (!marker.exists())
