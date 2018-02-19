@@ -16,12 +16,7 @@
 package model;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
-
-import org.cyberneko.html.HTMLEventInfo.SynthesizedItem;
-
 import ch.systemsx.cisd.openbis.generic.shared.api.v1.dto.Sample;
 
 /**

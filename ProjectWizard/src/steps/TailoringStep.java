@@ -37,9 +37,7 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Upload.FinishedEvent;
 import com.vaadin.ui.Upload.FinishedListener;
 
-import au.com.bytecode.opencsv.CSVReader;
-import control.Functions;
-import control.Functions.NotificationType;
+import uicomponents.Styles.*;
 import control.Uploader;
 import logging.Log4j2Logger;
 
@@ -96,73 +94,73 @@ public class TailoringStep implements WizardStep {
     table.setVisible(false);
   }
 
-  private void initUpload() {
-    final Uploader uploader = new Uploader();
-    Upload upload = new Upload("Upload a tsv here", uploader);
-    upload.setButtonCaption("Upload");
-    // Listen for events regarding the success of upload.
-    upload.addFailedListener(uploader);
-    upload.addSucceededListener(uploader);
-    FinishedListener uploadFinListener = new FinishedListener() {
-      /**
-       * 
-       */
-      private static final long serialVersionUID = -8413963075202260180L;
+//  private void initUpload() {
+//    final Uploader uploader = new Uploader();
+//    Upload upload = new Upload("Upload a tsv here", uploader);
+//    upload.setButtonCaption("Upload");
+//    // Listen for events regarding the success of upload.
+//    upload.addFailedListener(uploader);
+//    upload.addSucceededListener(uploader);
+//    FinishedListener uploadFinListener = new FinishedListener() {
+//      /**
+//       * 
+//       */
+//      private static final long serialVersionUID = -8413963075202260180L;
+//
+//      public void uploadFinished(FinishedEvent event) {
+//        String error = uploader.getError();
+//        File file = uploader.getFile();
+//        table.resetChanges();
+//        if (file.getPath().endsWith("up_")) {
+//          String msg = "No file selected.";
+//          logger.warn(msg);
+//          Styles.notification("Something went wrong...", msg, NotificationType.ERROR);
+//          if (!file.delete())
+//            logger.error(
+//                "uploaded metadata file " + file.getAbsolutePath() + " could not be deleted!");
+//        } else {
+//          if (error == null || error.isEmpty()) {
+//            String msg = "Metadata tsv upload successful!";
+//            logger.info(msg);
+//            Styles.notification("Upload successful", msg, NotificationType.SUCCESS);
+//            try {
+//              processMetadataUpload(file);
+//            } catch (IOException e) {
+//              // TODO Auto-generated catch block
+//              e.printStackTrace();
+//            }
+//          } else {
+//            logger.error(error);
+//            Styles.notification("Something went wrong...", error, NotificationType.ERROR);
+//            if (!file.delete())
+//              logger
+//                  .error("uploaded tmp file " + file.getAbsolutePath() + " could not be deleted!");
+//          }
+//        }
+//      }
+//    };
+//    upload.addFinishedListener(uploadFinListener);
+//  }
 
-      public void uploadFinished(FinishedEvent event) {
-        String error = uploader.getError();
-        File file = uploader.getFile();
-        table.resetChanges();
-        if (file.getPath().endsWith("up_")) {
-          String msg = "No file selected.";
-          logger.warn(msg);
-          Functions.notification("Something went wrong...", msg, NotificationType.ERROR);
-          if (!file.delete())
-            logger.error(
-                "uploaded metadata file " + file.getAbsolutePath() + " could not be deleted!");
-        } else {
-          if (error == null || error.isEmpty()) {
-            String msg = "Metadata tsv upload successful!";
-            logger.info(msg);
-            Functions.notification("Upload successful", msg, NotificationType.SUCCESS);
-            try {
-              processMetadataUpload(file);
-            } catch (IOException e) {
-              // TODO Auto-generated catch block
-              e.printStackTrace();
-            }
-          } else {
-            logger.error(error);
-            Functions.notification("Something went wrong...", error, NotificationType.ERROR);
-            if (!file.delete())
-              logger
-                  .error("uploaded tmp file " + file.getAbsolutePath() + " could not be deleted!");
-          }
-        }
-      }
-    };
-    upload.addFinishedListener(uploadFinListener);
-  }
-
-  protected void processMetadataUpload(File tsv) throws IOException {
-    CSVReader reader = new CSVReader(new FileReader(tsv));
-    String error = "";
-    ArrayList<String[]> data = new ArrayList<String[]>();
-    String[] nextLine;
-    int i = 0;
-    while ((nextLine = reader.readNext()) != null) {
-      if (data.isEmpty() || nextLine.length == data.get(0).length) {
-        data.add(nextLine);
-      } else {
-        error = "Wrong number of columns in row " + i
-            + " Please make sure every row fits the header row.";
-        Functions.notification("Parsing Error", error, NotificationType.ERROR);
-      }
-    }
-    reader.close();
-    String[] header = data.get(0);
-    data.remove(0);
-  }
+//  protected void processMetadataUpload(File tsv) throws IOException {
+//    CSVReader reader = new CSVReader(new FileReader(tsv));
+//    String error = "";
+//    ArrayList<String[]> data = new ArrayList<String[]>();
+//    String[] nextLine;
+//    int i = 0;
+//    while ((nextLine = reader.readNext()) != null) {
+//      if (data.isEmpty() || nextLine.length == data.get(0).length) {
+//        data.add(nextLine);
+//      } else {
+//        error = "Wrong number of columns in row " + i
+//            + " Please make sure every row fits the header row.";
+//        Styles.notification("Parsing Error", error, NotificationType.ERROR);
+//      }
+//    }
+//    reader.close();
+//    String[] header = data.get(0);
+//    data.remove(0);
+//  }
 
   private void initPooling(String name) {
     poolSelect = new CheckBox();
