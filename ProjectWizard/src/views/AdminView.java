@@ -21,12 +21,14 @@ import java.util.HashMap;
 import java.util.List;
 
 import logging.Log4j2Logger;
-import main.IOpenBisClient;
-import main.OpenbisCreationController;
+import registration.OpenbisCreationController;
+import registration.OpenbisSpaceUserRole;
 import uicomponents.Styles;
-import model.OpenbisSpaceUserRole;
 
 import adminviews.MCCView;
+import io.DBVocabularies;
+import life.qbic.openbis.openbisclient.IOpenBisClient;
+
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.TabSheet;
@@ -36,8 +38,7 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.themes.ValoTheme;
 
-import control.Functions;
-import control.Functions.NotificationType;
+import uicomponents.Styles.*;
 
 public class AdminView extends VerticalLayout {
 
@@ -61,12 +62,12 @@ public class AdminView extends VerticalLayout {
   // edit data
 
   // upload metainfo
-  private MetadataUploadView metadataUpload;
+//  private MetadataUploadView metadataUpload;
 
   // logger
   logging.Logger logger = new Log4j2Logger(AdminView.class);
 
-  public AdminView(IOpenBisClient openbis, List<String> spaces,
+  public AdminView(IOpenBisClient openbis, DBVocabularies vocabularies,
       OpenbisCreationController creationController, String user) {
     this.user = user;
     this.registrator = creationController;
@@ -93,8 +94,8 @@ public class AdminView extends VerticalLayout {
     tabs.addTab(spaceView, "Create Space");
 
     // METADATA
-    metadataUpload = new MetadataUploadView(openbis);
-    tabs.addTab(metadataUpload, "Update Metadata");
+//    metadataUpload = new MetadataUploadView(openbis, vocabularies);
+//    tabs.addTab(metadataUpload, "Update Metadata");
 
     // MULTISCALE
     addMultiScale = new MCCView(openbis, creationController, user);
@@ -118,6 +119,7 @@ public class AdminView extends VerticalLayout {
 
       @Override
       public void buttonClick(ClickEvent event) {
+        createSpace.setEnabled(false);
         String space = getSpace().toUpperCase();
         if (!openbis.spaceExists(space)) {
           HashMap<OpenbisSpaceUserRole, ArrayList<String>> roleInfos =
@@ -125,6 +127,7 @@ public class AdminView extends VerticalLayout {
           if (getUsers().size() > 0)
             roleInfos.put(OpenbisSpaceUserRole.USER, getUsers());
           registrator.registerSpace(space, roleInfos, user);
+          // wait few seconds, then check for a maximum of timeout seconds, if space was created
           int timeout = 5;
           int wait = 2;
           try {
@@ -143,14 +146,15 @@ public class AdminView extends VerticalLayout {
             }
           }
           if (openbis.spaceExists(space)) {
-            Functions.notification("Space created", "The space " + space + " has been created!",
+            Styles.notification("Space created", "The space " + space + " has been created!",
                 NotificationType.SUCCESS);
             resetSpaceTab();
           } else {
-            Functions.notification("Problem creating space",
-                "There seems to have been a problem while creating the space. Do the specified users already exist in openbis? Of not, create them.",
+            Styles.notification("Problem creating space",
+                "There seems to have been a problem while creating the space. Do the specified users already exist in openbis? If not, create them.",
                 NotificationType.ERROR);
           }
+          createSpace.setEnabled(true);
         }
       }
     });
