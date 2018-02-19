@@ -15,22 +15,14 @@
  *******************************************************************************/
 package steps;
 
-import io.DBManager;
-
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import logging.Log4j2Logger;
-import main.IOpenBisClient;
 import uicomponents.Styles;
 import main.SampleSummaryBean;
-import model.ExperimentType;
 import model.ISampleBean;
-import model.OpenbisExperiment;
 import model.RegistrationMode;
-import model.notes.Note;
 import uicomponents.ExperimentSummaryTable;
 
 import org.vaadin.hene.flexibleoptiongroup.FlexibleOptionGroup;
@@ -51,8 +43,7 @@ import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.VerticalLayout;
 
 import componentwrappers.CustomVisibilityComponent;
-import control.Functions;
-import control.Functions.NotificationType;
+import uicomponents.Styles.*;
 
 /**
  * Wizard Step to downloadTSV and upload the TSV file to and from and register samples and context
@@ -72,15 +63,6 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
   private CustomVisibilityComponent summaryComponent;
   private logging.Logger logger = new Log4j2Logger(SummaryRegisterStep.class);
   private boolean registrationComplete = false;
-  private DBManager dbm;
-  private IOpenBisClient openbis;
-  private int investigatorID;
-  private int contactID;
-  private int managerID;
-  private String projectIdentifier;
-  private String projectName;
-  private List<OpenbisExperiment> exps;
-  private List<Note> notes;
   private FlexibleOptionGroup optionGroup;
   private VerticalLayout optionLayout;
   private RegistrationMode registrationMode;
@@ -92,9 +74,7 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
       + "now be submitted for QBiC review. I thereby request "
       + "a consultancy meeting. There are no costs associated " + "with this submission.";
 
-  public SummaryRegisterStep(DBManager dbm, IOpenBisClient openbis) {
-    this.dbm = dbm;
-    this.openbis = openbis;
+  public SummaryRegisterStep() {
     main = new VerticalLayout();
     main.setMargin(true);
     main.setSpacing(true);
@@ -222,56 +202,28 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
     return samples;
   }
 
-  private void writeNoteToOpenbis(String id, Note note) {
-    Map<String, Object> params = new HashMap<String, Object>();
-    params.put("id", id);
-    params.put("user", note.getUsername());
-    params.put("comment", note.getComment());
-    params.put("time", note.getTime());
-    openbis.ingest("DSS1", "add-to-xml-note", params);
-  }
-
-  public void registrationDone() {
-    logger.info("Sample registration complete!");
-    for (OpenbisExperiment e : exps) {
-      if (e.getType().equals(ExperimentType.Q_EXPERIMENTAL_DESIGN)) {
-        String id = projectIdentifier + "/" + e.getOpenbisName();
-        for (Note n : notes) {
-          writeNoteToOpenbis(id, n);
-        }
+  public void registrationDone(boolean sqlDown, String error) {
+    if (error.isEmpty()) {
+      if (sqlDown) {
+        logger.warn(
+            "Project registered, but didn't add information to SQL database due to missing SQL connection. User notified.");
+        Styles.notification("Registration complete.",
+            "Registration of samples complete. Unfortunately investigators and contacts could not be added to the database.",
+            NotificationType.DEFAULT);
+      } else {
+        Styles.notification("Registration complete!",
+            "Registration of project complete. Press 'next' for additional options.",
+            NotificationType.SUCCESS);
       }
+      if (registrationMode.equals(RegistrationMode.RegisterSamples))
+        optionGroup.setEnabled(false);
+      register.setEnabled(false);
+      registrationComplete = true;
+    } else {
+      String feedback = "Sample registration could not be completed. Reason: " + error;
+      logger.error(feedback);
+      Styles.notification("Registration failed!", feedback, NotificationType.ERROR);
     }
-    int projectID = dbm.addProjectToDB(projectIdentifier, projectName);
-    if (investigatorID != -1)
-      dbm.addPersonToProject(projectID, investigatorID, "PI");
-    if (contactID != -1)
-      dbm.addPersonToProject(projectID, contactID, "Contact");
-    if (managerID != -1)
-      dbm.addPersonToProject(projectID, managerID, "Manager");
-    for (OpenbisExperiment e : exps) {
-      String identifier = projectIdentifier + "/" + e.getOpenbisName();
-      int expID = dbm.addExperimentToDB(identifier);
-      if (e.getPersonID() > -1) {
-        int person = e.getPersonID();
-        dbm.addPersonToExperiment(expID, person, "Contact");
-      }
-    }
-    Functions.notification("Registration complete!",
-        "Registration of samples complete. Press 'next' for additional options.",
-        NotificationType.SUCCESS);
-    optionGroup.setEnabled(false);
-    register.setEnabled(false);
-    registrationComplete = true;
-  }
-
-  public void setPeopleAndProject(int investigator, int contact, int manager, String projectIdentifier,
-      String projectName, List<OpenbisExperiment> exps) {
-    this.investigatorID = investigator;
-    this.contactID = contact;
-    this.managerID = manager;
-    this.projectIdentifier = projectIdentifier;
-    this.projectName = projectName;
-    this.exps = exps;
   }
 
   public ProgressBar getProgressBar() {
@@ -288,10 +240,6 @@ public class SummaryRegisterStep implements WizardStep, IRegistrationView {
 
   public void resetSummary() {
     summary.removeAllItems();
-  }
-
-  public void setProjectNotes(List<Note> notes) {
-    this.notes = notes;
   }
 
   public void setRegistrationMode(RegistrationMode mode) {
