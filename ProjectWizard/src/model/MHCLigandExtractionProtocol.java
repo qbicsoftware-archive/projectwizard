@@ -40,6 +40,10 @@ public class MHCLigandExtractionProtocol {
       put("TUE39", new String[] {"MHC_CLASS_II"});
       put("W6-32", new String[] {"MHC_CLASS_I"});
       put("GAPA3", new String[] {"MHC_CLASS_I"});
+      // Mouse MHC (H-2)
+      put("B22.249", new String[] {"MHC_CLASS_I"});// H2-Db
+      put("Y3", new String[] {"MHC_CLASS_I"});// H2-Kb
+      put("M5.144.15.2", new String[] {"MHC_CLASS_II"});// H2-Ab
     };
   };
 
@@ -50,8 +54,8 @@ public class MHCLigandExtractionProtocol {
 
   logging.Logger logger = new Log4j2Logger(MHCLigandExtractionProtocol.class);
 
-  public MHCLigandExtractionProtocol(String inputSampleMass, Date preparationDate, List<String> antibodies,
-      List<String> antibodyMasses) {
+  public MHCLigandExtractionProtocol(String inputSampleMass, Date preparationDate,
+      List<String> antibodies, List<String> antibodyMasses) {
     this.inputSampleMass = inputSampleMass;
     this.antibodies = antibodies;
     this.antibodyMasses = antibodyMasses;
